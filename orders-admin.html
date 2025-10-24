@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>📋 إدارة الطلبات</title>
+  <script async custom-element="amp-auto-ads"
+        src="https://cdn.ampproject.org/v0/amp-auto-ads-0.1.js">
+</script>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="icon" href="lv12.ico" type="image/x-icon">
+</head>
+<body class="bg-gray-100 min-h-screen">
+<amp-auto-ads type="adsense"
+        data-ad-client="ca-pub-7770714931220768">
+</amp-auto-ads>
+  <div class="container mx-auto py-8 px-4">
+    <h1 class="text-3xl font-bold mb-6 text-center text-blue-700">📋 إدارة الطلبات</h1>
+
+    <div class="bg-white p-4 rounded shadow mb-6 flex flex-col md:flex-row gap-4 items-center justify-between">
+      <div class="flex gap-2 flex-wrap">
+        <button onclick="filterStatus('all')" class="status-btn bg-blue-100 text-blue-700 px-3 py-1 rounded">الكل</button>
+        <button onclick="filterStatus('pending')" class="status-btn bg-yellow-100 text-yellow-700 px-3 py-1 rounded">🕒 معلقة</button>
+        <button onclick="filterStatus('shipped')" class="status-btn bg-blue-100 text-blue-700 px-3 py-1 rounded">🚚 قيد التوصيل</button>
+        <button onclick="filterStatus('delivered')" class="status-btn bg-green-100 text-green-700 px-3 py-1 rounded">✅ تم التسليم</button>
+        <button onclick="filterStatus('cancelled')" class="status-btn bg-red-100 text-red-700 px-3 py-1 rounded">❌ ملغاة</button>
+      </div>
+
+      <div class="flex gap-2 items-center">
+        <input type="date" id="start-date" class="border rounded p-1">
+        <span>إلى</span>
+        <input type="date" id="end-date" class="border rounded p-1">
+        <button onclick="applyFilter()" class="bg-blue-600 text-white px-3 py-1 rounded">🔍 بحث</button>
+        <button onclick="resetFilter()" class="bg-gray-500 text-white px-3 py-1 rounded">♻️ إعادة</button>
+      </div>
+    </div>
+
+    <div class="bg-white rounded shadow overflow-x-auto">
+      <table class="w-full text-center">
+        <thead class="bg-gray-200">
+          <tr>
+            <th class="p-2">#</th>
+            <th class="p-2">👤 العميل</th>
+            <th class="p-2">📞 الهاتف</th>
+            <th class="p-2">🏠 العنوان</th>
+            <th class="p-2">📦 المنتج</th>
+            <th class="p-2">🔢 الكمية</th>
+            <th class="p-2">📅 ميعاد التوصيل</th>
+            <th class="p-2">الحالة</th>
+            <th class="p-2">إجراءات</th>
+          </tr>
+        </thead>
+        <tbody id="orders-table"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="toast" class="fixed bottom-5 right-5 hidden px-4 py-2 rounded shadow text-white"></div>
+
+<script>
+  const SUPABASE_URL = "https://nszhzfysitppxssplqfb.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zemh6ZnlzaXRwcHhzc3BscWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA4OTcsImV4cCI6MjA3MzgwNjg5N30.5KvK4bhqkZ_GpIfED4qecIMfeubAJYwSFJslULwOp-w";
+   const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const ADMIN_EMAIL = "lv12wlv12@gmail.com";
+
+  let allOrders = [];
+  let filterStart = null;
+  let filterEnd = null;
+  let currentStatus = "all";
+
+  async function checkAuth() {
+    const { data } = await supabase.auth.getSession();
+    if (!data.session || data.session.user.email !== ADMIN_EMAIL) {
+      showToast("🚫 غير مسموح لك بالدخول", "bg-red-600");
+      window.location.href = "index.html";
+      return false;
+    }
+    return true;
+  }
+
+  function showToast(msg, color="bg-green-600") {
+    const toast = document.getElementById("toast");
+    toast.textContent = msg;
+    toast.className = `fixed bottom-5 right-5 ${color} text-white px-4 py-2 rounded shadow`;
+    toast.style.display = "block";
+    setTimeout(() => toast.style.display = "none", 3000);
+  }
+
+  async function setDeliveryDate(orderId) {
+    const input = document.getElementById(`delivery-${orderId}`);
+    if (!input || !input.value) {
+      showToast("⚠️ اختر ميعاد التوصيل", "bg-yellow-500");
+      return;
+    }
+
+    const deliveryDate = new Date(input.value);
+    const { error } = await supabase
+      .from("orders")
+      .update({ delivery_date: deliveryDate.toISOString() })
+      .eq("id", orderId);
+
+    if (error) {
+      showToast("❌ خطأ: " + error.message, "bg-red-600");
+      return;
+    }
+
+    showToast("✅ تم تحديد ميعاد التوصيل");
+    loadOrders();
+  }
+
+  async function updateStatus(orderId, productId, qty, newStatus) {
+    const { error } = await supabase
+      .from("orders")
+      .update({ status: newStatus })
+      .eq("id", orderId);
+
+    if (error) {
+      showToast("❌ خطأ في تحديث الطلب", "bg-red-600");
+      return;
+    }
+
+    if (newStatus === "delivered") {
+      const { data: product } = await supabase
+        .from("products")
+        .select("stock, sold")
+        .eq("id", productId)
+        .single();
+
+      if (product) {
+        const newStock = Math.max(0, product.stock - qty);
+        await supabase
+          .from("products")
+          .update({
+            stock: newStock,
+            sold: (product.sold || 0) + qty
+          })
+          .eq("id", productId);
+      }
+    }
+
+    showToast("✅ تم تحديث حالة الطلب");
+    loadOrders();
+  }
+
+  async function loadOrders() {
+  let query = supabase
+  .from("orders")
+  .select("id, name, phone, address, quantity, status, created_at, delivery_date, product_id, products(name)")
+  .order("id", { ascending: false });
+
+
+    if (filterStart) query = query.gte("created_at", filterStart + "T00:00:00");
+    if (filterEnd) query = query.lte("created_at", filterEnd + "T23:59:59");
+
+    const { data: orders, error } = await query;
+    if (error) {
+      showToast("❌ خطأ في تحميل الطلبات", "bg-red-600");
+      return;
+    }
+
+    allOrders = orders || [];
+    renderOrders();
+  }
+
+  function renderOrders() {
+    const table = document.getElementById("orders-table");
+    table.innerHTML = "";
+
+    let filtered = allOrders.filter(o => currentStatus === "all" || o.status === currentStatus);
+
+    if (filtered.length === 0) {
+      table.innerHTML = `<tr><td colspan="9" class="p-4 text-gray-500">🚫 لا توجد طلبات</td></tr>`;
+      return;
+    }
+
+    filtered.forEach(order => {
+      let statusBadge = `<span class="px-2 py-1 rounded bg-yellow-200 text-yellow-800">🕒 معلقة</span>`;
+      if (order.status === "shipped") statusBadge = `<span class="px-2 py-1 rounded bg-blue-200 text-blue-800">🚚 قيد التوصيل</span>`;
+      if (order.status === "delivered") statusBadge = `<span class="px-2 py-1 rounded bg-green-200 text-green-800">✅ تم التسليم</span>`;
+      if (order.status === "cancelled") statusBadge = `<span class="px-2 py-1 rounded bg-red-200 text-red-800">❌ ملغاة</span>`;
+
+      const deliveryField = order.delivery_date
+        ? new Date(order.delivery_date).toLocaleString("ar-EG")
+        : `<input type="datetime-local" id="delivery-${order.id}" class="border p-1 rounded text-sm">
+           <button onclick="setDeliveryDate(${order.id})" class="bg-purple-500 text-white px-2 py-1 rounded mt-1">📅 حفظ</button>`;
+
+      let actions = "";
+      if (order.status === "pending") {
+        actions = `
+          <button onclick="updateStatus(${order.id}, '${order.product_id}', ${order.quantity}, 'shipped')" class="bg-blue-500 text-white px-2 py-1 rounded">🚚 شحن</button>
+          <button onclick="updateStatus(${order.id}, '${order.product_id}', ${order.quantity}, 'cancelled')" class="bg-red-500 text-white px-2 py-1 rounded">❌ إلغاء</button>`;
+      } else if (order.status === "shipped") {
+        actions = `
+          <button onclick="updateStatus(${order.id}, '${order.product_id}', ${order.quantity}, 'delivered')" class="bg-green-500 text-white px-2 py-1 rounded">✅ تم التسليم</button>
+          <button onclick="updateStatus(${order.id}, '${order.product_id}', ${order.quantity}, 'cancelled')" class="bg-red-500 text-white px-2 py-1 rounded">❌ إلغاء</button>`;
+      }
+
+      table.innerHTML += `
+        <tr class="border-b">
+          <td class="p-2">${order.id}</td>
+          <td class="p-2">${order.name}</td>
+          <td class="p-2">${order.phone}</td>
+          <td class="p-2">${order.address}</td>
+          <td class="p-2">${order.product_id}</td>
+          <td class="p-2">${order.quantity}</td>
+          <td class="p-2">${deliveryField}</td>
+          <td class="p-2">${statusBadge}</td>
+          <td class="p-2 flex gap-1">${actions}</td>
+        </tr>`;
+    });
+  }
+
+  function filterStatus(status) {
+    currentStatus = status;
+    renderOrders();
+  }
+
+  function applyFilter() {
+    filterStart = document.getElementById("start-date").value;
+    filterEnd = document.getElementById("end-date").value;
+    loadOrders();
+  }
+
+  function resetFilter() {
+    document.getElementById("start-date").value = "";
+    document.getElementById("end-date").value = "";
+    filterStart = null;
+    filterEnd = null;
+    loadOrders();
+  }
+
+  (async () => {
+    if (await checkAuth()) {
+      loadOrders();
+    }
+  })();
+</script>
+
+</body>
+</html>

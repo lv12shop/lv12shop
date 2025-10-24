@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>تفاصيل المنتج | متجر LV12</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="lv12.ico" type="image/x-icon" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
+  <style>
+    .thumb-active { border: 2px solid #2563eb; transform: scale(1.02); }
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    .rating-star { color: #f59e0b; }
+    .shadow-soft { box-shadow: 0 8px 24px rgba(2,6,23,0.06); }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans antialiased">
+
+<header class="bg-white shadow sticky top-0 z-50">
+  <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+    <div class="flex items-center gap-2 cursor-pointer" onclick="location.href='shop.html'">
+      <img src="lv12.ico" class="w-10 h-10 rounded" alt="logo">
+      <div>
+        <h1 class="text-lg font-bold text-blue-700">LV12 متجرنا</h1>
+        <p class="text-xs text-gray-500">كل ما تحتاجه في مكان واحد</p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <span id="userName" class="text-sm text-gray-700 hidden sm:inline"></span>
+      <a href="cart.html" class="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700 relative">
+        🛒 السلة
+        <span id="cartBadge" class="absolute -top-2 -left-2 bg-red-600 text-xs text-white rounded-full px-2 hidden">0</span>
+      </a>
+      <a href="my-orders.html" class="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700 hidden sm:inline">📦 طلباتي</a>
+    </div>
+  </div>
+</header>
+<main class="max-w-6xl mx-auto px-3 sm:px-4 py-6 sm:py-8 space-y-6 sm:space-y-8">
+
+  <div id="productDetails" class="bg-white rounded-2xl shadow-soft p-4 sm:p-6 text-gray-700 text-center">
+    <div class="animate-pulse text-gray-400 text-sm">⏳ جاري تحميل المنتج...</div>
+  </div>
+
+  <section id="reviewsSection" class="bg-white rounded-2xl shadow-soft p-4 sm:p-6">
+    <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-3 sm:mb-4">
+      <h2 class="text-lg sm:text-xl font-bold text-gray-800 flex items-center gap-1">⭐ تقييمات العملاء</h2>
+      <div id="avgBadge" class="text-xs sm:text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full mt-2 sm:mt-0"></div>
+    </div>
+
+    <p id="averageRating" class="text-gray-700 mb-3 sm:mb-4 text-sm sm:text-base"></p>
+
+    <div id="reviewsList" class="space-y-3 mb-5">
+    </div>
+
+    <form id="reviewForm" class="hidden border-t pt-4 mt-4 space-y-3">
+      <p class="text-sm sm:text-base font-medium text-gray-800">شاركنا رأيك حول هذا المنتج 👇</p>
+
+      <div>
+        <label class="block text-sm text-gray-600 mb-1">التقييم</label>
+        <div id="starInput" class="flex justify-center sm:justify-start gap-1 text-2xl sm:text-3xl text-yellow-400 cursor-pointer select-none">
+        </div>
+      </div>
+
+      <textarea
+        id="reviewComment"
+        placeholder="اكتب رأيك أو تجربتك..."
+        class="border rounded-lg w-full p-3 text-sm sm:text-base resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+        rows="3"
+        required></textarea>
+
+      <input type="hidden" id="reviewRating" value="" />
+
+      <div class="flex flex-col sm:flex-row justify-center sm:justify-start gap-3 sm:gap-4">
+        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg text-sm sm:text-base transition">
+          📤 إرسال التقييم
+        </button>
+        <button type="button" id="cancelReview" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-5 py-2.5 rounded-lg text-sm sm:text-base transition">
+          ❌ إلغاء
+        </button>
+      </div>
+    </form>
+
+    <div id="reviewLoginNotice" class="text-center text-sm text-gray-600 mt-4 hidden">
+      لتستطيع كتابة تقييمك، يرجى
+      <a href="shop-login.html" class="text-blue-600 font-semibold underline">تسجيل الدخول</a>
+    </div>
+  </section>
+
+  <section class="bg-white rounded-2xl shadow-soft p-4 sm:p-6">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-lg sm:text-xl font-bold text-gray-800">🔗 منتجات مشابهة</h2>
+      <span class="text-xs sm:text-sm text-gray-500">اختر ما يعجبك ❤️</span>
+    </div>
+    <div id="relatedProducts"
+         class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+    </div>
+  </section>
+
+  <div class="text-center">
+    <button onclick="location.href='shop.html'"
+            class="bg-gray-500 hover:bg-gray-600 text-white px-5 py-2.5 rounded-lg text-sm sm:text-base transition">
+      ⬅️ رجوع للمتجر
+    </button>
+  </div>
+
+</main>
+
+
+<div id="toast" class="fixed bottom-5 right-5 hidden z-50"></div>
+<script>
+const SUPABASE_URL = "https://nszhzfysitppxssplqfb.supabase.co";
+const SUPABASE_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zemh6ZnlzaXRwcHhzc3BscWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA4OTcsImV4cCI6MjA3MzgwNjg5N30.5KvK4bhqkZ_GpIfED4qecIMfeubAJYwSFJslULwOp-w";
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const productDetailsEl = document.getElementById("productDetails");
+const reviewCommentEl = document.getElementById("reviewComment");
+const reviewsListEl = document.getElementById("reviewsList");
+const averageRatingEl = document.getElementById("averageRating");
+const reviewForm = document.getElementById("reviewForm");
+const avgBadge = document.getElementById("avgBadge");
+const toastEl = document.getElementById("toast");
+const relatedProductsEl = document.getElementById("relatedProducts");
+const userNameEl = document.getElementById("userName");
+const cartBadge = document.getElementById("cartBadge");
+const starInput = document.getElementById("starInput") || document.createElement("div");
+const reviewRatingHidden = document.getElementById("reviewRating");
+const cancelReviewBtn = document.getElementById("cancelReview");
+
+const urlParams = new URLSearchParams(window.location.search);
+const productId = Number(urlParams.get("id"));
+
+let currentUser = null;
+let cart = JSON.parse(localStorage.getItem("cart") || "[]");
+let selectedRating = 0;
+
+function showToast(msg, ok = true, t = 3000) {
+  toastEl.innerHTML = `<div class="${ok ? 'bg-green-600' : 'bg-red-600'} text-white px-4 py-2 rounded shadow">${msg}</div>`;
+  toastEl.classList.remove("hidden");
+  clearTimeout(toastEl._t);
+  toastEl._t = setTimeout(() => toastEl.classList.add("hidden"), t);
+}
+
+function updateCartUI() {
+  const count = cart.reduce((s, i) => s + (i.quantity || 0), 0);
+  if (count > 0) {
+    cartBadge.textContent = count;
+    cartBadge.classList.remove("hidden");
+  } else {
+    cartBadge.classList.add("hidden");
+  }
+  localStorage.setItem("cart", JSON.stringify(cart));
+}
+
+async function checkLogin() {
+  try {
+    const { data } = await supabase.auth.getSession();
+    if (data?.session?.user) {
+      currentUser = data.session.user;
+      userNameEl.textContent = currentUser.email;
+      reviewForm.classList.remove("hidden");
+      buildStarInput();
+    } else {
+      currentUser = null;
+      userNameEl.innerHTML = `<a href="shop-login.html" class="text-blue-600 underline">تسجيل الدخول</a>`;
+      reviewForm.classList.add("hidden");
+    }
+  } catch (e) {
+    console.error("checkLogin error", e);
+  }
+}
+
+async function loadProduct() {
+  try {
+    const { data, error } = await supabase
+      .from("products")
+      .select(`
+        id,
+        name,
+        description,
+        price,
+        stock,
+        category,
+        created_at,
+        product_images (
+          image_url,
+          is_primary,
+          ordering
+        )
+      `)
+      .eq("id", productId)
+      .maybeSingle();
+
+    if (error || !data) {
+      console.error("fetch product error:", error);
+      productDetailsEl.innerHTML =
+        "<p class='text-red-600 text-center'>❌ المنتج غير موجود أو حدث خطأ</p>";
+      return;
+    }
+
+    const images = (data.product_images || []).sort(
+      (a, b) => (a.ordering || 0) - (b.ordering || 0)
+    );
+   const mainImg =
+  images.find((i) => i.is_primary)?.image_url ||
+  images[0]?.image_url ||
+  "https://placehold.co/600x400/EEE/AAA?text=No+Image";
+
+const thumbs = images.length
+  ? images
+      .map(
+        (img) => `
+        <img src="${img.image_url}" 
+             class="w-20 h-20 rounded border cursor-pointer hover:border-blue-600 transition"
+             onclick="document.getElementById('mainImage').src='${img.image_url}'">
+      `
+      )
+      .join("")
+  : `
+      <img src="https://placehold.co/100x100/EEE/AAA?text=No+Image" 
+           class="w-20 h-20 rounded border opacity-70">
+    `;
+
+    productDetailsEl.innerHTML = `
+      <div class="grid md:grid-cols-2 gap-6">
+        <div>
+          <img id="mainImage" src="${mainImg}" class="w-full h-96 object-cover rounded-lg shadow mb-3">
+          <div class="flex gap-2 overflow-x-auto scrollbar-hide">${thumbs}</div>
+        </div>
+        <div class="text-right">
+          <h1 class="text-2xl font-bold mb-2">${data.name}</h1>
+          <p class="text-gray-600 mb-4">${data.description || "لا يوجد وصف"}</p>
+          <div class="text-blue-600 text-xl font-bold mb-3">💰 ${data.price} ج.م</div>
+          <div class="text-sm text-gray-500 mb-3">المتوفر: ${data.stock ?? 0}</div>
+          <button class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                  onclick="addToCart(${data.id}, '${data.name}', ${data.price})">🛒 أضف للسلة</button>
+        </div>
+      </div>
+    `;
+
+    await loadReviews();
+    await loadRelated(data.category, data.id);
+  } catch (err) {
+    console.error("Unexpected error:", err);
+    productDetailsEl.innerHTML =
+      "<p class='text-red-600 text-center'>⚠️ حدث خطأ غير متوقع أثناء تحميل المنتج</p>";
+  }
+}
+async function loadReviews() {
+  const { data, error } = await supabase
+    .from("product_reviews")
+    .select("*")
+    .eq("product_id", productId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("loadReviews error:", error);
+    reviewsListEl.innerHTML = `<p class="text-gray-500">لا توجد تقييمات بعد</p>`;
+    return;
+  }
+
+  if (!data || !data.length) {
+    reviewsListEl.innerHTML = `<p class="text-gray-500">لا توجد تقييمات بعد</p>`;
+    averageRatingEl.textContent = "";
+    avgBadge.textContent = "";
+    return;
+  }
+
+  const avg = (data.reduce((s, r) => s + (r.rating || 0), 0) / data.length).toFixed(1);
+  averageRatingEl.textContent = `متوسط التقييم: ⭐ ${avg} (${data.length} تقييم)`;
+  avgBadge.textContent = `${avg} / 5`;
+
+  reviewsListEl.innerHTML = data.map(r => `
+    <div class="border p-3 rounded bg-gray-50">
+      <div class="flex justify-between mb-1">
+        <span class="font-semibold">${escapeHtml(r.user_name || "مستخدم")}</span>
+        <span class="text-yellow-500">${"⭐".repeat(r.rating || 0)}</span>
+      </div>
+      <p class="text-gray-700">${escapeHtml(r.comment || "")}</p>
+      <p class="text-xs text-gray-400 mt-1">${new Date(r.created_at).toLocaleString()}</p>
+    </div>
+  `).join("");
+}
+
+reviewForm.addEventListener("submit", async (ev) => {
+  ev.preventDefault();
+  if (!currentUser) {
+    showToast("❌ يجب تسجيل الدخول لإضافة تقييم", false);
+    return;
+  }
+
+  const rating = Number(reviewRatingHidden.value || selectedRating || 0);
+  const comment = document.getElementById("reviewComment").value.trim();
+
+  if (!rating || !comment) {
+    showToast("⚠️ يرجى تعبئة التقييم والتعليق", false);
+    return;
+  }
+
+  const { error } = await supabase.from("product_reviews").insert([
+    {
+      product_id: productId,
+      user_id: currentUser.id,
+      user_name: currentUser.email,
+      rating,
+      comment,
+    },
+  ]);
+
+  if (error) {
+    console.error("submit review error", error);
+    showToast("❌ فشل إرسال التقييم", false);
+  } else {
+    showToast("✅ تم إضافة تقييمك بنجاح");
+    reviewForm.reset();
+    selectedRating = 0;
+    renderStarUI(0);
+    await loadReviews();
+  }
+});
+
+function buildStarInput() {
+  starInput.innerHTML = "";
+  for (let i = 1; i <= 5; i++) {
+    const span = document.createElement("span");
+    span.textContent = "☆";
+    span.className = "text-2xl text-gray-400";
+    span.dataset.value = i;
+    span.addEventListener("mouseenter", () => renderStarUI(i));
+    span.addEventListener("mouseleave", () => renderStarUI(selectedRating));
+    span.addEventListener("click", () => {
+      selectedRating = i;
+      reviewRatingHidden.value = i;
+      renderStarUI(i);
+    });
+    starInput.appendChild(span);
+  }
+}
+function renderStarUI(rating) {
+  [...starInput.children].forEach((star, idx) => {
+    star.textContent = idx < rating ? "★" : "☆";
+    star.className = idx < rating ? "text-2xl rating-star" : "text-2xl text-gray-400";
+  });
+}
+async function safeAddReview(payload) {
+  try {
+    let { error } = await supabase.from("product_reviews").insert([payload]);
+    if (error && error.message.includes("user_id")) {
+      delete payload.user_id;
+      delete payload.user_name;
+      ({ error } = await supabase.from("product_reviews").insert([payload]));
+    }
+    return error ? { ok: false, error } : { ok: true };
+  } catch (e) {
+    return { ok: false, error: e };
+  }
+}
+
+reviewForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (!currentUser) return showToast("❌ يجب تسجيل الدخول لإضافة تقييم", false);
+
+  const rating = Number(reviewRatingHidden.value || selectedRating);
+  const comment = reviewCommentEl.value.trim();
+  if (!rating || !comment) return showToast("⚠️ يرجى تعبئة التقييم والتعليق", false);
+
+  const payload = {
+    product_id: productId,
+    user_id: currentUser?.id,
+    user_name: currentUser?.email,
+    rating,
+    comment
+  };
+
+  const res = await safeAddReview(payload);
+  if (res.ok) {
+    showToast("✅ تم إرسال تقييمك بنجاح");
+    reviewForm.reset();
+    selectedRating = 0;
+    renderStarUI(0);
+    await loadReviews();
+  } else {
+    console.error("submit review error", res.error);
+    showToast("❌ حدث خطأ أثناء إرسال التقييم", false);
+  }
+});
+
+cancelReviewBtn.addEventListener("click", () => {
+  reviewForm.reset();
+  selectedRating = 0;
+  renderStarUI(0);
+});
+
+
+async function loadRelated(category, excludeId) {
+  try {
+    if (!category) {
+      relatedProductsEl.innerHTML = `<p class="text-gray-500">لا توجد منتجات مشابهة</p>`;
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("products")
+      .select("id,name,price,category,product_images(image_url,is_primary)")
+      .eq("category", category)
+      .neq("id", excludeId)
+      .limit(6);
+
+    if (error || !data?.length) {
+      relatedProductsEl.innerHTML = `<p class="text-gray-500">لا توجد منتجات مشابهة</p>`;
+      return;
+    }
+
+  try {
+  relatedProductsEl.innerHTML = data
+    .map((p) => {
+      const img =
+        p.product_images?.find((i) => i.is_primary)?.image_url ||
+        p.product_images?.[0]?.image_url ||
+        "https://placehold.co/400x300/EEE/AAA?text=No+Image";
+
+      return `
+        <div 
+          onclick="location.href='product.html?id=${p.id}'"
+          class="cursor-pointer bg-white shadow-md rounded-xl overflow-hidden 
+                 hover:shadow-lg hover:-translate-y-1 transition transform duration-200"
+        >
+          <img 
+            src="${img}" 
+            alt="${escapeHtml(p.name)}"
+            class="w-full h-40 object-cover bg-gray-100"
+            onerror="this.src='https://placehold.co/400x300/EEE/AAA?text=No+Image'"
+          >
+          <div class="p-3 text-center">
+            <div class="font-semibold text-gray-800 truncate">${escapeHtml(p.name)}</div>
+            <div class="text-blue-600 font-bold mt-1">${p.price} ج.م</div>
+          </div>
+        </div>
+      `;
+    })
+    .join("");
+} catch (e) {
+  console.error("loadRelated error", e);
+  relatedProductsEl.innerHTML = `
+    <div class="text-center text-gray-500 py-6">⚠️ فشل تحميل المنتجات المشابهة</div>
+  `;
+}
+
+function escapeHtml(str = "") {
+  return str.replace(/[&<>"']/g, (m) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;",
+  }[m]));
+}
+
+(async function init() {
+  updateCartUI();
+  await checkLogin();
+  await loadProduct();
+})();
+function addToCart(id, name, price) {
+  let cart = JSON.parse(localStorage.getItem("cart") || "[]");
+  
+  const existing = cart.find(item => item.id === id);
+  
+  if (existing) {
+    existing.quantity += 1; 
+  } else {
+    cart.push({
+      id,
+      name,
+      price,
+      quantity: 1
+    });
+  }
+
+  localStorage.setItem("cart", JSON.stringify(cart));
+
+  const cartBadge = document.getElementById("cartBadge");
+  if (cartBadge) {
+    const count = cart.reduce((a, b) => a + (b.quantity || 1), 0);
+    cartBadge.textContent = count;
+    cartBadge.classList.remove("hidden");
+  }
+
+  showToast("✅ تمت إضافة المنتج إلى السلة بنجاح");
+}
+
+</script>
+
+</body>
+</html>

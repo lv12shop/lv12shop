@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تسجيل الدخول</title>
+  <script async custom-element="amp-auto-ads"
+        src="https://cdn.ampproject.org/v0/amp-auto-ads-0.1.js">
+</script>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7770714931220768"
+     crossorigin="anonymous"></script>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+<amp-auto-ads type="adsense"
+        data-ad-client="ca-pub-7770714931220768">
+</amp-auto-ads>
+  <div class="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md">
+    <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">🔑 تسجيل الدخول</h2>
+
+    <form id="login-form" class="space-y-4">
+      <input type="email" id="email" placeholder="البريد الإلكتروني" class="w-full border p-3 rounded" required>
+      <input type="password" id="password" placeholder="كلمة المرور" class="w-full border p-3 rounded" required>
+
+      <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded hover:bg-blue-700">دخول</button>
+    </form>
+
+    <p class="text-center text-sm mt-4">ما عندكش حساب؟
+   <a href="shop-signup.html" class="text-blue-600 hover:underline">أنشئ حساب</a>
+
+    </p>
+
+    <p id="message" class="text-center mt-4 text-sm"></p>
+  </div>
+<script>
+  const supabase = window.supabase.createClient(
+    "https://nszhzfysitppxssplqfb.supabase.co",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zemh6ZnlzaXRwcHhzc3BscWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA4OTcsImV4cCI6MjA3MzgwNjg5N30.5KvK4bhqkZ_GpIfED4qecIMfeubAJYwSFJslULwOp-w"
+  );
+
+  const form = document.getElementById("login-form");
+  const message = document.getElementById("message");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value.trim();
+
+    if (!email || !password) {
+      message.textContent = "❌ الرجاء إدخال البريد وكلمة المرور";
+      message.className = "text-center mt-4 text-sm text-red-600";
+      return;
+    }
+
+    message.textContent = "⏳ جاري تسجيل الدخول...";
+    message.className = "text-center mt-4 text-sm text-gray-600";
+
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+    if (error) {
+      message.textContent = "❌ فشل تسجيل الدخول: " + error.message;
+      message.className = "text-center mt-4 text-sm text-red-600";
+      return;
+    }
+
+    message.textContent = "✅ تم تسجيل الدخول بنجاح! جاري تحويلك...";
+    message.className = "text-center mt-4 text-sm text-green-600";
+
+    let savedPath = localStorage.getItem("redirectAfterLogin");
+
+    if (!savedPath || savedPath === "/" || savedPath.includes("shop-login")) {
+      savedPath = "/shop.html";
+    }
+
+    localStorage.removeItem("redirectAfterLogin");
+
+    setTimeout(() => {
+      const redirectUrl = savedPath.startsWith("http")
+        ? savedPath
+        : `${window.location.origin}${savedPath.startsWith("/") ? "" : "/"}${savedPath}`;
+      window.location.href = redirectUrl;
+    }, 1000);
+  });
+</script>
+
+
+
+
+
+
+
+

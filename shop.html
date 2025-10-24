@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <title>متجر LV12 — الصفحة الرئيسية</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="lv12.ico" type="image/x-icon" />
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    .card-hover:hover { transform: translateY(-6px); box-shadow: 0 18px 40px rgba(2,6,23,0.08); transition: 220ms; }
+    .fade-in { animation: fadeIn .22s ease both; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px);} to { opacity: 1; transform: translateY(0);} }
+    .product-img { object-fit: cover; width: 100%; height: 180px; }
+    @media (min-width: 768px) { .product-img { height: 200px; } }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans antialiased">
+
+<header class="bg-white shadow sticky top-0 z-50">
+  <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+    <div class="flex items-center gap-3 cursor-pointer" onclick="location.href='shop.html'">
+      <img src="lv12.ico" class="w-10 h-10 rounded" alt="logo" />
+      <div>
+        <div class="text-lg font-bold text-blue-700">LV12 متجرنا</div>
+        <div class="text-xs text-gray-500">تسوق ذكي وسريع</div>
+      </div>
+    </div>
+
+    <div class="flex-1 px-4">
+      <div class="flex gap-3 items-center">
+        <div class="relative flex-1">
+          <input id="searchInput" type="search" placeholder="ابحث عن منتج، اسم، أو وصف..." 
+            class="w-full border rounded-lg px-4 py-2 pr-12 focus:outline-none focus:ring-2 focus:ring-blue-400" />
+          <button id="clearSearch" class="absolute left-2 top-1/2 -translate-y-1/2 text-sm text-gray-500 hidden">✖</button>
+        </div>
+
+        <select id="sortSelect" class="border rounded px-3 py-2 hidden sm:inline">
+          <option value="newest">الأحدث</option>
+          <option value="priceLow">الأرخص</option>
+          <option value="priceHigh">الأغلى</option>
+          <option value="rating">الأعلى تقييماً</option>
+        </select>
+
+        <a id="cartBtn" href="cart.html" class="relative bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700 flex items-center gap-2">
+          🛍️ السلة
+          <span id="cartBadge" class="absolute -left-2 -top-2 bg-red-600 text-white text-xs font-semibold px-2 py-0.5 rounded-full hidden">0</span>
+        </a>
+
+        <a id="ordersBtn" href="my-orders.html" class="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700 hidden sm:inline">📦 طلباتي</a>
+      </div>
+    </div>
+
+    <div id="userArea" class="flex items-center gap-3">
+      <span id="userName" class="text-sm text-gray-700 hidden sm:inline"></span>
+      <a id="loginBtn" href="shop-login.html" class="text-blue-600 underline">تسجيل الدخول</a>
+      <button id="menuToggle" class="sm:hidden px-2 py-1 text-gray-600">☰</button>
+    </div>
+  </div>
+
+  <div class="sm:hidden bg-white border-t">
+    <div class="max-w-7xl mx-auto px-4 py-2">
+      <div class="flex gap-2">
+        <select id="mobileSort" class="border rounded px-3 py-2 w-1/2">
+          <option value="newest">الأحدث</option>
+          <option value="priceLow">الأرخص</option>
+        </select>
+        <button id="filtersToggle" class="border rounded px-3 py-2 w-1/2">الفلاتر</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<nav class="bg-white shadow-sm">
+  <div class="max-w-7xl mx-auto px-4 py-3 flex overflow-x-auto gap-2">
+    <button data-cat="" class="cat-btn px-3 py-1 rounded-full bg-blue-50 text-blue-700">الكل</button>
+    <div id="categoriesNav" class="flex gap-2"></div>
+  </div>
+</nav>
+
+<main class="max-w-7xl mx-auto px-4 py-8">
+  <div id="topInfo" class="mb-6 text-sm text-gray-600">اكتشف أفضل المنتجات — استخدم البحث أو الفلاتر</div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+    <aside class="lg:col-span-1 bg-white p-4 rounded shadow hidden lg:block">
+      <h3 class="font-semibold mb-3">الفلاتر</h3>
+
+      <div class="mb-4">
+        <label class="block text-sm font-medium mb-1">الفئة</label>
+        <select id="categoryFilter" class="w-full border p-2 rounded">
+          <option value="">كل الفئات</option>
+        </select>
+      </div>
+
+      <div class="mb-4">
+        <label class="block text-sm font-medium mb-1">حالة المخزون</label>
+        <select id="stockFilter" class="w-full border p-2 rounded">
+          <option value="">الكل</option>
+          <option value="in">متوفر</option>
+          <option value="out">منفذ</option>
+        </select>
+      </div>
+
+      <div class="mb-4">
+        <label class="block text-sm font-medium mb-1">نطاق السعر</label>
+        <div class="flex gap-2">
+          <input id="priceMin" type="number" placeholder="من" class="border p-2 rounded w-1/2" />
+          <input id="priceMax" type="number" placeholder="إلى" class="border p-2 rounded w-1/2" />
+        </div>
+      </div>
+
+      <div class="mt-4">
+        <button id="applyFilters" class="bg-blue-600 text-white px-3 py-2 rounded w-full">تطبيق</button>
+        <button id="resetFilters" class="mt-2 bg-gray-200 px-3 py-2 rounded w-full">إعادة تعيين</button>
+      </div>
+    </aside>
+
+    <section class="lg:col-span-3">
+      <div id="loading" class="text-center text-gray-500 py-16">⏳ جاري تحميل المنتجات...</div>
+      <div id="productsGrid" class="hidden grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6"></div>
+      <div id="noResults" class="hidden text-center text-gray-500 py-10">لم نجد نتائج — جرّب فلتر/بحث آخر</div>
+    </section>
+  </div>
+</main>
+
+<div id="quickView" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+  <div class="bg-white rounded-lg max-w-4xl w-full p-5 relative">
+    <button onclick="closeQuickView()" class="absolute left-3 top-3 text-gray-500">✖️</button>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div id="qImages" class="md:col-span-1 overflow-hidden rounded"></div>
+      <div class="md:col-span-2">
+        <h3 id="qName" class="text-xl font-bold mb-2"></h3>
+        <div id="qRating" class="text-sm text-yellow-600 mb-2"></div>
+        <p id="qDesc" class="text-gray-700 mb-4"></p>
+
+        <div class="flex items-center gap-4 mb-4">
+          <div class="text-2xl font-bold text-blue-700" id="qPrice"></div>
+          <div id="qStock" class="text-sm text-gray-600"></div>
+        </div>
+
+        <div class="flex gap-2 items-center mb-4">
+          <input id="qQty" type="number" value="1" min="1" class="w-20 border p-2 rounded" />
+          <button id="qAdd" class="bg-blue-600 text-white px-3 py-2 rounded">➕ أضف للسلة</button>
+          <a id="qFull" class="ml-auto text-sm text-blue-600 underline cursor-pointer">عرض كامل</a>
+        </div>
+
+        <div class="mt-2">
+          <button id="copyLinkBtn" class="px-3 py-2 border rounded text-sm">نسخ رابط المنتج</button>
+        </div>
+
+        <div class="mt-6">
+          <h4 class="font-semibold mb-2">التقييمات (أحدث)</h4>
+          <div id="qReviews" class="space-y-3 max-h-40 overflow-auto"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<nav class="fixed bottom-0 left-0 right-0 bg-white border-t z-40 sm:hidden">
+  <div class="max-w-7xl mx-auto px-4 py-2 flex justify-between items-center">
+    <button onclick="location.href='shop.html'" class="flex flex-col items-center text-sm">
+      🏠
+      <span class="text-xs">الرئيسية</span>
+    </button>
+    <button onclick="location.href='cart.html'" class="flex flex-col items-center text-sm relative">
+      🛒
+      <span class="text-xs">السلة</span>
+      <span id="bottomCartBadge" class="absolute -right-2 -top-1 bg-red-600 text-white text-xs font-semibold px-2 py-0.5 rounded-full hidden">0</span>
+    </button>
+    <button onclick="location.href='my-orders.html'" class="flex flex-col items-center text-sm">
+      📦
+      <span class="text-xs">طلباتي</span>
+    </button>
+    <button onclick="location.href='shop-login.html'" class="flex flex-col items-center text-sm">
+      👤
+      <span class="text-xs">حسابك</span>
+    </button>
+  </div>
+</nav>
+
+<div id="toast" class="fixed bottom-20 left-4 right-4 sm:left-auto sm:right-8 hidden z-50"></div>
+
+
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
+<script>
+
+const SUPABASE_URL = "https://nszhzfysitppxssplqfb.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zemh6ZnlzaXRwcHhzc3BscWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA4OTcsImV4cCI6MjA3MzgwNjg5N30.5KvK4bhqkZ_GpIfED4qecIMfeubAJYwSFJslULwOp-w";
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const productsGrid = document.getElementById("productsGrid");
+const loadingEl = document.getElementById("loading");
+const noResultsEl = document.getElementById("noResults");
+const searchInput = document.getElementById("searchInput");
+const sortSelect = document.getElementById("sortSelect");
+const categoryFilter = document.getElementById("categoryFilter");
+const stockFilter = document.getElementById("stockFilter");
+const priceMin = document.getElementById("priceMin");
+const priceMax = document.getElementById("priceMax");
+const applyFiltersBtn = document.getElementById("applyFilters");
+const resetFiltersBtn = document.getElementById("resetFilters");
+const toastEl = document.getElementById("toast");
+const categoriesNav = document.getElementById("categoriesNav");
+const quickView = document.getElementById("quickView");
+const qImages = document.getElementById("qImages");
+const qName = document.getElementById("qName");
+const qDesc = document.getElementById("qDesc");
+const qPrice = document.getElementById("qPrice");
+const qStock = document.getElementById("qStock");
+const qRating = document.getElementById("qRating");
+const qQty = document.getElementById("qQty");
+const qAdd = document.getElementById("qAdd");
+const qBuy = document.getElementById("qBuy");
+const qFull = document.getElementById("qFull");
+const qSimilar = document.getElementById("qSimilar");
+
+const cartBadge = document.getElementById("cartBadge");
+const bottomCartBadge = document.getElementById("bottomCartBadge");
+
+let allProducts = [];
+let displayedProducts = [];
+let categories = [];
+let cart = JSON.parse(localStorage.getItem("cart") || "[]");
+
+const showToast = (msg, success = true, timeout = 3000) => {
+  if (!toastEl) return;
+  toastEl.innerHTML = `
+    <div class="p-3 rounded-lg shadow text-sm ${success ? 'bg-green-600' : 'bg-red-600'} text-white">${msg}</div>`;
+  toastEl.classList.remove("hidden");
+  clearTimeout(toastEl._t);
+  toastEl._t = setTimeout(() => toastEl.classList.add("hidden"), timeout);
+};
+
+const escapeHtml = s => String(s || "").replace(/[&<>"']/g, m => (
+  { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[m]
+));
+
+async function fetchProducts(options = {}) {
+  const { search = "", category = "", sort = "newest", minPrice = null, maxPrice = null, stock = "" } = options;
+  loadingEl.classList.remove("hidden");
+  productsGrid.classList.add("hidden");
+  noResultsEl.classList.add("hidden");
+
+  try {
+    const { data, error } = await supabase
+      .from("products")
+      .select(`
+        id, name, description, price, stock, created_at, category,
+        product_images(image_url, is_primary, ordering),
+        product_reviews(rating)
+      `)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+allProducts = (data || []).map(p => {
+  const imgs = (p.product_images || []).sort((a, b) => (a.ordering || 0) - (b.ordering || 0));
+  const primary = imgs.find(i => i.is_primary) || imgs[0] || {};
+  const ratings = (p.product_reviews || [])
+    .map(r => Number(r.rating))
+    .filter(Boolean);
+  const avg = ratings.length
+    ? Math.round((ratings.reduce((a, b) => a + b, 0) / ratings.length) * 10) / 10
+    : null;
+
+  return {
+    ...p,
+    primaryImage:
+      primary.image_url ||
+      "https://placehold.co/400x300/EEE/AAA?text=No+Image",
+    avgRating: avg,
+    reviewCount: ratings.length,
+  };
+});
+
+
+    filterAndRender({ search, category, sort, minPrice, maxPrice, stock });
+    renderCategories();
+  } catch (err) {
+    console.error("خطأ تحميل المنتجات:", err);
+    showToast("⚠️ حدث خطأ أثناء تحميل المنتجات", false);
+  } finally {
+    loadingEl.classList.add("hidden");
+  }
+}
+
+function filterAndRender({ search, category, sort, minPrice, maxPrice, stock }) {
+  displayedProducts = allProducts.filter(p => {
+    const matchesSearch = !search || p.name.toLowerCase().includes(search.toLowerCase()) || (p.description || "").toLowerCase().includes(search.toLowerCase());
+    const matchesCategory = !category || p.category === category;
+    const matchesStock = !stock || (stock === "in" ? p.stock > 0 : p.stock <= 0);
+    const matchesPrice = (!minPrice || p.price >= minPrice) && (!maxPrice || p.price <= maxPrice);
+    return matchesSearch && matchesCategory && matchesStock && matchesPrice;
+  });
+
+  sortAndRender(sort);
+}
+
+function renderCategories() {
+  categories = [...new Set(allProducts.map(p => p.category).filter(Boolean))];
+  categoriesNav.innerHTML = `<button class="cat-btn px-3 py-1 rounded-full bg-blue-100 text-blue-700" onclick="onCategorySelect('')">الكل</button>`;
+  categoryFilter.innerHTML = `<option value="">كل الفئات</option>`;
+  categories.forEach(cat => {
+    const safe = escapeHtml(cat);
+    categoriesNav.innerHTML += `<button class="cat-btn px-3 py-1 rounded-full bg-gray-100 hover:bg-gray-200" onclick="onCategorySelect('${safe}')">${safe}</button>`;
+    categoryFilter.innerHTML += `<option value="${safe}">${safe}</option>`;
+  });
+}
+function onCategorySelect(cat) {
+  categoryFilter.value = cat;
+  fetchWithFilters();
+}
+
+function sortAndRender(sort) {
+  let products = [...displayedProducts];
+  if (sort === "priceLow") products.sort((a,b)=>a.price-b.price);
+  else if (sort === "priceHigh") products.sort((a,b)=>b.price-a.price);
+  else if (sort === "rating") products.sort((a,b)=>(b.avgRating||0)-(a.avgRating||0));
+  else products.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+  renderProducts(products);
+}
+
+function renderProducts(products) {
+  productsGrid.innerHTML = "";
+  if (!products.length) {
+    noResultsEl.classList.remove("hidden");
+    productsGrid.classList.add("hidden");
+    return;
+  }
+  noResultsEl.classList.add("hidden");
+  productsGrid.classList.remove("hidden");
+
+  products.forEach(p => {
+    const card = document.createElement("div");
+    card.className = "bg-white rounded-lg overflow-hidden shadow hover:shadow-lg transition cursor-pointer flex flex-col";
+    card.innerHTML = `
+      <img src="${escapeHtml(p.primaryImage)}" class="w-full h-48 object-cover" alt="${escapeHtml(p.name)}">
+      <div class="p-3 flex flex-col flex-1">
+        <h3 class="text-sm font-semibold mb-1 truncate">${escapeHtml(p.name)}</h3>
+        <p class="text-xs text-gray-500 mb-2 flex-1">${escapeHtml(p.description?.slice(0,80)||"")}</p>
+        <div class="flex justify-between items-center mt-auto">
+          <div class="text-blue-700 font-bold">${p.price} ج.م</div>
+          <button class="bg-blue-600 text-white px-2 py-1 rounded text-xs" onclick="addToCart(${p.id});event.stopPropagation();">🛒</button>
+        </div>
+      </div>
+    `;
+    card.addEventListener("click", () => location.href = `product.html?id=${p.id}`);
+    productsGrid.appendChild(card);
+  });
+}
+
+function addToCart(id) {
+  const p = allProducts.find(x => x.id === id);
+  if (!p) return showToast("❌ المنتج غير موجود", false);
+  const existing = cart.find(i => i.id === p.id);
+  if (existing) existing.qty += 1; else cart.push({ id: p.id, name: p.name, price: p.price, qty: 1 });
+  localStorage.setItem("cart", JSON.stringify(cart));
+  updateCartUI();
+  showToast("✅ تمت الإضافة إلى السلة");
+}
+function updateCartUI() {
+  const count = cart.reduce((a,b)=>a+(b.qty||1),0);
+  [cartBadge, bottomCartBadge].forEach(el=>{
+    if (!el) return;
+    if (count > 0) { el.textContent = count; el.classList.remove("hidden"); }
+    else el.classList.add("hidden");
+  });
+}
+
+async function quickViewOpen(id) {
+  try {
+    const { data, error } = await supabase.from("products")
+      .select(`id,name,description,price,stock,category,product_images(image_url,is_primary,ordering),product_reviews(rating,comment)`)
+      .eq("id", id).single();
+    if (error) throw error;
+  const mainImage = p.product_images?.find(img => img.is_primary)?.image_url 
+  || p.product_images?.[0]?.image_url 
+  || "https://nszhzfysitppxssplqfb.supabase.co/storage/v1/object/public/products/no-image.png";
+
+    const ratings = (data.product_reviews||[]).map(r=>r.rating);
+    const avg = ratings.length? (ratings.reduce((a,b)=>a+b,0)/ratings.length).toFixed(1):null;
+
+    qName.textContent = data.name;
+    qDesc.textContent = data.description || "لا يوجد وصف";
+    qPrice.textContent = `${data.price} ج.م`;
+    qStock.textContent = data.stock>0?`المتوفر: ${data.stock}`:"منفذ";
+    qRating.textContent = avg?`⭐ ${avg} (${ratings.length})`:"بدون تقييم";
+    qQty.value = 1;
+
+    qAdd.onclick = ()=>{ addToCart(id); closeQuickView(); };
+    qBuy.onclick = ()=>{ addToCart(id); window.location.href="cart.html"; };
+    qFull.onclick = ()=>{ window.location.href=`product.html?id=${id}`; };
+    quickView.classList.remove("hidden"); quickView.classList.add("flex");
+  } catch(e){ console.error(e); showToast("⚠️ تعذر عرض المنتج",false); }
+}
+function closeQuickView(){ quickView.classList.add("hidden"); quickView.classList.remove("flex"); }
+
+searchInput?.addEventListener("input", debounce(fetchWithFilters, 300));
+sortSelect?.addEventListener("change", fetchWithFilters);
+applyFiltersBtn?.addEventListener("click", fetchWithFilters);
+resetFiltersBtn?.addEventListener("click", ()=>{
+  categoryFilter.value=""; stockFilter.value=""; priceMin.value=""; priceMax.value="";
+  fetchWithFilters();
+});
+function debounce(fn,wait=300){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),wait)};}
+function fetchWithFilters(){
+  fetchProducts({
+    search: searchInput?.value||"",
+    category: categoryFilter?.value||"",
+    sort: sortSelect?.value||"newest",
+    minPrice: priceMin?.value?Number(priceMin.value):null,
+    maxPrice: priceMax?.value?Number(priceMax.value):null,
+    stock: stockFilter?.value||""
+  });
+}
+
+async function checkLogin(){
+  const { data } = await supabase.auth.getSession();
+  const session = data?.session;
+  const userName = document.getElementById("userName");
+  const loginBtn = document.getElementById("loginBtn");
+  if (session?.user){
+    userName.textContent = session.user.email;
+    userName.classList.remove("hidden");
+    loginBtn.classList.add("hidden");
+  }else{
+    userName.classList.add("hidden");
+    loginBtn.classList.remove("hidden");
+  }
+}
+
+(async function init(){
+  updateCartUI();
+  await checkLogin();
+  await fetchProducts();
+})();
+</script>
+</body> </html>
