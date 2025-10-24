@@ -335,12 +335,7 @@ function renderProducts(products) {
   }
 
   products.forEach((p, idx) => {
-  const mainImage =
-    p.product_images?.find(img => img.is_primary)?.image_url ||
-    p.product_images?.[0]?.image_url ||
-    "https://placehold.co/300x180/EEE/AAA?text=No+Image";
-
-});
+    const mainImage = p.product_images?.find(img => img.is_primary)?.image_url || p.product_images?.[0]?.image_url || "https://via.placeholder.com/300x180?text=No+Image";
 
     const card = document.createElement("div");
     card.className = "bg-white rounded-lg shadow p-3 flex flex-col gap-2 fade-in";

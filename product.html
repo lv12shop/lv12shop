@@ -415,39 +415,27 @@ async function loadRelated(category, excludeId) {
       return;
     }
 
-  try {
-  relatedProductsEl.innerHTML = data
-    .map((p) => {
-      const img =
-        p.product_images?.find((i) => i.is_primary)?.image_url ||
-        p.product_images?.[0]?.image_url ||
-        "https://placehold.co/400x300/EEE/AAA?text=No+Image";
-
-      return `
-        <div 
-          onclick="location.href='product.html?id=${p.id}'"
-          class="cursor-pointer bg-white shadow-md rounded-xl overflow-hidden 
-                 hover:shadow-lg hover:-translate-y-1 transition transform duration-200"
-        >
-          <img 
-            src="${img}" 
-            alt="${escapeHtml(p.name)}"
-            class="w-full h-40 object-cover bg-gray-100"
-            onerror="this.src='https://placehold.co/400x300/EEE/AAA?text=No+Image'"
-          >
-          <div class="p-3 text-center">
-            <div class="font-semibold text-gray-800 truncate">${escapeHtml(p.name)}</div>
-            <div class="text-blue-600 font-bold mt-1">${p.price} ج.م</div>
+    relatedProductsEl.innerHTML = data
+      .map((p) => {
+        const img =
+          p.product_images?.find((i) => i.is_primary)?.image_url ||
+          p.product_images?.[0]?.image_url ||
+          "https://via.placeholder.com/200";
+        return `
+          <div onclick="location.href='product.html?id=${p.id}'"
+               class="cursor-pointer bg-white shadow rounded-lg overflow-hidden hover:shadow-lg transition">
+            <img src="${img}" class="w-full h-40 object-cover">
+            <div class="p-2 text-sm text-center">
+              <div class="font-semibold">${escapeHtml(p.name)}</div>
+              <div class="text-blue-600 font-bold">${p.price} ج.م</div>
+            </div>
           </div>
-        </div>
-      `;
-    })
-    .join("");
-} catch (e) {
-  console.error("loadRelated error", e);
-  relatedProductsEl.innerHTML = `
-    <div class="text-center text-gray-500 py-6">⚠️ فشل تحميل المنتجات المشابهة</div>
-  `;
+        `;
+      })
+      .join("");
+  } catch (e) {
+    console.error("loadRelated error", e);
+  }
 }
 
 function escapeHtml(str = "") {
