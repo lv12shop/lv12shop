@@ -316,9 +316,7 @@ const toast = document.getElementById('toast');
 const params = new URLSearchParams(window.location.search);
 const productId = Number(params.get('id') || 0);
 
-let currentUser = null;
-let selectedRating = 0;
-let reviewSub = null;
+
 
 function showToast(msg, ok = true, t = 3000) {
   toast.innerHTML = `<div class="px-4 py-2 rounded-lg shadow text-white ${ok ? 'bg-green-600' : 'bg-red-600'}">${msg}</div>`;
@@ -332,35 +330,45 @@ function escapeHtml(s = '') {
 function formatDate(d) {
   try { return new Date(d).toLocaleDateString('ar-EG'); } catch { return ''; }
 }
+let currentUser = null;
+let selectedRating = 0;
+let reviewSub = null;
+let reviewsData = [];
+let reviewsShown = 0;
+const REVIEWS_PER_PAGE = 3;
 
 async function checkAuth() {
   const { data } = await supabase.auth.getSession();
   const session = data?.session;
   currentUser = session?.user || null;
-
+  renderAuthUI();
+}
+function renderAuthUI() {
   if (currentUser) {
     userArea.innerHTML = `
       <span class="text-sm text-gray-700">${escapeHtml(currentUser.email)}</span>
-      <button id="logoutBtn" class="text-sm text-red-500 ml-2">تسجيل خروج</button>`;
-    document.getElementById('logoutBtn').onclick = async () => {
-      await supabase.auth.signOut();
-      location.reload();
-    };
+      <button id="logoutBtn" class="text-sm text-red-500 ml-2 hover:underline">تسجيل خروج</button>
+    `;
     reviewForm.classList.remove('hidden');
     reviewLoginNotice.classList.add('hidden');
+    document.getElementById('logoutBtn').onclick = async () => {
+      await supabase.auth.signOut();
+      currentUser = null;
+      renderAuthUI(); 
+      showToast('تم تسجيل الخروج');
+    };
   } else {
     userArea.innerHTML = `<a href="shop-login.html" class="text-blue-600 underline">تسجيل الدخول</a>`;
     reviewForm.classList.add('hidden');
     reviewLoginNotice.classList.remove('hidden');
   }
 }
-
-
 async function loadProduct() {
   if (!productId) {
     productSkeleton.innerHTML = `<div class="text-center text-red-600">رقم المنتج غير صالح</div>`;
     return;
   }
+
   try {
     const { data, error } = await supabase
       .from('products')
@@ -377,7 +385,10 @@ async function loadProduct() {
     const main = imgs.find(i=>i.is_primary)||imgs[0];
     mainImage.src = main?.image_url || '/assets/no-image.png';
     thumbsEl.innerHTML = imgs.map(im => `
-      <img src="${im.image_url}" class="w-20 h-20 rounded object-cover border cursor-pointer" onclick="mainImage.src='${im.image_url}'">`).join('');
+      <img src="${im.image_url}" 
+           class="w-20 h-20 rounded object-cover border cursor-pointer hover:scale-105 transition" 
+           onclick="mainImage.src='${im.image_url}'">
+    `).join('');
 
     pName.textContent = data.name;
     pDesc.textContent = data.description || 'لا يوجد وصف';
@@ -407,35 +418,75 @@ async function loadProduct() {
   }
 }
 
+// ✅ تحميل التقييمات
+async function loadReviews(initial = true) {
+  if (initial) {
+    const { data, error } = await supabase
+      .from('product_reviews')
+      .select('*')
+      .eq('product_id', productId)
+      .order('created_at', { ascending: false });
 
-async function loadReviews() {
-  const { data, error } = await supabase.from('product_reviews').select('*').eq('product_id', productId);
-  if (error) { reviewsList.innerHTML = `<div class="text-red-500">خطأ في تحميل التقييمات</div>`; return; }
+    if (error) {
+      reviewsList.innerHTML = `<div class="text-red-500">⚠️ خطأ في تحميل التقييمات</div>`;
+      return;
+    }
+    reviewsData = data || [];
+    reviewsShown = 0;
+  }
 
-  if (!data?.length) {
-    reviewsList.innerHTML = `<div class="text-gray-500">لا توجد تقييمات بعد</div>`;
+  if (!reviewsData.length) {
+    reviewsList.innerHTML = `<div class="text-gray-500 text-center">لا توجد تقييمات بعد</div>`;
     avgBadge.textContent = '';
     ratingSummary.textContent = '';
     return;
   }
 
-  const avg = (data.reduce((a,b)=>a+Number(b.rating),0)/data.length).toFixed(1);
+  const avg = (
+    reviewsData.reduce((a, b) => a + Number(b.rating), 0) / reviewsData.length
+  ).toFixed(1);
   avgBadge.textContent = `${avg} / 5`;
-  ratingSummary.innerHTML = `<span class="text-sm text-gray-700">متوسط التقييم: ⭐ ${avg} (${data.length} تقييم)</span>`;
+  ratingSummary.innerHTML = `<span class="text-sm text-gray-700">⭐ ${avg} من ${reviewsData.length} تقييم</span>`;
 
-  reviewsList.innerHTML = data.map(r=>`
-    <div class="border rounded-lg p-3 bg-gray-50">
-      <div class="flex justify-between mb-2">
-        <span class="font-semibold">${escapeHtml(r.user_name||'مستخدم')}</span>
-        <span class="text-yellow-400">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</span>
+  const nextChunk = reviewsData.slice(reviewsShown, reviewsShown + REVIEWS_PER_PAGE);
+  if (reviewsShown === 0) reviewsList.innerHTML = '';
+  
+  nextChunk.forEach(r => {
+    reviewsList.innerHTML += `
+      <div class="border rounded-lg p-3 mb-3 bg-gray-50 shadow-sm hover:shadow-md transition">
+        <div class="flex justify-between mb-2">
+          <span class="font-semibold">${escapeHtml(r.user_name || 'مستخدم')}</span>
+          <span class="text-yellow-400">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</span>
+        </div>
+        <p class="text-gray-700 mb-1">${escapeHtml(r.comment || '')}</p>
+        <small class="text-gray-400">${new Date(r.created_at).toLocaleString()}</small>
       </div>
-      <p class="text-gray-700">${escapeHtml(r.comment||'')}</p>
-      <small class="text-gray-400">${new Date(r.created_at).toLocaleString()}</small>
-    </div>`).join('');
+    `;
+  });
+
+  reviewsShown += nextChunk.length;
+
+  let moreBtn = document.getElementById('loadMoreReviews');
+  if (!moreBtn) {
+    moreBtn = document.createElement('button');
+    moreBtn.id = 'loadMoreReviews';
+    moreBtn.className = 'mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition flex items-center justify-center gap-2 mx-auto';
+    moreBtn.innerHTML = 'عرض المزيد';
+    moreBtn.onclick = async () => {
+      moreBtn.disabled = true;
+      moreBtn.innerHTML = `<span class="animate-spin border-2 border-white border-t-transparent rounded-full w-4 h-4"></span> جاري التحميل...`;
+      await loadReviews(false);
+      moreBtn.disabled = false;
+      moreBtn.innerHTML = 'عرض المزيد';
+    };
+    reviewsList.after(moreBtn);
+  }
+
+  if (reviewsShown >= reviewsData.length) moreBtn.classList.add('hidden');
+  else moreBtn.classList.remove('hidden');
 }
 
-
-reviewForm.addEventListener('submit', async (e)=>{
+reviewForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   if (!currentUser) { showToast('يجب تسجيل الدخول أولاً', false); return; }
 
@@ -467,42 +518,48 @@ reviewForm.addEventListener('submit', async (e)=>{
   await loadReviews();
 });
 
-
 function buildStarInput() {
   starInput.innerHTML = '';
-  for (let i=1;i<=5;i++) {
+  for (let i = 1; i <= 5; i++) {
     const s = document.createElement('span');
     s.textContent = '☆';
-    s.className = 'cursor-pointer text-2xl sm:text-3xl';
-    s.onclick = ()=> { selectedRating = i; renderStarUI(i); };
+    s.className = 'cursor-pointer text-2xl sm:text-3xl transition-transform hover:scale-125';
+    s.onclick = () => { selectedRating = i; renderStarUI(i); };
     starInput.appendChild(s);
   }
   renderStarUI(0);
 }
 function renderStarUI(n) {
-  [...starInput.children].forEach((s,idx)=>{
-    s.textContent = idx<n?'★':'☆';
-    s.classList.toggle('text-yellow-400', idx<n);
+  [...starInput.children].forEach((s, idx) => {
+    s.textContent = idx < n ? '★' : '☆';
+    s.classList.toggle('text-yellow-400', idx < n);
   });
 }
-clearReviewBtn.onclick = ()=> { reviewComment.value=''; selectedRating=0; renderStarUI(0); };
-
+clearReviewBtn.onclick = () => { reviewComment.value = ''; selectedRating = 0; renderStarUI(0); };
 
 async function loadRelated(cat, exclude) {
-  if (!cat) { relatedProductsEl.innerHTML='<div class="text-gray-500">لا توجد منتجات مشابهة</div>'; return; }
+  if (!cat) { 
+    relatedProductsEl.innerHTML = '<div class="text-gray-500">لا توجد منتجات مشابهة</div>'; 
+    return; 
+  }
+
   const { data } = await supabase.from('products')
     .select('id,name,price,product_images(image_url,is_primary)')
     .eq('category', cat)
     .neq('id', exclude)
     .limit(8);
-  if (!data?.length) { relatedProductsEl.innerHTML='<div class="text-gray-500">لا توجد منتجات مشابهة</div>'; return; }
 
-  relatedProductsEl.innerHTML = data.map(p=>{
-    const img = p.product_images?.find(i=>i.is_primary)?.image_url || '/assets/no-image.png';
+  if (!data?.length) { 
+    relatedProductsEl.innerHTML = '<div class="text-gray-500">لا توجد منتجات مشابهة</div>'; 
+    return; 
+  }
+
+  relatedProductsEl.innerHTML = data.map(p => {
+    const img = p.product_images?.find(i => i.is_primary)?.image_url || '/assets/no-image.png';
     return `
       <div class="bg-white rounded-lg shadow cursor-pointer hover:shadow-md transition"
-        onclick="location.href='product.html?id=${p.id}'">
-        <img src="${img}" class="w-full h-36 object-cover" />
+           onclick="location.href='product.html?id=${p.id}'">
+        <img src="${img}" class="w-full h-36 object-cover rounded-t-lg" />
         <div class="p-2 text-center">
           <div class="font-semibold text-sm">${escapeHtml(p.name)}</div>
           <div class="text-blue-600 font-bold">${Number(p.price).toLocaleString('ar-EG')} ج.م</div>
@@ -511,39 +568,41 @@ async function loadRelated(cat, exclude) {
   }).join('');
 }
 
-
 function addToCartLocal(id, name, price) {
-  const cart = JSON.parse(localStorage.getItem('cart')||'[]');
-  const found = cart.find(i=>i.id===id);
+  const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+  const found = cart.find(i => i.id === id);
   if (found) found.quantity++;
-  else cart.push({ id, name, price, quantity:1 });
+  else cart.push({ id, name, price, quantity: 1 });
   localStorage.setItem('cart', JSON.stringify(cart));
   updateCartBadgeUI();
   showToast('تمت الإضافة للسلة');
 }
 function updateCartBadgeUI() {
-  const cart = JSON.parse(localStorage.getItem('cart')||'[]');
-  const count = cart.reduce((a,b)=>a+(b.quantity||0),0);
-  if (count>0) { cartBadge.textContent=count; cartBadge.classList.remove('hidden'); }
-  else cartBadge.classList.add('hidden');
+  const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+  const count = cart.reduce((a, b) => a + (b.quantity || 0), 0);
+  if (count > 0) { 
+    cartBadge.textContent = count; 
+    cartBadge.classList.remove('hidden'); 
+  } else {
+    cartBadge.classList.add('hidden');
+  }
 }
-
 
 function subscribeReviewsRealtime() {
   if (reviewSub) return;
   reviewSub = supabase.channel('public:product_reviews')
-    .on('postgres_changes', { event:'INSERT', schema:'public', table:'product_reviews', filter:`product_id=eq.${productId}` },
-      ()=> loadReviews())
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'product_reviews', filter: `product_id=eq.${productId}` },
+      () => loadReviews())
     .subscribe();
 }
 
-
-(async ()=>{
+(async () => {
   updateCartBadgeUI();
   buildStarInput();
   await checkAuth();
   await loadProduct();
 })();
+
 </script>
 
 
