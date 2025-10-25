@@ -5,282 +5,169 @@
   <title>تفاصيل المنتج | متجر LV12</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="icon" href="lv12.ico" type="image/x-icon" />
-
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<style>
-  :root {
-    --lv-blue-500: #2563eb;
-    --lv-blue-600: #1d4ed8;
-    --lv-blue-700: #1e40af;
-    --lv-yellow: #f59e0b;
-    --lv-gray-light: #f9fafb;
-    --lv-gray: #e5e7eb;
-    --lv-dark: #1e293b;
-    --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
-  }
+  <style>
+    :root {
+      --lv-blue-500: #2563eb;
+      --lv-blue-600: #1d4ed8;
+      --lv-blue-700: #1e40af;
+      --lv-gray-50: #f9fafb;
+      --lv-gray-200: #e5e7eb;
+      --lv-gray-700: #374151;
+      --lv-yellow: #fbbf24;
+    }
 
-  body {
-    font-family: 'Cairo', sans-serif;
-    background: var(--lv-gray-light);
-    color: var(--lv-dark);
-    line-height: 1.8;
-    scroll-behavior: smooth;
-  }
+    body {
+      font-family: 'Cairo', sans-serif;
+      background: var(--lv-gray-50);
+      color: var(--lv-gray-700);
+      line-height: 1.8;
+    }
 
-  .shadow-soft { box-shadow: var(--card-shadow); }
-  .rounded-xl { border-radius: 1.2rem; }
-  .btn-main {
-    background: linear-gradient(90deg, var(--lv-blue-500), var(--lv-blue-600));
-    color: #fff;
-    transition: all .25s ease;
-  }
-  .btn-main:hover {
-    opacity: .9;
-    transform: translateY(-2px);
-  }
+    .btn-main {
+      background: linear-gradient(90deg, var(--lv-blue-500), var(--lv-blue-600));
+      color: #fff;
+      transition: all .3s ease;
+      border-radius: .75rem;
+      font-weight: 600;
+      box-shadow: 0 3px 8px rgba(37, 99, 235, .25);
+    }
+    .btn-main:hover { transform: translateY(-2px); opacity: .9; }
 
-  .btn-outline {
-    border: 1px solid var(--lv-blue-500);
-    color: var(--lv-blue-600);
-    background: #fff;
-    transition: all .25s ease;
-  }
-  .btn-outline:hover {
-    background: var(--lv-blue-500);
-    color: #fff;
-  }
-
-  #mainImage {
-    border-radius: 1rem;
-    max-height: 380px;
-    object-fit: cover;
-    box-shadow: var(--card-shadow);
-    transition: transform .3s ease;
-  }
-  #mainImage:hover {
-    transform: scale(1.02);
-  }
-  #thumbs img {
-    transition: all .25s ease;
-  }
-  #thumbs img:hover {
-    transform: scale(1.05);
-    border-color: var(--lv-blue-500);
-  }
-  .thumb-active {
-    border: 2px solid var(--lv-blue-600);
-    transform: scale(1.05);
-  }
-
-  .rating-star {
-    color: var(--lv-yellow);
-    font-size: 1.5rem;
-    transition: color .2s ease;
-  }
-  #starInput span {
-    cursor: pointer;
-    font-size: 1.8rem;
-  }
-  #starInput span:hover {
-    color: var(--lv-yellow);
-  }
-
-  #reviewsList > div {
-    background: #fff;
-    border: 1px solid var(--lv-gray);
-    border-radius: 0.8rem;
-    padding: 1rem 1.2rem;
-    margin-bottom: 1rem;
-    box-shadow: var(--card-shadow);
-  }
-  #reviewsList > div:hover {
-    transform: translateY(-2px);
-    transition: all .25s ease;
-  }
-
-  .toast {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 60;
-    animation: fadeIn 0.3s ease;
-  }
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .skeleton {
-    background: linear-gradient(90deg, #f3f4f6 25%, #e9eef9 50%, #f3f4f6 75%);
-    background-size: 200% 100%;
-    animation: shimmer 1.2s linear infinite;
-    border-radius: 0.5rem;
-  }
-  @keyframes shimmer {
-    0% { background-position: 200% 0 }
-    100% { background-position: -200% 0 }
-  }
-
-  section, #productBlock, #reviews {
-    background: #fff;
-    border-radius: 1.5rem;
-    padding: 2rem;
-    box-shadow: var(--card-shadow);
-  }
-
-  @media (max-width: 768px) {
-    body { font-size: 0.95rem; }
-    h1, h2, h3 { font-size: 1.25rem; }
-    #productBlock, #reviews, section {
-      padding: 1rem !important;
+    .card {
+      background: #fff;
       border-radius: 1rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,.05);
+      transition: transform .3s ease;
     }
-    #mainImage { max-height: 280px; }
-    #thumbs img { width: 60px; height: 60px; }
-    #reviewsList > div { padding: 0.8rem; }
-    .flex { flex-wrap: wrap; }
-    button, textarea, input {
-      width: 100%;
-      margin-bottom: 0.5rem;
+    .card:hover { transform: translateY(-4px); }
+
+    #reviewsList > div {
+      background: #fff;
+      border: 1px solid var(--lv-gray-200);
+      border-radius: 1rem;
+      padding: 1rem 1.25rem;
+      transition: all .3s ease;
     }
-  }
+    #reviewsList > div:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,.08);
+      transform: translateY(-3px);
+    }
 
-  @media (min-width: 769px) and (max-width: 1024px) {
-    #mainImage { max-height: 320px; }
-  }
-</style>
+    #starInput span {
+      cursor: pointer;
+      font-size: 1.8rem;
+      color: #d1d5db;
+      transition: color .2s ease, transform .2s ease;
+    }
+    #starInput span:hover { transform: scale(1.2); color: var(--lv-yellow); }
 
+    .review-stars {
+      color: var(--lv-yellow);
+      font-size: 1.2rem;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--lv-blue-600);
+      color: #fff;
+      padding: .75rem 1rem;
+      border-radius: .75rem;
+      font-size: .9rem;
+      box-shadow: 0 4px 10px rgba(0,0,0,.15);
+      opacity: 0;
+      transform: translateY(10px);
+      animation: fadeIn .4s forwards;
+    }
+    @keyframes fadeIn {
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
 </head>
-<body class="bg-gray-50 text-gray-800 font-Cairo antialiased">
 
+<body class="antialiased">
   <header class="bg-white shadow sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
       <div class="flex items-center gap-3 cursor-pointer" onclick="location.href='index.html'">
-        <img src="/lv12.ico" alt="LV12" class="w-10 h-10 rounded-md" />
+        <img src="lv12.ico" alt="LV12" class="w-10 h-10 rounded-md" />
         <div>
-          <div class="text-lg font-bold text-[color:var(--lv-blue-500)]">متجر LV12</div>
+          <div class="text-lg font-extrabold text-blue-700">متجر LV12</div>
           <div class="text-xs text-gray-500">تسوق ذكي وسريع</div>
         </div>
       </div>
 
       <div class="flex items-center gap-3">
         <div id="userArea" class="text-sm text-gray-700"></div>
-        <a href="cart.html" class="relative bg-[color:var(--lv-blue-500)] text-white px-3 py-2 rounded-md hover:bg-[color:var(--lv-blue-600)]">
+        <a href="cart.html" class="relative btn-main px-3 py-2">
           🛒 السلة
           <span id="cartBadge" class="absolute -left-2 -top-2 bg-red-600 text-xs text-white rounded-full px-2 hidden">0</span>
         </a>
-        <a href="my-orders.html" class="hidden sm:inline bg-[color:var(--lv-blue-500)] text-white px-3 py-2 rounded-md hover:bg-[color:var(--lv-blue-600)]">📦 طلباتي</a>
       </div>
     </div>
   </header>
 
   <main class="max-w-6xl mx-auto px-4 py-8 space-y-6">
-
-    <section id="productBlock" class="bg-white rounded-2xl shadow-soft p-4 md:p-6">
-      <div id="productSkeleton" class="grid md:grid-cols-2 gap-6">
-        <div class="space-y-3">
-          <div class="w-full h-[420px] rounded-lg skeleton"></div>
-          <div class="flex gap-2">
-            <div class="w-20 h-20 rounded skeleton"></div>
-            <div class="w-20 h-20 rounded skeleton"></div>
-            <div class="w-20 h-20 rounded skeleton"></div>
-            <div class="w-20 h-20 rounded skeleton"></div>
-          </div>
-        </div>
-        <div class="space-y-3">
-          <div class="h-6 w-3/4 rounded skeleton"></div>
-          <div class="h-4 w-1/2 rounded skeleton"></div>
-          <div class="h-6 w-1/3 rounded skeleton"></div>
-          <div class="h-8 w-1/4 rounded skeleton"></div>
-        </div>
-      </div>
-
+    <section id="productBlock" class="card p-6">
+      <div id="productSkeleton" class="animate-pulse text-center py-10 text-gray-500">⏳ جاري تحميل تفاصيل المنتج...</div>
       <div id="productContent" class="hidden">
-        <div class="grid md:grid-cols-2 gap-6 items-start">
+        <div class="grid md:grid-cols-2 gap-8 items-start">
           <div>
-            <div class="relative">
-              <img id="mainImage" src="" alt="product" class="w-full h-[420px] object-cover rounded-lg shadow" />
-              <div id="soldBadge" class="absolute top-3 left-3 bg-red-600 text-white px-3 py-1 text-sm rounded hidden">غير متوفر</div>
-            </div>
-
+            <img id="mainImage" class="w-full h-96 object-cover rounded-xl shadow-md" />
             <div id="thumbs" class="flex gap-2 mt-3 overflow-x-auto"></div>
           </div>
-
-          <div class="text-right">
-            <h1 id="pName" class="text-2xl font-extrabold text-[color:var(--lv-blue-500)] mb-2"></h1>
-            <p id="pDesc" class="text-gray-600 mb-4"></p>
-
-            <div class="flex items-center gap-4 mb-4">
-              <div class="text-2xl font-bold text-[color:var(--lv-blue-500)]" id="pPrice"></div>
-              <div class="text-sm text-gray-500" id="pStock"></div>
+          <div>
+            <h1 id="pName" class="text-3xl font-bold text-blue-700 mb-2"></h1>
+            <p id="pDesc" class="text-gray-600 mb-4 leading-relaxed"></p>
+            <div class="text-2xl font-bold text-blue-700 mb-2" id="pPrice"></div>
+            <div class="text-sm text-gray-500 mb-4" id="pStock"></div>
+            <div class="flex gap-3 mb-4">
+              <button id="addToCartBtn" class="btn-main px-4 py-2">🛒 أضف للسلة</button>
+              <button id="buyNowBtn" class="border border-blue-600 text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition">💳 اشتري الآن</button>
             </div>
-
-            <div class="flex items-center gap-3 mb-4">
-              <button id="addToCartBtn" class="bg-[color:var(--lv-blue-500)] hover:bg-[color:var(--lv-blue-600)] text-white px-4 py-2 rounded-lg transition">🛒 أضف للسلة</button>
-              <button id="buyNowBtn" class="border border-[color:var(--lv-blue-500)] text-[color:var(--lv-blue-500)] px-4 py-2 rounded-lg hover:bg-[color:var(--lv-blue-50)] transition">💳 اشتري الآن</button>
-            </div>
-
-            <div class="mt-4 text-sm text-gray-600">
-              <span class="font-medium">الفئة:</span> <span id="pCategory"></span>
-              <span class="mx-3">•</span>
-              <span class="font-medium">أضيف في:</span> <span id="pDate"></span>
+            <div class="text-sm text-gray-500">
+              <span class="font-semibold">الفئة:</span> <span id="pCategory"></span> • 
+              <span class="font-semibold">أضيف في:</span> <span id="pDate"></span>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <section id="reviews" class="bg-white rounded-2xl shadow-soft p-4 md:p-6">
-      <div class="flex items-center justify-between mb-3">
-        <h2 class="text-lg font-bold">⭐ تقييمات العملاء</h2>
-        <div id="avgBadge" class="text-sm px-3 py-1 rounded-full bg-gray-100 text-gray-700"></div>
+    <section id="reviews" class="card p-6">
+      <div class="flex justify-between mb-4 items-center">
+        <h2 class="text-xl font-bold text-blue-700">⭐ تقييمات العملاء</h2>
+        <div id="avgBadge" class="text-sm bg-blue-50 px-3 py-1 rounded-full text-blue-700 font-medium"></div>
       </div>
-
-      <div id="ratingSummary" class="mb-4 text-gray-700"></div>
-
-      <div id="reviewsList" class="space-y-3 mb-4">
-      </div>
+      <div id="ratingSummary" class="mb-4 text-gray-600 text-sm"></div>
+      <div id="reviewsList" class="space-y-4 mb-5"></div>
 
       <div class="border-t pt-4 mt-4">
         <div id="reviewLoginNotice" class="text-sm text-gray-600 hidden">
-          للتعليق يجب أن تكون مسجلاً.
-          <a href="shop-login.html" class="text-[color:var(--lv-blue-500)] underline">تسجيل الدخول</a>
+          لتتمكن من كتابة تقييم، يرجى <a href="shop-login.html" class="text-blue-600 underline">تسجيل الدخول</a>.
         </div>
-
-        <form id="reviewForm" class="space-y-3 hidden">
-          <div class="flex items-center gap-3">
-            <div id="starInput" class="flex gap-1 text-2xl"></div>
-            <div id="ratingNote" class="text-sm text-gray-500"></div>
-          </div>
-
-          <textarea id="reviewComment" rows="3" required
-            class="w-full border rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-[color:var(--lv-blue-500)]"
-            placeholder="اكتب رأيك هنا..."></textarea>
-
-          <div class="flex items-center gap-3">
-            <button type="submit" class="bg-[color:var(--lv-blue-500)] text-white px-4 py-2 rounded-lg">📤 أرسل التقييم</button>
-            <button type="button" id="clearReview" class="bg-gray-200 px-3 py-2 rounded-lg">إلغاء</button>
+        <form id="reviewForm" class="hidden space-y-3">
+          <div id="starInput" class="flex gap-1"></div>
+          <textarea id="reviewComment" rows="3" placeholder="اكتب رأيك حول المنتج..." class="w-full border rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
+          <div class="flex gap-2">
+            <button type="submit" class="btn-main px-4 py-2">📤 أرسل التقييم</button>
+            <button type="button" id="clearReview" class="px-3 py-2 bg-gray-200 rounded-lg">إلغاء</button>
           </div>
         </form>
       </div>
     </section>
 
-    <section class="bg-white rounded-2xl shadow-soft p-4 md:p-6">
-      <div class="flex items-center justify-between mb-3">
-        <h3 class="font-bold">🔁 منتجات مشابهة</h3>
-        <div class="text-sm text-gray-500">قد تعجبك</div>
-      </div>
-      <div id="relatedProducts" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3"></div>
+    <section class="card p-6">
+      <h3 class="text-lg font-bold mb-3">🔁 منتجات مشابهة</h3>
+      <div id="relatedProducts" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"></div>
     </section>
-
   </main>
 
-  <div id="toast" class="toast"></div>
+  <div id="toast" class="toast hidden"></div>
 <script>
-
-
 const SUPABASE_URL = "https://nszhzfysitppxssplqfb.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zemh6ZnlzaXRwcHhzc3BscWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA4OTcsImV4cCI6MjA3MzgwNjg5N30.5KvK4bhqkZ_GpIfED4qecIMfeubAJYwSFJslULwOp-w";
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -316,20 +203,21 @@ const toast = document.getElementById('toast');
 const params = new URLSearchParams(window.location.search);
 const productId = Number(params.get('id') || 0);
 
-
-
 function showToast(msg, ok = true, t = 3000) {
   toast.innerHTML = `<div class="px-4 py-2 rounded-lg shadow text-white ${ok ? 'bg-green-600' : 'bg-red-600'}">${msg}</div>`;
   toast.classList.remove('hidden');
   clearTimeout(toast._t);
   toast._t = setTimeout(() => toast.classList.add('hidden'), t);
 }
+
 function escapeHtml(s = '') {
   return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m]));
 }
+
 function formatDate(d) {
   try { return new Date(d).toLocaleDateString('ar-EG'); } catch { return ''; }
 }
+
 let currentUser = null;
 let selectedRating = 0;
 let reviewSub = null;
@@ -343,22 +231,31 @@ async function checkAuth() {
   currentUser = session?.user || null;
   renderAuthUI();
 }
+
 function renderAuthUI() {
   if (currentUser) {
+    const name = currentUser.user_metadata?.full_name || currentUser.email.split("@")[0];
+    const avatar = currentUser.user_metadata?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0D8ABC&color=fff`;
+
     userArea.innerHTML = `
-      <span class="text-sm text-gray-700">${escapeHtml(currentUser.email)}</span>
-      <button id="logoutBtn" class="text-sm text-red-500 ml-2 hover:underline">تسجيل خروج</button>
+      <div class="flex items-center gap-2">
+        <img src="${avatar}" class="w-8 h-8 rounded-full border border-gray-300" alt="user">
+        <span class="text-sm text-gray-700 font-medium">👤 ${escapeHtml(name)}</span>
+        <button id="logoutBtn" class="text-sm text-red-500 ml-2 hover:underline">تسجيل خروج</button>
+      </div>
     `;
+
     reviewForm.classList.remove('hidden');
     reviewLoginNotice.classList.add('hidden');
+
     document.getElementById('logoutBtn').onclick = async () => {
       await supabase.auth.signOut();
       currentUser = null;
-      renderAuthUI(); 
-      showToast('تم تسجيل الخروج');
+      renderAuthUI();
+      showToast('تم تسجيل الخروج بنجاح');
     };
   } else {
-    userArea.innerHTML = `<a href="shop-login.html" class="text-blue-600 underline">تسجيل الدخول</a>`;
+    userArea.innerHTML = `<a href="shop-login.html" class="text-blue-600 underline text-sm">تسجيل الدخول</a>`;
     reviewForm.classList.add('hidden');
     reviewLoginNotice.classList.remove('hidden');
   }
@@ -370,14 +267,18 @@ async function loadProduct() {
   }
 
   try {
+    console.log(`جاري جلب المنتج بالرقم: ${productId}`);
+    
     const { data, error } = await supabase
       .from('products')
-      .select(`id, name, description, price, stock, category, created_at, product_images(image_url,is_primary,ordering)`)
+     .select(`id, name, description, price, stock, category, created_at, product_images!product_images_product_id_fkey(image_url,is_primary,ordering)`)
+
       .eq('id', productId)
       .maybeSingle();
 
     if (error || !data) {
       productSkeleton.innerHTML = `<div class="text-center text-gray-600">المنتج غير موجود</div>`;
+      console.log("الخطأ أو المنتج غير موجود", error);
       return;
     }
 
@@ -408,7 +309,6 @@ async function loadProduct() {
     productSkeleton.classList.add('hidden');
     productContent.classList.remove('hidden');
 
-    await loadReviews();
     await loadRelated(data.category, data.id);
     subscribeReviewsRealtime();
 
@@ -418,7 +318,7 @@ async function loadProduct() {
   }
 }
 
-// ✅ تحميل التقييمات
+
 async function loadReviews(initial = true) {
   if (initial) {
     const { data, error } = await supabase
@@ -448,10 +348,8 @@ async function loadReviews(initial = true) {
   avgBadge.textContent = `${avg} / 5`;
   ratingSummary.innerHTML = `<span class="text-sm text-gray-700">⭐ ${avg} من ${reviewsData.length} تقييم</span>`;
 
-  const nextChunk = reviewsData.slice(reviewsShown, reviewsShown + REVIEWS_PER_PAGE);
-  if (reviewsShown === 0) reviewsList.innerHTML = '';
-  
-  nextChunk.forEach(r => {
+  reviewsList.innerHTML = ''; 
+  reviewsData.forEach(r => {
     reviewsList.innerHTML += `
       <div class="border rounded-lg p-3 mb-3 bg-gray-50 shadow-sm hover:shadow-md transition">
         <div class="flex justify-between mb-2">
@@ -463,27 +361,6 @@ async function loadReviews(initial = true) {
       </div>
     `;
   });
-
-  reviewsShown += nextChunk.length;
-
-  let moreBtn = document.getElementById('loadMoreReviews');
-  if (!moreBtn) {
-    moreBtn = document.createElement('button');
-    moreBtn.id = 'loadMoreReviews';
-    moreBtn.className = 'mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition flex items-center justify-center gap-2 mx-auto';
-    moreBtn.innerHTML = 'عرض المزيد';
-    moreBtn.onclick = async () => {
-      moreBtn.disabled = true;
-      moreBtn.innerHTML = `<span class="animate-spin border-2 border-white border-t-transparent rounded-full w-4 h-4"></span> جاري التحميل...`;
-      await loadReviews(false);
-      moreBtn.disabled = false;
-      moreBtn.innerHTML = 'عرض المزيد';
-    };
-    reviewsList.after(moreBtn);
-  }
-
-  if (reviewsShown >= reviewsData.length) moreBtn.classList.add('hidden');
-  else moreBtn.classList.remove('hidden');
 }
 
 reviewForm.addEventListener('submit', async (e) => {
@@ -492,6 +369,8 @@ reviewForm.addEventListener('submit', async (e) => {
 
   const comment = reviewComment.value.trim();
   if (!comment || !selectedRating) { showToast('اختر تقييم واكتب تعليقك', false); return; }
+
+  const name = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
 
   const { data: existing } = await supabase.from('product_reviews')
     .select('id')
@@ -504,7 +383,7 @@ reviewForm.addEventListener('submit', async (e) => {
   const { error } = await supabase.from('product_reviews').insert([{
     product_id: productId,
     user_id: currentUser.id,
-    user_name: currentUser.email,
+    user_name: name,
     rating: selectedRating,
     comment
   }]);
@@ -538,11 +417,6 @@ function renderStarUI(n) {
 clearReviewBtn.onclick = () => { reviewComment.value = ''; selectedRating = 0; renderStarUI(0); };
 
 async function loadRelated(cat, exclude) {
-  if (!cat) { 
-    relatedProductsEl.innerHTML = '<div class="text-gray-500">لا توجد منتجات مشابهة</div>'; 
-    return; 
-  }
-
   const { data } = await supabase.from('products')
     .select('id,name,price,product_images(image_url,is_primary)')
     .eq('category', cat)
@@ -577,6 +451,7 @@ function addToCartLocal(id, name, price) {
   updateCartBadgeUI();
   showToast('تمت الإضافة للسلة');
 }
+
 function updateCartBadgeUI() {
   const cart = JSON.parse(localStorage.getItem('cart') || '[]');
   const count = cart.reduce((a, b) => a + (b.quantity || 0), 0);
@@ -597,12 +472,19 @@ function subscribeReviewsRealtime() {
 }
 
 (async () => {
-  updateCartBadgeUI();
-  buildStarInput();
-  await checkAuth();
-  await loadProduct();
-})();
+  try {
+    updateCartBadgeUI();
+    buildStarInput();
 
+    await checkAuth();
+    await loadProduct();
+    await loadReviews(); 
+
+  } catch (err) {
+    console.error("❌ خطأ أثناء تشغيل الصفحة:", err);
+    showToast("حدث خطأ أثناء تحميل الصفحة", false);
+  }
+})();
 </script>
 
 

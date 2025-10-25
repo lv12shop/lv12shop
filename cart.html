@@ -3,269 +3,398 @@
 <head>
   <meta charset="utf-8" />
   <title>🛒 سلة المشتريات | LV12</title>
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4465576706318134"
-     crossorigin="anonymous"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="icon" href="lv12.ico" type="image/x-icon" />
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.tailwindcss.com"></script>
+
   <style>
-    body { font-family: "Cairo", sans-serif; }
-    .toast { transition: all 0.3s ease; }
+    body { font-family: "Cairo", sans-serif; background: #f8fafc; color:#0f172a; }
+    .card { background:#fff; border-radius:12px; box-shadow:0 8px 30px rgba(2,6,23,0.06); }
+    .btn-primary { background: linear-gradient(90deg,#2563eb,#1d4ed8); color:white; padding:.6rem 1rem; border-radius:10px; }
+    .btn-primary:hover { filter:brightness(.95); }
+    .small-muted { color:#6b7280; font-size:.95rem; }
+    .green { color:#16a34a; }
+    .toast { position: fixed; bottom: 20px; left:50%; transform:translateX(-50%); z-index:60; padding:10px 14px; border-radius:10px; color:#fff; display:none; }
+    input[type="file"] { display:block; }
+    .note { background:#f1f5f9; padding:.5rem .75rem; border-radius:.5rem; font-size:.95rem; }
   </style>
 </head>
+<body class="min-h-screen flex flex-col">
 
-<body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col">
-
-  <!-- ✅ الهيدر -->
-  <header class="bg-white shadow-md sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-      <div class="flex items-center gap-2 cursor-pointer" onclick="location.href='shop.html'">
-        <img src="lv12.ico" class="w-10 h-10" alt="LV12 Logo">
+  <header class="bg-white shadow sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3 cursor-pointer" onclick="location.href='shop.html'">
+        <img src="lv12.ico" class="w-10 h-10 rounded-md" />
         <div>
-          <h1 class="text-lg font-bold text-orange-600">LV12</h1>
-          <p class="text-xs text-gray-500">تسوق بثقة وسرعة</p>
+          <div class="text-lg font-bold text-blue-700">LV12</div>
+          <div class="text-xs small-muted">تسوق بثقة وسرعة</div>
         </div>
       </div>
 
-      <div class="hidden md:flex flex-1 mx-6">
-        <input id="searchBox" type="text" placeholder="🔍 ابحث عن منتج..." class="w-full border rounded-l px-3 py-2 focus:outline-none">
-        <button class="bg-orange-600 text-white px-4 py-2 rounded-r hover:bg-orange-500">بحث</button>
-      </div>
-
-      <div class="flex items-center gap-3">
-        <a id="signinBtn" href="shop-login.html" class="text-sm text-blue-700 underline">تسجيل الدخول</a>
-        <a href="my-orders.html" class="bg-orange-600 text-white px-3 py-2 rounded hover:bg-orange-500">📦 طلباتي</a>
+      <div class="flex items-center gap-4">
+        <div id="userArea" class="text-sm small-muted"></div>
+        <a id="backToShop" class="btn-primary inline-flex items-center gap-2" href="shop.html">🛍️ العودة للتسوق</a>
       </div>
     </div>
   </header>
 
-  <main class="flex-1 max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <main class="flex-1 max-w-6xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <section class="lg:col-span-2 card p-6">
+      <h2 class="text-xl font-bold mb-4">سلة المشتريات</h2>
 
-    <section class="lg:col-span-2 bg-white rounded-xl shadow p-4">
-      <h2 class="text-xl font-bold mb-4 border-b pb-2">سلة المشتريات</h2>
+      <div id="cartList" class="space-y-4"></div>
 
-      <div id="cart-list" class="space-y-4"></div>
+      <div id="empty" class="text-center small-muted py-8 hidden">
+        🛍️ السلة فارغة — <a href="shop.html" class="text-blue-600 underline">اذهب للتسوق الآن</a>
+      </div>
 
-      <div id="empty-cart" class="hidden text-center text-gray-500 py-10">
-        🛍️ لا توجد منتجات في السلة.<br>
-        <a href="shop.html" class="text-orange-600 underline">اذهب للتسوق الآن</a>
+      <div class="note mt-4">
+        تكلفة التوصيل: <b>10% لكل قطعة</b> (تُحسب لكل صنف). <br>
+        مدة التوصيل المتوقعة: <b>حتى 3 أيام</b>. سيتم التواصل معك عند بدء معالجة الطلب.
       </div>
     </section>
 
-    <aside class="bg-white rounded-xl shadow p-6 h-fit">
+    <aside class="card p-6">
       <h3 class="text-lg font-bold mb-3">ملخص الطلب</h3>
 
       <div class="space-y-2 mb-4">
-        <div class="flex justify-between"><span>عدد المنتجات</span> <span id="itemCount">0</span></div>
-        <div class="flex justify-between"><span>المجموع الفرعي</span> <span id="subtotal">0 ج.م</span></div>
-        <div class="flex justify-between border-t pt-2 font-semibold text-orange-600">
-          <span>الإجمالي النهائي</span>
-          <span id="total">0 ج.م</span>
+        <div class="flex justify-between small-muted"><span>عدد الأصناف</span><span id="itemCount">0</span></div>
+        <div class="flex justify-between small-muted"><span>المجموع الفرعي</span><span id="subtotal">0 ج.م</span></div>
+        <div class="flex justify-between small-muted"><span>رسوم التوصيل (10%)</span><span id="deliveryFee">0 ج.م</span></div>
+        <div class="flex justify-between font-bold text-blue-700 text-lg"><span>الإجمالي</span><span id="grandTotal">0 ج.م</span></div>
+      </div>
+
+      <hr class="my-3" />
+
+      <div class="space-y-2">
+        <input id="custName" placeholder="الاسم الكامل" class="w-full border p-2 rounded" />
+        <input id="custPhone" placeholder="رقم الهاتف" class="w-full border p-2 rounded" />
+        <input id="custAddress" placeholder="العنوان الكامل" class="w-full border p-2 rounded" />
+      </div>
+
+      <div class="mt-3">
+        <label class="block small-muted mb-1">تاريخ / وقت التوصيل (اختياري)</label>
+        <input id="deliveryDate" type="date" class="w-full border p-2 rounded" />
+        <input id="deliveryTime" type="time" class="w-full border p-2 rounded mt-2" />
+      </div>
+
+      <div class="mt-4">
+        <label class="block font-semibold mb-2">طريقة الدفع</label>
+        <div class="space-y-2">
+          <label class="flex items-center gap-2">
+            <input type="radio" name="pay" value="cod" checked /> <span>💵 الدفع عند الاستلام (كاش)</span>
+          </label>
+          <label class="flex items-center gap-2">
+            <input type="radio" name="pay" value="vodafone" /> <span>📱 فودافون كاش</span>
+          </label>
         </div>
       </div>
 
-      <div class="space-y-2 mt-4">
-        <input id="cust-name" type="text" placeholder="👤 الاسم الكامل" class="w-full border p-2 rounded">
-        <input id="cust-phone" type="tel" placeholder="📞 رقم الهاتف" class="w-full border p-2 rounded">
-        <input id="cust-address" type="text" placeholder="📍 العنوان الكامل" class="w-full border p-2 rounded">
-        <input id="delivery-date" type="date" class="w-full border p-2 rounded">
-        <input id="delivery-time" type="time" class="w-full border p-2 rounded">
+      <div id="vodafoneArea" class="mt-3 hidden">
+        <label class="small-muted mb-1 block">أدخل رقم فودافون كاش (رقم المرسل أو رقم حوالة)</label>
+        <input id="vodafoneNumber" class="w-full border p-2 rounded" placeholder="مثال: 01XXXXXXXXX" />
+        <label class="small-muted mt-2 block">ارفق صورة الإيصال (اختياري — ستحتاج لإرفاقها يدوياً في واتساب)</label>
+        <input id="receiptFile" type="file" accept="image/*" />
+        <div id="receiptPreview" class="mt-2"></div>
       </div>
 
-      <button onclick="checkout()" class="w-full mt-4 bg-yellow-500 text-black font-semibold py-3 rounded hover:bg-yellow-400">
-        ✅ إتمام الشراء
-      </button>
-      <button onclick="confirmClearCart()" class="w-full mt-2 bg-red-600 text-white py-2 rounded hover:bg-red-500">
-        🗑️ تفريغ السلة
-      </button>
+      <div id="codNote" class="mt-3 small-muted">
+        في حالة الدفع عند الاستلام: سنطلب رقم هاتفك للتواصل عند التسليم.
+      </div>
+
+      <button id="checkoutBtn" class="btn-primary w-full mt-4">✅ إتمام الشراء</button>
+      <button id="clearBtn" class="w-full mt-2 bg-red-600 text-white py-2 rounded">🗑️ تفريغ السلة</button>
     </aside>
   </main>
 
-  <footer class="bg-gray-900 text-white py-4 mt-8 text-center text-sm">
-    © 2025 LV12 - جميع الحقوق محفوظة
-  </footer>
-
-  <div id="toast" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-4 py-2 rounded-lg hidden"></div>
-
-  <div id="confirmModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-40">
-    <div class="bg-white rounded-xl shadow-lg p-6 w-80 text-center">
-      <p class="font-semibold mb-3">هل أنت متأكد من تفريغ السلة؟</p>
-      <div class="flex justify-center gap-3">
-        <button onclick="clearCart(true)" class="bg-red-600 text-white px-4 py-2 rounded">نعم</button>
-        <button onclick="hideModal()" class="bg-gray-200 px-4 py-2 rounded">إلغاء</button>
-      </div>
-    </div>
-  </div>
+  <div id="toast" class="toast"></div>
 
   <script>
-  const SUPABASE_URL = "https://nszhzfysitppxssplqfb.supabase.co";
-  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zemh6ZnlzaXRwcHhzc3BscWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA4OTcsImV4cCI6MjA3MzgwNjg5N30.5KvK4bhqkZ_GpIfED4qecIMfeubAJYwSFJslULwOp-w";
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  const cartListEl = document.getElementById("cart-list");
-  const emptyCartEl = document.getElementById("empty-cart");
-  const subtotalEl = document.getElementById("subtotal");
-  const totalEl = document.getElementById("total");
-  const itemCountEl = document.getElementById("itemCount");
-  const toastEl = document.getElementById("toast");
-  const confirmModal = document.getElementById("confirmModal");
-  const signinBtn = document.getElementById("signinBtn");
+const SUPABASE_URL = "https://nszhzfysitppxssplqfb.supabase.co";
+const SUPABASE_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zemh6ZnlzaXRwcHhzc3BscWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA4OTcsImV4cCI6MjA3MzgwNjg5N30.5KvK4bhqkZ_GpIfED4qecIMfeubAJYwSFJslULwOp-w";
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  let currentUser = null;
-  let cart = JSON.parse(localStorage.getItem("cart") || "[]");
 
-  function showToast(msg, success = true) {
-    toastEl.textContent = msg;
-    toastEl.className = `fixed bottom-6 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-lg text-white ${
-      success ? "bg-green-600" : "bg-red-600"
-    }`;
-    toastEl.classList.remove("hidden");
-    setTimeout(() => toastEl.classList.add("hidden"), 2500);
+const cartList = document.getElementById("cartList");
+const emptyEl = document.getElementById("empty");
+const subtotalEl = document.getElementById("subtotal");
+const deliveryFeeEl = document.getElementById("deliveryFee");
+const grandEl = document.getElementById("grandTotal");
+const itemCountEl = document.getElementById("itemCount");
+const userArea = document.getElementById("userArea");
+const vodafoneArea = document.getElementById("vodafoneArea");
+const receiptFile = document.getElementById("receiptFile");
+const receiptPreview = document.getElementById("receiptPreview");
+const checkoutBtn = document.getElementById("checkoutBtn");
+const clearBtn = document.getElementById("clearBtn");
+const toastEl = document.getElementById("toast");
+
+const custName = document.getElementById("custName");
+const custPhone = document.getElementById("custPhone");
+const custAddress = document.getElementById("custAddress");
+const deliveryDate = document.getElementById("deliveryDate");
+const deliveryTime = document.getElementById("deliveryTime");
+const vodafoneNumber = document.getElementById("vodafoneNumber");
+
+
+let cart = JSON.parse(localStorage.getItem("cart") || "[]");
+let currentUser = null;
+let receiptDataUrl = null;
+
+
+function showToast(msg, ok = true) {
+  toastEl.textContent = msg;
+  toastEl.style.background = ok ? "#16a34a" : "#dc2626";
+  toastEl.style.display = "block";
+  setTimeout(() => (toastEl.style.display = "none"), 3000);
+}
+
+function formatEGP(v) {
+  return `${Number(v).toFixed(2)} ج.م`;
+}
+
+function calcTotals() {
+  let subtotal = 0;
+  let deliveryFee = 0;
+  cart.forEach((item) => {
+    const price = Number(item.price || 0);
+    const qty = Number(item.quantity || 1);
+    subtotal += price * qty;
+    deliveryFee += price * qty * 0.1; 
+  });
+  const grand = subtotal + deliveryFee;
+  return { subtotal, deliveryFee, grand };
+}
+
+async function renderCart() {
+  cartList.innerHTML = "";
+  if (!cart.length) {
+    emptyEl.classList.remove("hidden");
+    subtotalEl.textContent = "0 ج.م";
+    deliveryFeeEl.textContent = "0 ج.م";
+    grandEl.textContent = "0 ج.م";
+    itemCountEl.textContent = "0";
+    return;
   }
+  emptyEl.classList.add("hidden");
 
-  function showModal() { confirmModal.classList.remove("hidden"); confirmModal.classList.add("flex"); }
-  function hideModal() { confirmModal.classList.add("hidden"); confirmModal.classList.remove("flex"); }
+  for (const [idx, it] of cart.entries()) {
+    const imgUrl = await fetchProductImage(it.id);
 
-  async function checkLogin() {
-    const { data } = await supabase.auth.getSession();
-    const session = data?.session;
-    if (session?.user) {
-      currentUser = session.user;
-      signinBtn.textContent = currentUser.email;
-      signinBtn.href = "my-orders.html";
-    } else {
-      showToast("⚠️ يجب تسجيل الدخول أولاً", false);
-      setTimeout(() => (window.location.href = "shop-login.html"), 1500);
-    }
-  }
+    const price = Number(it.price || 0);
+    const qty = Number(it.quantity || 1);
+    const subtotalItem = price * qty;
 
-  function renderCart() {
-    cartListEl.innerHTML = "";
-    if (!cart.length) {
-      emptyCartEl.classList.remove("hidden");
-      subtotalEl.textContent = totalEl.textContent = "0 ج.م";
-      itemCountEl.textContent = "0";
-      return;
-    }
-    emptyCartEl.classList.add("hidden");
-
-    let subtotal = 0;
-    cart.forEach((item, i) => {
-      const price = Number(item.price) || 0;
-      const qty = Number(item.quantity) || 1;
-      const sub = price * qty;
-      subtotal += sub;
-
-      const image = item.image || "https://placehold.co/100x80?text=LV12";
-      const div = document.createElement("div");
-      div.className = "flex justify-between items-center border-b pb-3 mb-3";
-      div.innerHTML = `
-        <div class="flex items-center gap-3">
-          <img src="${image}" class="w-20 h-16 rounded border">
-          <div>
-            <p class="font-semibold">${item.name}</p>
-            <p class="text-sm text-gray-500">${price} ج.م / وحدة</p>
-          </div>
+    const div = document.createElement("div");
+    div.className = "flex items-center justify-between gap-4 border-b pb-3";
+    div.innerHTML = `
+      <div class="flex items-center gap-3 cursor-pointer" onclick="goToProduct(${it.id})">
+        <img src="${imgUrl}" class="w-20 h-16 rounded object-cover" />
+        <div>
+          <div class="font-semibold">${escapeHtml(it.name)}</div>
+          <div class="small-muted text-sm">${formatEGP(price)} / وحدة</div>
         </div>
-        <div class="text-right">
-          <input type="number" min="1" value="${qty}" class="border w-16 text-center rounded" onchange="updateQuantity(${i}, this.value)">
-          <p class="text-green-600 mt-1">${sub.toFixed(2)} ج.م</p>
-          <button onclick="removeItem(${i})" class="text-red-600 text-sm mt-1">حذف</button>
-        </div>`;
-      cartListEl.appendChild(div);
-    });
-
-    subtotalEl.textContent = `${subtotal.toFixed(2)} ج.م`;
-    totalEl.textContent = `${subtotal.toFixed(2)} ج.م`;
-    itemCountEl.textContent = cart.length;
+      </div>
+      <div class="text-right">
+        <div class="flex items-center gap-2 justify-end">
+          <button class="px-2 py-1 bg-gray-200 rounded" onclick="decrease(${idx}); event.stopPropagation()">-</button>
+          <input type="number" min="1" value="${qty}" style="width:60px" onchange="setQty(${idx}, this.value)" />
+          <button class="px-2 py-1 bg-gray-200 rounded" onclick="increase(${idx}); event.stopPropagation()">+</button>
+        </div>
+        <div class="mt-2 text-blue-700 font-bold">${formatEGP(subtotalItem)}</div>
+        <div class="mt-1 text-sm"><button onclick="removeItem(${idx}); event.stopPropagation()" class="text-red-600">حذف</button></div>
+      </div>
+    `;
+    cartList.appendChild(div);
   }
 
-  function updateQuantity(i, val) {
-    cart[i].quantity = Math.max(1, parseInt(val) || 1);
-    localStorage.setItem("cart", JSON.stringify(cart));
-    renderCart();
-    showToast("✅ تم تحديث الكمية");
-  }
+  const totals = calcTotals();
+  subtotalEl.textContent = formatEGP(totals.subtotal);
+  deliveryFeeEl.textContent = formatEGP(totals.deliveryFee);
+  grandEl.textContent = formatEGP(totals.grand);
+  itemCountEl.textContent = cart.length;
+}
 
-  function removeItem(i) {
-    cart.splice(i, 1);
-    localStorage.setItem("cart", JSON.stringify(cart));
-    renderCart();
-    showToast("🗑️ تم حذف المنتج");
-  }
 
-  function confirmClearCart() { showModal(); }
-  function clearCart(ok = false) {
-    if (!ok) return;
+function goToProduct(id) {
+  window.location.href = `product.html?id=${id}`;
+}
+function setQty(i, v) {
+  cart[i].quantity = Math.max(1, parseInt(v) || 1);
+  localStorage.setItem("cart", JSON.stringify(cart));
+  renderCart();
+}
+function increase(i) {
+  cart[i].quantity = (cart[i].quantity || 1) + 1;
+  localStorage.setItem("cart", JSON.stringify(cart));
+  renderCart();
+}
+function decrease(i) {
+  cart[i].quantity = Math.max(1, (cart[i].quantity || 1) - 1);
+  localStorage.setItem("cart", JSON.stringify(cart));
+  renderCart();
+}
+function removeItem(i) {
+  cart.splice(i, 1);
+  localStorage.setItem("cart", JSON.stringify(cart));
+  renderCart();
+  showToast("🗑️ تم حذف المنتج");
+}
+clearBtn.onclick = () => {
+  if (confirm("هل تريد تفريغ السلة؟")) {
     cart = [];
     localStorage.removeItem("cart");
     renderCart();
-    hideModal();
-    showToast("🧹 تم تفريغ السلة بالكامل");
+    showToast("🧹 تم تفريغ السلة");
+  }
+};
+
+
+receiptFile?.addEventListener?.("change", (e) => {
+  const f = e.target.files[0];
+  if (!f) {
+    receiptPreview.innerHTML = "";
+    receiptDataUrl = null;
+    return;
+  }
+  if (!f.type.startsWith("image/")) {
+    showToast("الرجاء رفع صورة فقط", false);
+    receiptFile.value = "";
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = () => {
+    receiptDataUrl = reader.result;
+    receiptPreview.innerHTML = `<img src="${receiptDataUrl}" class="w-40 rounded border" />`;
+  };
+  reader.readAsDataURL(f);
+});
+
+document.querySelectorAll('input[name="pay"]').forEach((r) => {
+  r.addEventListener("change", () => {
+    const val = document.querySelector('input[name="pay"]:checked').value;
+    vodafoneArea.classList.toggle("hidden", val !== "vodafone");
+  });
+});
+async function fetchProductImage(productId) {
+  try {
+    const { data, error } = await supabase
+      .from("product_images")
+      .select("image_url, is_primary, ordering")
+      .eq("product_id", productId)
+      .order("is_primary", { ascending: false })
+      .order("ordering", { ascending: true })
+      .limit(1)
+      .single();
+
+    if (error) return "https://placehold.co/100x80?text=LV12";
+    return data?.image_url || "https://placehold.co/100x80?text=LV12";
+  } catch {
+    return "https://placehold.co/100x80?text=LV12";
+  }
+}
+
+async function checkAuth() {
+  const { data } = await supabase.auth.getSession();
+  const user = data?.session?.user;
+  if (user) {
+    currentUser = user;
+    const name = user.user_metadata?.full_name || user.email.split("@")[0];
+    userArea.innerHTML = `👤 ${escapeHtml(name)}`;
+    if (user.user_metadata?.phone) custPhone.value = user.user_metadata.phone;
+  } else {
+    userArea.innerHTML = `<a href="shop-login.html" class="text-blue-600 underline">تسجيل الدخول</a>`;
+  }
+}
+
+checkoutBtn.addEventListener("click", async () => {
+  if (!custName.value.trim() || !custPhone.value.trim() || !custAddress.value.trim()) {
+    showToast("يرجى تعبئة جميع الحقول المطلوبة", false);
+    return;
+  }
+  if (!cart.length) {
+    showToast("السلة فارغة", false);
+    return;
   }
 
-  async function checkout() {
-    if (!currentUser) {
-      showToast("⚠️ يجب تسجيل الدخول أولاً", false);
-      setTimeout(() => (window.location.href = "shop-login.html"), 1000);
-      return;
+  const payMethod = document.querySelector('input[name="pay"]:checked')?.value || "cash";
+  const payRef = vodafoneNumber.value.trim() || null;
+
+  const deliveryISO = (() => {
+    if (deliveryDate.value) {
+      const dt = deliveryDate.value + (deliveryTime.value ? `T${deliveryTime.value}` : "T12:00");
+      return new Date(dt).toISOString();
+    } else {
+      const d = new Date();
+      d.setDate(d.getDate() + 3);
+      return d.toISOString();
     }
+  })();
 
-    const name = document.getElementById("cust-name").value.trim();
-    const phone = document.getElementById("cust-phone").value.trim();
-    const address = document.getElementById("cust-address").value.trim();
-    const date = document.getElementById("delivery-date").value;
-    const time = document.getElementById("delivery-time").value;
+  const orders = cart.map((p) => ({
+    user_id: currentUser?.id || null,
+    customer_name: custName.value.trim(),
+    customer_phone: custPhone.value.trim(),
+    customer_address: custAddress.value.trim(),
+    product_id: p.id,
+    quantity: p.quantity || 1,
+    price: p.price,
+    status: "pending",
+    payment_method: payMethod,
+    payment_ref: payRef,
+    delivery_date: deliveryISO,
+    created_at: new Date().toISOString(),
+  }));
 
-    if (!name || !phone || !address) {
-      showToast("⚠️ يرجى تعبئة كل البيانات المطلوبة", false);
-      return;
-    }
-
-    if (!cart.length) {
-      showToast("🛒 السلة فارغة", false);
-      return;
-    }
-
-    const deliveryDate = date && time ? new Date(date + "T" + time).toISOString() : null;
-
-    const orders = cart.map(p => ({
-      user_id: currentUser.id,
-      name, phone, address,
-      product_id: p.id,
-      quantity: p.quantity,
-      price: p.price,
-      status: "pending",
-      delivery_date: deliveryDate,
-      created_at: new Date().toISOString()
-    }));
-
+  try {
     const { error } = await supabase.from("orders").insert(orders);
     if (error) {
       console.error(error);
-      showToast("❌ فشل إرسال الطلب", false);
+      showToast("حدث خطأ أثناء حفظ الطلب", false);
       return;
     }
-
-    localStorage.removeItem("cart");
-    cart = [];
-    renderCart();
-    showToast("✅ تم إرسال الطلب بنجاح!");
-    setTimeout(() => (window.location.href = "my-orders.html"), 1200);
+  } catch (err) {
+    console.error(err);
+    showToast("خطأ في الاتصال بقاعدة البيانات", false);
+    return;
   }
 
-  (async function init() {
-    await checkLogin();
-    renderCart();
-  })();
+  const totals = calcTotals();
+  let msg = `طلب جديد من متجر LV12%0A`;
+  msg += `الاسم: ${custName.value}%0Aالهاتف: ${custPhone.value}%0Aالعنوان: ${custAddress.value}%0A`;
+  msg += `طريقة الدفع: ${payMethod === "vodafone" ? "فودافون كاش" : "عند الاستلام"}%0A`;
+  if (payMethod === "vodafone") msg += `رقم التحويل/المرجع: ${payRef}%0A`;
+  msg += `--- تفاصيل الطلب --- %0A`;
+  cart.forEach((ci, i) => {
+    msg += `${i + 1}) ${ci.name} × ${ci.quantity} — ${formatEGP(ci.price)}%0A`;
+  });
+  msg += `---%0Aالإجمالي: ${formatEGP(totals.grand)}%0Aمدة التوصيل المتوقعة: خلال 3 أيام.%0A`;
+  msg += `يرجى إرسال صورة إيصال الدفع (إن وُجد).`;
 
-  window.updateQuantity = updateQuantity;
-  window.removeItem = removeItem;
-  window.confirmClearCart = confirmClearCart;
-  window.hideModal = hideModal;
-  window.clearCart = clearCart;
-  window.checkout = checkout;
-  </script>
+  const whatsappNumber = "01094965067"; 
+  window.open(`https://wa.me/${whatsappNumber}?text=${msg}`, "_blank");
+
+  localStorage.removeItem("cart");
+  cart = [];
+  renderCart();
+  showToast("✅ تم إرسال الطلب بنجاح، سيتم تحويلك إلى الطلبات");
+  setTimeout(() => (window.location.href = "my-orders.html"), 2000);
+});
+
+
+(async function init() {
+  await checkAuth();
+  renderCart();
+})();
+
+
+function escapeHtml(s = "") {
+  return String(s || "").replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[m]));
+}
+</script>
+
 </body>
 </html>

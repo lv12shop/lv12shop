@@ -2,174 +2,271 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <title>طلباتي | LV12</title>
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4465576706318134"
-     crossorigin="anonymous"></script>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>طلباتي | متجر LV12</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" href="lv12.ico" type="image/x-icon" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    body { font-family: "Tajawal", sans-serif; }
-    .order-card { transition: all 0.25s ease; }
-    .order-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
-    .status-badge { font-weight: 600; border-radius: 9999px; padding: 4px 10px; font-size: 0.875rem; }
-    .status-pending { background-color: #fff3cd; color: #856404; }
-    .status-shipped { background-color: #cce5ff; color: #004085; }
-    .status-delivered { background-color: #d4edda; color: #155724; }
-    .status-cancelled { background-color: #f8d7da; color: #721c24; }
+    :root {
+      --lv-blue-500: #2563eb;
+      --lv-blue-600: #1d4ed8;
+      --lv-blue-700: #1e40af;
+    }
+
+    body {
+      font-family: "Cairo", sans-serif;
+      background: #f9fafb;
+      color: #1f2937;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 1rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+      transition: transform 0.2s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+    }
+
+    .status-badge {
+      font-weight: 600;
+      border-radius: 9999px;
+      padding: 4px 12px;
+      font-size: 0.875rem;
+    }
+
+    .status-pending { background: #fff3cd; color: #856404; }
+    .status-shipped { background: #cce5ff; color: #004085; }
+    .status-delivered { background: #d4edda; color: #155724; }
+    .status-cancelled { background: #f8d7da; color: #721c24; }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 60;
+      background: var(--lv-blue-600);
+      color: white;
+      padding: .8rem 1rem;
+      border-radius: .75rem;
+      font-size: .9rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      animation: fadeIn .4s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .order-details {
+      display: none;
+      padding-top: .75rem;
+      border-top: 1px solid #e5e7eb;
+      margin-top: .5rem;
+    }
+    .order-details.active {
+      display: block;
+    }
   </style>
 </head>
 
 <body class="bg-gray-50 min-h-screen flex flex-col">
-
-  <!-- Header -->
   <header class="bg-white shadow sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-      <h1 onclick="location.href='shop.html'" class="text-2xl font-bold text-blue-700 cursor-pointer hover:text-blue-800">
-        🛍️ متجر LV12
-      </h1>
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div onclick="location.href='shop.html'" class="flex items-center gap-2 cursor-pointer">
+        <img src="lv12.ico" class="w-10 h-10 rounded-md" />
+        <div>
+          <h1 class="text-xl font-bold text-blue-700">متجر LV12</h1>
+          <p class="text-xs text-gray-500 -mt-1">طلباتي</p>
+        </div>
+      </div>
+
       <div class="flex items-center gap-3">
-        <input id="searchInput" type="text" placeholder="🔍 ابحث عن منتج أو حالة..."
-               class="border border-gray-300 rounded-lg px-3 py-1.5 w-56 focus:ring-2 focus:ring-blue-400 focus:outline-none" />
-        <button onclick="logout()" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg shadow">
-          🚪 خروج
-        </button>
+        <span id="userName" class="text-gray-700 text-sm font-semibold"></span>
+        <button onclick="logout()" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg shadow">🚪 خروج</button>
       </div>
     </div>
   </header>
 
-  <!-- Main -->
-  <main class="max-w-7xl mx-auto p-6 flex-1">
-    <h2 class="text-3xl font-bold text-blue-700 mb-6 text-center">📦 طلباتي</h2>
+  <main class="max-w-6xl mx-auto px-4 py-8 flex-1 space-y-6">
+    <div class="flex justify-between items-center">
+      <h2 class="text-2xl font-bold text-blue-700">📦 طلباتي</h2>
+      <button onclick="window.location.href='shop.html'"
+        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow">
+        🛒 العودة للتسوق
+      </button>
+    </div>
 
-    <div id="toast" class="fixed bottom-5 right-5 hidden px-4 py-3 rounded-lg text-white shadow-lg z-50"></div>
-    <div id="loader" class="text-center text-gray-600 hidden">
-      <div class="animate-spin border-4 border-gray-300 border-t-blue-600 rounded-full w-10 h-10 mx-auto mb-3"></div>
+    <div id="toast" class="toast hidden"></div>
+
+    <div id="loader" class="text-center hidden text-gray-600 py-8">
+      <div class="animate-spin border-4 border-gray-200 border-t-blue-600 rounded-full w-10 h-10 mx-auto mb-3"></div>
       <p>جارٍ تحميل الطلبات...</p>
     </div>
 
     <div id="orders-list" class="space-y-6"></div>
   </main>
 
-  <footer class="bg-gray-900 text-white text-center py-5 text-sm mt-auto">
-    <p>© 2025 LV12 - جميع الحقوق محفوظة</p>
+  <footer class="bg-blue-700 text-white text-center py-4 text-sm mt-auto">
+    <p>© 2025 متجر LV12 - جميع الحقوق محفوظة</p>
   </footer>
+<script>
+const SUPABASE_URL = "https://nszhzfysitppxssplqfb.supabase.co";
+const SUPABASE_ANON_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zemh6ZnlzaXRwcHhzc3BscWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA4OTcsImV4cCI6MjA3MzgwNjg5N30.5KvK4bhqkZ_GpIfED4qecIMfeubAJYwSFJslULwOp-w";
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  <script>
-    const SUPABASE_URL = "https://nszhzfysitppxssplqfb.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zemh6ZnlzaXRwcHhzc3BscWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA4OTcsImV4cCI6MjA3MzgwNjg5N30.5KvK4bhqkZ_GpIfED4qecIMfeubAJYwSFJslULwOp-w";
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const ordersList = document.getElementById("orders-list");
+const toast = document.getElementById("toast");
+const loader = document.getElementById("loader");
+const userName = document.getElementById("userName");
 
-    const ordersList = document.getElementById("orders-list");
-    const toast = document.getElementById("toast");
-    const loader = document.getElementById("loader");
-    const searchInput = document.getElementById("searchInput");
-    let allOrders = [];
+let allOrders = [];
 
-    function showToast(msg, success = true) {
-      toast.textContent = msg;
-      toast.className = `fixed bottom-5 right-5 ${success ? "bg-green-600" : "bg-red-600"} text-white px-4 py-3 rounded-lg shadow-lg`;
-      toast.classList.remove("hidden");
-      setTimeout(() => toast.classList.add("hidden"), 3000);
+const showToast = (msg, ok = true) => {
+  toast.textContent = msg;
+  toast.style.background = ok ? "#16a34a" : "#dc2626";
+  toast.classList.remove("hidden");
+  setTimeout(() => toast.classList.add("hidden"), 3000);
+};
+
+async function loadOrders() {
+  loader.classList.remove("hidden");
+  ordersList.innerHTML = "";
+
+  try {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const user = sessionData?.session?.user;
+    if (!user) {
+      showToast("⚠️ يرجى تسجيل الدخول أولاً", false);
+      setTimeout(() => (location.href = "shop-login.html"), 1000);
+      return;
     }
 
-    async function loadOrders() {
-      loader.classList.remove("hidden");
-      ordersList.innerHTML = "";
-
-      const { data: sessionData } = await supabase.auth.getSession();
-      const user = sessionData?.session?.user;
-      if (!user) {
-        showToast("⚠️ يرجى تسجيل الدخول أولاً", false);
-        setTimeout(() => location.href = "shop-login.html", 1200);
-        return;
-      }
-
-   const { data: orders, error } = await supabase
+    userName.textContent = `👤 ${user.user_metadata?.full_name || user.email.split("@")[0]}`;
+const { data: orders, error } = await supabase
   .from("orders")
   .select(`
-    id, user_id, product_id, quantity, price, status, created_at, delivery_date,
-    products (
+    id,
+    user_id,
+    product_id,
+    quantity,
+    price,
+    status,
+    created_at,
+    delivery_date,
+    products!orders_product_id_fkey (
+      id,
       name,
-      product_images ( image_url, is_primary )
+      product_images!product_images_product_id_fkey (
+        image_url,
+        is_primary
+      )
     )
   `)
   .eq("user_id", user.id)
   .order("created_at", { ascending: false });
 
-      loader.classList.add("hidden");
+    loader.classList.add("hidden");
 
-      if (error) {
-        console.error("❌ خطأ:", error);
-        showToast("❌ حدث خطأ أثناء تحميل الطلبات", false);
-        return;
-      }
-
-      allOrders = orders || [];
-      renderOrders(allOrders);
+    if (error) {
+      console.error("❌ خطأ في تحميل الطلبات:", error);
+      showToast("❌ حدث خطأ أثناء تحميل الطلبات", false);
+      return;
     }
 
-    function renderOrders(orders) {
-      ordersList.innerHTML = "";
+    allOrders = (orders || []).map(o => {
+      const product = o.products || {};
+      const images = product.product_images || [];
+      const mainImg = images.find(i => i.is_primary)?.image_url || images[0]?.image_url || "https://placehold.co/300x200?text=No+Image";
 
-      if (!orders || orders.length === 0) {
-        ordersList.innerHTML = `<p class="text-center text-gray-500 text-lg">🚫 لا توجد طلبات حتى الآن</p>`;
-        return;
-      }
-
-      orders.forEach(o => {
-        const p = o.products || {};
-        const total = (o.price || 0) * (o.quantity || 1);
-        const createdAt = new Date(o.created_at).toLocaleString("ar-EG");
-
-        let statusClass = "status-pending";
-        let statusText = "⏳ قيد المعالجة";
-        if (o.status === "shipped") { statusClass = "status-shipped"; statusText = "🚚 جاري التوصيل"; }
-        if (o.status === "delivered") { statusClass = "status-delivered"; statusText = "✅ تم التسليم"; }
-        if (o.status === "cancelled") { statusClass = "status-cancelled"; statusText = "❌ تم الإلغاء"; }
-
-        ordersList.innerHTML += `
-          <div class="order-card bg-white rounded-xl shadow-md overflow-hidden">
-            <div class="flex flex-col md:flex-row">
-              <img src="${p.image_url || 'https://via.placeholder.com/250'}" alt="${p.name || 'منتج'}"
-                   class="md:w-1/3 h-48 object-cover">
-              <div class="flex-1 p-5">
-                <div class="flex justify-between items-center mb-2">
-                  <h3 class="text-lg font-bold text-gray-800">${p.name || "منتج غير متوفر"}</h3>
-                  <span class="status-badge ${statusClass}">${statusText}</span>
-                </div>
-                <p class="text-gray-600 mb-1">📦 الكمية: ${o.quantity}</p>
-                <p class="text-gray-600 mb-1">💰 السعر الفردي: ${o.price.toFixed(2)} ج.م</p>
-                <p class="text-blue-700 font-bold text-lg mt-2">الإجمالي: ${total.toFixed(2)} ج.م</p>
-                <p class="text-sm text-gray-500 mt-3">🗓️ تم في: ${createdAt}</p>
-              </div>
-            </div>
-          </div>
-        `;
-      });
-    }
-
-    searchInput.addEventListener("input", e => {
-      const q = e.target.value.trim().toLowerCase();
-      const filtered = allOrders.filter(o => {
-        const p = o.products || {};
-        return (
-          (p.name || "").toLowerCase().includes(q) ||
-          (o.status || "").toLowerCase().includes(q) ||
-          new Date(o.created_at).toLocaleString("ar-EG").includes(q)
-        );
-      });
-      renderOrders(filtered);
+      return {
+        ...o,
+        products: {
+          ...product,
+          image: mainImg
+        }
+      };
     });
 
-    async function logout() {
-      await supabase.auth.signOut();
-      showToast("👋 تم تسجيل الخروج");
-      setTimeout(() => (window.location.href = "shop-login.html"), 1000);
-    }
+    renderOrders(allOrders);
+  } catch (err) {
+    console.error("❌ خطأ عام أثناء تحميل الطلبات:", err);
+    loader.classList.add("hidden");
+    showToast("⚠️ فشل الاتصال بالخادم", false);
+  }
+}
 
-    loadOrders();
-  </script>
+function renderOrders(orders) {
+  ordersList.innerHTML = "";
+
+  if (!orders.length) {
+    ordersList.innerHTML = `<div class="text-center text-gray-500 text-lg py-10">🚫 لا توجد طلبات حتى الآن</div>`;
+    return;
+  }
+
+  const orderCards = orders.map((o, index) => {
+    const p = o.products || {};
+    const img = p.image || "https://placehold.co/300x200?text=No+Image";
+    const total = (o.price || 0) * (o.quantity || 1);
+    const createdAt = new Date(o.created_at).toLocaleString("ar-EG");
+
+    let statusClass = "status-pending", statusText = "⏳ قيد المعالجة";
+    if (o.status === "shipped") { statusClass = "status-shipped"; statusText = "🚚 جاري التوصيل"; }
+    else if (o.status === "delivered") { statusClass = "status-delivered"; statusText = "✅ تم التسليم"; }
+    else if (o.status === "cancelled") { statusClass = "status-cancelled"; statusText = "❌ تم الإلغاء"; }
+
+    return `
+      <div class="card p-4 cursor-pointer transition" onclick="toggleDetails(${index})">
+        <div class="flex justify-between items-center">
+          <div>
+            <h3 class="font-bold text-blue-700">${p.name || "منتج غير متوفر"}</h3>
+            <p class="text-sm text-gray-500">تاريخ الطلب: ${createdAt}</p>
+          </div>
+          <span class="status-badge ${statusClass}">${statusText}</span>
+        </div>
+
+        <div id="details-${index}" class="order-details">
+          <div class="flex flex-col md:flex-row gap-4 mt-3">
+            <img src="${img}" alt="${p.name}" class="w-full md:w-1/4 h-44 object-cover rounded-lg cursor-pointer"
+                 onclick="event.stopPropagation(); window.location='product.html?id=${p.id}'" />
+            <div class="flex-1 space-y-1">
+              <p>📦 الكمية: <b>${o.quantity}</b></p>
+              <p>💰 السعر الفردي: <b>${o.price.toFixed(2)} ج.م</b></p>
+              <p>💵 الإجمالي: <b class="text-blue-600">${total.toFixed(2)} ج.م</b></p>
+              <p>🗓️ تاريخ التوصيل المتوقع: ${
+                o.delivery_date
+                  ? new Date(o.delivery_date).toLocaleDateString("ar-EG")
+                  : "غير محدد"
+              }</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  ordersList.innerHTML = orderCards;
+}
+
+function toggleDetails(index) {
+  const el = document.getElementById(`details-${index}`);
+  el?.classList.toggle("active");
+}
+
+async function logout() {
+  await supabase.auth.signOut();
+  showToast("👋 تم تسجيل الخروج");
+  setTimeout(() => (window.location.href = "shop-login.html"), 1000);
+}
+
+loadOrders();
+</script>
+
+ 
 </body>
 </html>

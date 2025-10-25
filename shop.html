@@ -202,7 +202,7 @@
           <span id="cartBadge" class="absolute -left-2 -top-2 bg-red-600 text-white text-xs font-semibold px-2 py-0.5 rounded-full hidden">0</span>
         </a>
         <a href="my-orders.html" class="btn-outline px-4 py-2 rounded-md flex items-center gap-2">📦 طلباتي</a>
-        <a href="shop-login.html" class="text-blue-700 font-medium hover:underline hidden sm:inline">تسجيل الدخول</a>
+       <div id="userArea"></div> 
       </div>
     </div>
 
@@ -308,8 +308,6 @@
     </div>
   </footer>
 <script>
-
-
 const SUPABASE_URL = "https://nszhzfysitppxssplqfb.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zemh6ZnlzaXRwcHhzc3BscWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA4OTcsImV4cCI6MjA3MzgwNjg5N30.5KvK4bhqkZ_GpIfED4qecIMfeubAJYwSFJslULwOp-w";
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -333,73 +331,160 @@ let filteredProducts = [];
 let cart = JSON.parse(localStorage.getItem("cart") || "[]");
 const CACHE_KEY = "lv12shop_products_v4";
 
+let userArea = document.getElementById("userArea");
+if (!userArea) {
+  const headerBtns = document.querySelector("header .flex.items-center.gap-3");
+  userArea = document.createElement("div");
+  userArea.id = "userArea";
+  headerBtns.appendChild(userArea);
+}
+
 const escapeHtml = s => String(s || "").replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[m]));
 const formatPrice = v => v ? Number(v).toLocaleString('ar-EG', { style: 'currency', currency: 'EGP' }) : "غير متوفر";
 const debounce = (fn, ms = 400) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
 
+function showToast(msg, ok = true, time = 2500) {
+  const toast = document.createElement("div");
+  toast.textContent = msg;
+  toast.className = `fixed bottom-5 right-5 px-4 py-2 rounded-lg shadow text-white z-50 ${
+    ok ? "bg-green-600" : "bg-red-600"
+  }`;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), time);
+}
 
+async function checkAuth() {
+  try {
+    const { data } = await supabase.auth.getSession();
+    const user = data?.session?.user || null;
+
+    if (user) {
+      const name = user.user_metadata?.full_name || user.email.split("@")[0];
+      const avatar = user.user_metadata?.avatar_url || `https://ui-avatars.com/api/?background=2563eb&color=fff&name=${encodeURIComponent(name)}`;
+
+      userArea.innerHTML = `
+        <div class="flex items-center gap-2 bg-white px-2 py-1 rounded-lg shadow-sm">
+          <img src="${avatar}" alt="avatar" class="w-8 h-8 rounded-full border border-gray-200">
+          <span class="text-gray-700 text-sm font-medium">${escapeHtml(name)}</span>
+          <button id="logoutBtn" class="text-red-500 hover:underline text-xs">تسجيل خروج</button>
+        </div>
+      `;
+
+      document.getElementById("logoutBtn").onclick = async () => {
+        await supabase.auth.signOut();
+        showToast("تم تسجيل الخروج بنجاح");
+        location.reload();
+      };
+    } else {
+      userArea.innerHTML = `
+        <a href="shop-login.html" class="text-blue-700 font-medium hover:underline text-sm">تسجيل الدخول</a>
+      `;
+    }
+  } catch (err) {
+    console.error("Auth error:", err);
+  }
+}
 async function loadProducts() {
-  const cache = sessionStorage.getItem(CACHE_KEY);
+  const cache = localStorage.getItem(CACHE_KEY);
   if (cache) {
     try {
       const { data, ts } = JSON.parse(cache);
-      if (data && (Date.now() - ts < 5 * 60 * 1000)) {
+
+      if (data && Date.now() - ts < 12 * 60 * 60 * 1000) {
         allProducts = data;
         renderCategories();
         renderFiltered();
-        refreshInBackground();
+
+        fetchProducts(true);
         return;
       }
-    } catch {}
+    } catch (e) {
+      console.warn("⚠️ خطأ في قراءة الكاش:", e);
+    }
   }
-  await fetchProducts();
+
+  await fetchProducts(false);
 }
 
-async function fetchProducts() {
-  showLoading(true);
+async function fetchProducts(background = false) {
+  if (!background) showLoading(true);
+
   try {
-    const { data, error } = await supabase.from("products").select(`
-      id, name, description, price, stock, category,
-      product_images(image_url,is_primary,ordering)
-    `).order("created_at", { ascending: false });
+    let { data, error } = await supabase
+      .from("products")
+      .select(`
+        id,
+        name,
+        description,
+        price,
+        stock,
+        category,
+        created_at,
+        product_images!product_images_product_id_fkey (
+          image_url,
+          is_primary,
+          ordering
+        )
+      `)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.warn("⚠️ خطأ في العلاقة product_images:", error.message);
+      ({ data, error } = await supabase
+        .from("products")
+        .select("*")
+        .order("created_at", { ascending: false }));
+    }
 
     if (error) throw error;
 
     allProducts = (data || []).map(p => {
-      const imgs = (p.product_images || []).sort((a, b) => (a.ordering || 0) - (b.ordering || 0));
+      const imgs = (p.product_images || []).sort(
+        (a, b) => (a.ordering || 0) - (b.ordering || 0)
+      );
       const main = imgs.find(i => i.is_primary) || imgs[0];
       return {
         id: p.id,
         name: p.name,
         description: p.description || "",
-        price: Number(p.price),
-        stock: Number(p.stock),
+        price: Number(p.price) || 0,
+        stock: Number(p.stock) || 0,
         category: p.category || "غير مصنف",
-        image: main?.image_url || `${SUPABASE_URL}/storage/v1/object/public/products/no-image.png`
+        image:
+          main?.image_url ||
+          p.image_url ||
+          `${SUPABASE_URL}/storage/v1/object/public/products/no-image.png`,
       };
     });
 
-    sessionStorage.setItem(CACHE_KEY, JSON.stringify({ data: allProducts, ts: Date.now() }));
-    renderCategories();
-    renderFiltered();
+    localStorage.setItem(
+      CACHE_KEY,
+      JSON.stringify({
+        data: allProducts,
+        ts: Date.now(),
+      })
+    );
 
+    if (!background) {
+      renderCategories();
+      renderFiltered();
+    }
   } catch (e) {
-    console.error(e);
-    showError("حدث خطأ أثناء تحميل المنتجات.");
+    console.error("❌ خطأ أثناء تحميل المنتجات:", e);
+    if (!background) showError("حدث خطأ أثناء تحميل المنتجات.");
   } finally {
-    showLoading(false);
+    if (!background) showLoading(false);
   }
 }
+
+
 
 async function refreshInBackground() {
   try {
     const { data } = await supabase.from("products").select("id");
-    if (data?.length && data.length !== allProducts.length) {
-      fetchProducts();
-    }
+    if (data?.length && data.length !== allProducts.length) fetchProducts();
   } catch {}
 }
-
 
 function renderCategories() {
   const cats = [...new Set(allProducts.map(p => p.category))];
@@ -460,7 +545,6 @@ function renderProducts(list) {
   showLoading(false);
 }
 
-
 function addToCart(id) {
   const p = allProducts.find(x => x.id === id);
   if (!p) return;
@@ -477,7 +561,6 @@ function updateCartUI() {
   else cartBadge.classList.add("hidden");
 }
 
-
 function showLoading(on) {
   if (on) { loadingEl.classList.remove("hidden"); productsGrid.classList.add("hidden"); }
   else loadingEl.classList.add("hidden");
@@ -486,7 +569,6 @@ function showLoading(on) {
 function showError(msg) {
   loadingEl.textContent = msg;
 }
-
 
 searchInput.addEventListener("input", debounce(() => {
   clearSearch.classList.toggle("hidden", !searchInput.value);
@@ -508,13 +590,15 @@ resetFiltersBtn.addEventListener("click", () => {
   renderFiltered();
 });
 
-
+// 🚀 بدء التنفيذ
 (async function init() {
   document.getElementById("yearFooter").textContent = new Date().getFullYear();
   updateCartUI();
+  await checkAuth();
   await loadProducts();
 })();
 </script>
+
 
 </body>
 </html>
