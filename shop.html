@@ -1,457 +1,541 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8" />
-  <meta name="description" content="متجر LV12 - أحدث المنتجات بأسعار تنافسية وتوصيل سريع إلى باب منزلك. اكتشف العروض الآن!">
-<meta name="keywords" content="LV12, متجر, تسوق, منتجات, الكترونيات, عروض, شراء, online shop, lv12shop">
-<meta name="robots" content="index, follow">
-  <meta name="google-adsense-account" content="ca-pub-4465576706318134">
-<meta property="og:title" content="متجر LV12 - تسوق بسهولة وأمان">
-<meta property="og:description" content="اكتشف أحدث المنتجات بأسعار مميزة وخدمة توصيل سريعة.">
-<meta property="og:url" content="https://lv12shop.shop">
-<meta property="og:type" content="website">
-<meta property="og:image" content="https://lv12shop.shop/lv12.ico">
-<meta name="google-site-verification" content="zHW0SLEn31rSn3Joj_Hwgn6PR5_PPvGv07d0DJaiUSM" />
-  <title>متجر LV12 — الصفحة الرئيسية</title>
-src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4465576706318134"
-     crossorigin="anonymous"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="icon" href="lv12.ico" type="image/x-icon" />
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <title>متجر LV12 — تسوق بسهولة وأمان</title>
+  <meta name="description" content="متجر LV12 — أحدث المنتجات بأسعار منافسة وتوصيل سريع. تسوق بسهولة وأمان." />
+  <meta property="og:image" content="/assets/og-image.jpg" />
+  <link rel="icon" href="/lv12.ico" />
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
 
   <style>
-    .card-hover:hover { transform: translateY(-6px); box-shadow: 0 18px 40px rgba(2,6,23,0.08); transition: 220ms; }
-    .fade-in { animation: fadeIn .22s ease both; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px);} to { opacity: 1; transform: translateY(0);} }
-    .product-img { object-fit: cover; width: 100%; height: 180px; }
-    @media (min-width: 768px) { .product-img { height: 200px; } }
+    body { font-family: 'Cairo', sans-serif; scroll-behavior: smooth; }
+    .card-hover:hover { transform: translateY(-6px); box-shadow: 0 16px 32px rgba(0,0,0,0.08); transition: 0.25s; }
+    .fade-in { animation: fadeIn .25s ease both; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px);} to { opacity: 1; transform: translateY(0);} }
+    .product-img { object-fit: cover; width: 100%; height: 200px; border-radius: 0.75rem; }
+    .btn-main { background: linear-gradient(90deg, #2563eb, #1d4ed8); color: #fff; }
+    .btn-main:hover { opacity: 0.9; }
+    .btn-outline { border: 1px solid #2563eb; color: #2563eb; }
+    .btn-outline:hover { background: #2563eb; color: white; }
   </style>
 </head>
-<body class="bg-gray-50 text-gray-800 font-sans antialiased">
 
-<header class="bg-white shadow sticky top-0 z-50">
-  <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
-    <div class="flex items-center gap-3 cursor-pointer" onclick="location.href='shop.html'">
-      <img src="lv12.ico" class="w-10 h-10 rounded" alt="logo" />
-      <div>
-        <div class="text-lg font-bold text-blue-700">LV12 متجرنا</div>
-        <div class="text-xs text-gray-500">تسوق ذكي وسريع</div>
-      </div>
-    </div>
+<body class="bg-gray-50 text-gray-800 antialiased">
 
-    <div class="flex-1 px-4">
-      <div class="flex gap-3 items-center">
-        <div class="relative flex-1">
-          <input id="searchInput" type="search" placeholder="ابحث عن منتج، اسم، أو وصف..." 
-            class="w-full border rounded-lg px-4 py-2 pr-12 focus:outline-none focus:ring-2 focus:ring-blue-400" />
-          <button id="clearSearch" class="absolute left-2 top-1/2 -translate-y-1/2 text-sm text-gray-500 hidden">✖</button>
+  <header class="bg-white shadow-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+      <a href="index.html" class="flex items-center gap-3 group">
+        <img src="/lv12.ico" class="w-10 h-10 rounded transition-transform group-hover:rotate-6" alt="LV12 logo" />
+        <div>
+          <div class="text-lg font-bold text-blue-700">متجر LV12</div>
+          <div class="text-xs text-gray-500">تسوق ذكي وسريع</div>
         </div>
+      </a>
 
-        <select id="sortSelect" class="border rounded px-3 py-2 hidden sm:inline">
-          <option value="newest">الأحدث</option>
-          <option value="priceLow">الأرخص</option>
-          <option value="priceHigh">الأغلى</option>
-          <option value="rating">الأعلى تقييماً</option>
-        </select>
+      <div class="flex-1 px-4">
+        <div class="flex gap-3 items-center">
+          <div class="relative flex-1">
+            <input id="searchInput" type="search" placeholder="ابحث عن منتج، اسم أو وصف..." 
+              class="w-full border border-gray-300 rounded-lg px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <button id="clearSearch" class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 hidden">✖</button>
+          </div>
 
-        <a id="cartBtn" href="cart.html" class="relative bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700 flex items-center gap-2">
-          🛍️ السلة
-          <span id="cartBadge" class="absolute -left-2 -top-2 bg-red-600 text-white text-xs font-semibold px-2 py-0.5 rounded-full hidden">0</span>
-        </a>
+          <select id="sortSelect" class="border border-gray-300 rounded px-3 py-2 text-sm hidden sm:inline">
+            <option value="newest">الأحدث</option>
+            <option value="priceLow">الأرخص</option>
+            <option value="priceHigh">الأغلى</option>
+            <option value="rating">الأعلى تقييماً</option>
+          </select>
 
-        <a id="ordersBtn" href="my-orders.html" class="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700 hidden sm:inline">📦 طلباتي</a>
+          <a id="cartBtn" href="cart.html" class="relative btn-main px-4 py-2 rounded flex items-center gap-2 shadow-md">
+            🛍️ <span class="hidden sm:inline">السلة</span>
+            <span id="cartBadge" class="absolute -left-2 -top-2 bg-red-600 text-white text-xs font-semibold px-2 py-0.5 rounded-full hidden">0</span>
+          </a>
+        </div>
+      </div>
+
+      <div id="userArea" class="flex items-center gap-3">
+        <span id="userName" class="text-sm text-gray-700 hidden sm:inline"></span>
+        <a id="loginBtn" href="shop-login.html" class="text-blue-700 font-medium hover:underline">تسجيل الدخول</a>
+        <button id="menuToggle" class="sm:hidden px-2 py-1 text-gray-600 text-xl">☰</button>
       </div>
     </div>
 
-    <div id="userArea" class="flex items-center gap-3">
-      <span id="userName" class="text-sm text-gray-700 hidden sm:inline"></span>
-      <a id="loginBtn" href="shop-login.html" class="text-blue-600 underline">تسجيل الدخول</a>
-      <button id="menuToggle" class="sm:hidden px-2 py-1 text-gray-600">☰</button>
-    </div>
-  </div>
+    <nav class="bg-gradient-to-l from-blue-50 to-white border-t">
+      <div class="max-w-7xl mx-auto px-4 py-3 flex overflow-x-auto gap-2" id="categoriesNavWrap">
+        <button data-cat="" class="cat-btn px-3 py-1 rounded-full bg-blue-600 text-white font-medium">الكل</button>
+        <div id="categoriesNav" class="flex gap-2"></div>
+      </div>
+    </nav>
+  </header>
 
-  <div class="sm:hidden bg-white border-t">
-    <div class="max-w-7xl mx-auto px-4 py-2">
-      <div class="flex gap-2">
-        <select id="mobileSort" class="border rounded px-3 py-2 w-1/2">
-          <option value="newest">الأحدث</option>
-          <option value="priceLow">الأرخص</option>
-        </select>
-        <button id="filtersToggle" class="border rounded px-3 py-2 w-1/2">الفلاتر</button>
+  <section class="max-w-7xl mx-auto px-4 py-10 grid md:grid-cols-3 gap-6 items-center">
+    <div class="md:col-span-2 bg-gradient-to-r from-blue-100 to-blue-50 p-8 rounded-2xl shadow-sm">
+      <h1 class="text-3xl md:text-4xl font-bold text-blue-800 mb-3 leading-tight">اكتشف منتجات مميزة — فقط في <span class="text-blue-600">LV12</span></h1>
+      <p class="text-gray-700 mb-5 text-lg">عروض يومية، شحن سريع، وسياسة استرجاع واضحة. تسوق بثقة وسهولة.</p>
+      <div class="flex gap-3">
+        <a href="#products" class="btn-main px-5 py-2.5 rounded-md shadow-sm">ابدأ التسوق الآن</a>
+        <a href="about.html" class="btn-outline px-5 py-2.5 rounded-md">من نحن</a>
       </div>
     </div>
-  </div>
-</header>
+    <div class="hidden md:block">
+      <img src="/assets/hero.jpg" alt="hero" class="rounded-2xl shadow-lg w-full h-64 object-cover" />
+    </div>
+  </section>
 
-<nav class="bg-white shadow-sm">
-  <div class="max-w-7xl mx-auto px-4 py-3 flex overflow-x-auto gap-2">
-    <button data-cat="" class="cat-btn px-3 py-1 rounded-full bg-blue-50 text-blue-700">الكل</button>
-    <div id="categoriesNav" class="flex gap-2"></div>
-  </div>
-</nav>
+  <main class="max-w-7xl mx-auto px-4 pb-24">
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
 
-<main class="max-w-7xl mx-auto px-4 py-8">
-  <div id="topInfo" class="mb-6 text-sm text-gray-600">اكتشف أفضل المنتجات — استخدم البحث أو الفلاتر</div>
+      <aside class="lg:col-span-1 bg-white p-5 rounded-xl shadow-md hidden lg:block">
+        <h3 class="font-semibold mb-4 text-blue-700 border-b pb-2">🔍 الفلاتر</h3>
 
-  <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-    <aside class="lg:col-span-1 bg-white p-4 rounded shadow hidden lg:block">
-      <h3 class="font-semibold mb-3">الفلاتر</h3>
-
-      <div class="mb-4">
         <label class="block text-sm font-medium mb-1">الفئة</label>
-        <select id="categoryFilter" class="w-full border p-2 rounded">
+        <select id="categoryFilter" class="w-full border p-2 rounded mb-4">
           <option value="">كل الفئات</option>
         </select>
-      </div>
 
-      <div class="mb-4">
-        <label class="block text-sm font-medium mb-1">حالة المخزون</label>
-        <select id="stockFilter" class="w-full border p-2 rounded">
+        <label class="block text-sm font-medium mb-1">المخزون</label>
+        <select id="stockFilter" class="w-full border p-2 rounded mb-4">
           <option value="">الكل</option>
           <option value="in">متوفر</option>
           <option value="out">منفذ</option>
         </select>
-      </div>
 
-      <div class="mb-4">
-        <label class="block text-sm font-medium mb-1">نطاق السعر</label>
-        <div class="flex gap-2">
+        <label class="block text-sm font-medium mb-1">نطاق السعر (ج.م)</label>
+        <div class="flex gap-2 mb-4">
           <input id="priceMin" type="number" placeholder="من" class="border p-2 rounded w-1/2" />
           <input id="priceMax" type="number" placeholder="إلى" class="border p-2 rounded w-1/2" />
         </div>
+
+        <button id="applyFilters" class="btn-main w-full py-2 rounded mb-2">تطبيق</button>
+        <button id="resetFilters" class="bg-gray-200 hover:bg-gray-300 py-2 rounded w-full">إعادة تعيين</button>
+      </aside>
+
+      <section class="lg:col-span-3">
+        <div id="topInfo" class="mb-6 text-sm text-gray-600">🛒 تصفح أفضل المنتجات — استخدم البحث أو الفلاتر</div>
+        <div id="loading" class="text-center text-gray-500 py-16">⏳ جاري تحميل المنتجات...</div>
+        <div id="productsGrid" class="hidden grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6"></div>
+        <div id="noResults" class="hidden text-center text-gray-500 py-10">لم نجد نتائج — جرّب فلتر أو بحث مختلف 🔎</div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="bg-gradient-to-l from-blue-50 to-white border-t mt-16">
+    <div class="max-w-7xl mx-auto px-4 py-10 grid grid-cols-1 md:grid-cols-4 gap-8">
+      <div>
+        <img src="/lv12.ico" class="w-14 h-14 rounded mb-3" alt="شعار LV12" />
+        <h4 class="text-lg font-bold text-blue-800 mb-1">متجر LV12</h4>
+        <p class="text-sm text-gray-600">تسوق ذكي وسريع — شحن آمن واسترجاع مضمون.</p>
       </div>
 
-      <div class="mt-4">
-        <button id="applyFilters" class="bg-blue-600 text-white px-3 py-2 rounded w-full">تطبيق</button>
-        <button id="resetFilters" class="mt-2 bg-gray-200 px-3 py-2 rounded w-full">إعادة تعيين</button>
+      <div>
+        <h4 class="font-semibold mb-3 text-gray-800">روابط</h4>
+        <ul class="space-y-1 text-sm">
+          <li><a href="about.html" class="hover:underline">من نحن</a></li>
+          <li><a href="return-policy.html" class="hover:underline">سياسة الاسترجاع</a></li>
+          <li><a href="shipping-policy.html" class="hover:underline">سياسة الشحن</a></li>
+          <li><a href="support.html" class="hover:underline">الدعم الفني</a></li>
+        </ul>
       </div>
-    </aside>
 
-    <section class="lg:col-span-3">
-      <div id="loading" class="text-center text-gray-500 py-16">⏳ جاري تحميل المنتجات...</div>
-      <div id="productsGrid" class="hidden grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6"></div>
-      <div id="noResults" class="hidden text-center text-gray-500 py-10">لم نجد نتائج — جرّب فلتر/بحث آخر</div>
-    </section>
-  </div>
-</main>
+      <div>
+        <h4 class="font-semibold mb-3 text-gray-800">تواصل معنا</h4>
+        <p class="text-sm">📧 <a href="mailto:info@lv12shop.shop" class="underline">info@lv12shop.shop</a></p>
+        <p class="text-sm">📞 +20 100 000 0000</p>
+      </div>
 
-<div id="quickView" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
-  <div class="bg-white rounded-lg max-w-4xl w-full p-5 relative">
-    <button onclick="closeQuickView()" class="absolute left-3 top-3 text-gray-500">✖️</button>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div id="qImages" class="md:col-span-1 overflow-hidden rounded"></div>
-      <div class="md:col-span-2">
-        <h3 id="qName" class="text-xl font-bold mb-2"></h3>
-        <div id="qRating" class="text-sm text-yellow-600 mb-2"></div>
-        <p id="qDesc" class="text-gray-700 mb-4"></p>
-
-        <div class="flex items-center gap-4 mb-4">
-          <div class="text-2xl font-bold text-blue-700" id="qPrice"></div>
-          <div id="qStock" class="text-sm text-gray-600"></div>
-        </div>
-
-        <div class="flex gap-2 items-center mb-4">
-          <input id="qQty" type="number" value="1" min="1" class="w-20 border p-2 rounded" />
-          <button id="qAdd" class="bg-blue-600 text-white px-3 py-2 rounded">➕ أضف للسلة</button>
-          <a id="qFull" class="ml-auto text-sm text-blue-600 underline cursor-pointer">عرض كامل</a>
-        </div>
-
-        <div class="mt-2">
-          <button id="copyLinkBtn" class="px-3 py-2 border rounded text-sm">نسخ رابط المنتج</button>
-        </div>
-
-        <div class="mt-6">
-          <h4 class="font-semibold mb-2">التقييمات (أحدث)</h4>
-          <div id="qReviews" class="space-y-3 max-h-40 overflow-auto"></div>
+      <div>
+        <h4 class="font-semibold mb-3 text-gray-800">تابعنا</h4>
+        <div class="flex gap-3">
+          <a href="#" class="text-blue-600 hover:underline">Facebook</a>
+          <a href="#" class="text-pink-600 hover:underline">Instagram</a>
         </div>
       </div>
     </div>
-  </div>
-</div>
 
-<nav class="fixed bottom-0 left-0 right-0 bg-white border-t z-40 sm:hidden">
-  <div class="max-w-7xl mx-auto px-4 py-2 flex justify-between items-center">
-    <button onclick="location.href='shop.html'" class="flex flex-col items-center text-sm">
-      🏠
-      <span class="text-xs">الرئيسية</span>
-    </button>
-    <button onclick="location.href='cart.html'" class="flex flex-col items-center text-sm relative">
-      🛒
-      <span class="text-xs">السلة</span>
-      <span id="bottomCartBadge" class="absolute -right-2 -top-1 bg-red-600 text-white text-xs font-semibold px-2 py-0.5 rounded-full hidden">0</span>
-    </button>
-    <button onclick="location.href='my-orders.html'" class="flex flex-col items-center text-sm">
-      📦
-      <span class="text-xs">طلباتي</span>
-    </button>
-    <button onclick="location.href='shop-login.html'" class="flex flex-col items-center text-sm">
-      👤
-      <span class="text-xs">حسابك</span>
-    </button>
-  </div>
-</nav>
+    <div class="text-center text-sm text-gray-500 border-t pt-4 pb-6">
+      © <span id="yearFooter"></span> LV12 — جميع الحقوق محفوظة.
+    </div>
+  </footer>
 
-<div id="toast" class="fixed bottom-20 left-4 right-4 sm:left-auto sm:right-8 hidden z-50"></div>
+  <script>
+  var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+  (function(){
+    var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+    s1.async=true; s1.src='https://embed.tawk.to/68c8f642da790c1926b84f20/1j58g3tg0';
+    s1.charset='UTF-8'; s1.setAttribute('crossorigin','*');
+    s0.parentNode.insertBefore(s1,s0);
+  })();
+  </script>
 
+  <script src="/assets/scripts.js"></script>
+  <script>
+    document.getElementById('yearFooter').textContent = new Date().getFullYear();
+  </script>
+</body>
 
-<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script>
+  
 
-<script>
+  const SUPABASE_URL = "https://nszhzfysitppxssplqfb.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zemh6ZnlzaXRwcHhzc3BscWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA4OTcsImV4cCI6MjA3MzgwNjg5N30.5KvK4bhqkZ_GpIfED4qecIMfeubAJYwSFJslULwOp-w";
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const productsGrid = document.getElementById("productsGrid");
+  const loadingEl = document.getElementById("loading");
+  const noResultsEl = document.getElementById("noResults");
+  const searchInput = document.getElementById("searchInput");
+  const sortSelect = document.getElementById("sortSelect");
+  const categoryFilter = document.getElementById("categoryFilter");
+  const stockFilter = document.getElementById("stockFilter");
+  const priceMin = document.getElementById("priceMin");
+  const priceMax = document.getElementById("priceMax");
+  const applyFiltersBtn = document.getElementById("applyFilters");
+  const resetFiltersBtn = document.getElementById("resetFilters");
+  const toastEl = document.getElementById("toast");
+  const categoriesNav = document.getElementById("categoriesNav");
+  const quickView = document.getElementById("quickView");
+  const qImages = document.getElementById("qImages");
+  const qName = document.getElementById("qName");
+  const qDesc = document.getElementById("qDesc");
+  const qPrice = document.getElementById("qPrice");
+  const qStock = document.getElementById("qStock");
+  const qRating = document.getElementById("qRating");
+  const qQty = document.getElementById("qQty");
+  const qAdd = document.getElementById("qAdd");
+  const qBuy = document.getElementById("qBuy");
+  const qFull = document.getElementById("qFull");
+  const qReviews = document.getElementById("qReviews");
 
-const SUPABASE_URL = "https://nszhzfysitppxssplqfb.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zemh6ZnlzaXRwcHhzc3BscWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA4OTcsImV4cCI6MjA3MzgwNjg5N30.5KvK4bhqkZ_GpIfED4qecIMfeubAJYwSFJslULwOp-w";
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const cartBadge = document.getElementById("cartBadge");
+  const bottomCartBadge = document.getElementById("bottomCartBadge");
 
-const productsGrid = document.getElementById("productsGrid");
-const loadingEl = document.getElementById("loading");
-const noResultsEl = document.getElementById("noResults");
-const searchInput = document.getElementById("searchInput");
-const sortSelect = document.getElementById("sortSelect");
-const categoryFilter = document.getElementById("categoryFilter");
-const stockFilter = document.getElementById("stockFilter");
-const priceMin = document.getElementById("priceMin");
-const priceMax = document.getElementById("priceMax");
-const applyFiltersBtn = document.getElementById("applyFilters");
-const resetFiltersBtn = document.getElementById("resetFilters");
-const toastEl = document.getElementById("toast");
-const categoriesNav = document.getElementById("categoriesNav");
-const quickView = document.getElementById("quickView");
-const qImages = document.getElementById("qImages");
-const qName = document.getElementById("qName");
-const qDesc = document.getElementById("qDesc");
-const qPrice = document.getElementById("qPrice");
-const qStock = document.getElementById("qStock");
-const qRating = document.getElementById("qRating");
-const qQty = document.getElementById("qQty");
-const qAdd = document.getElementById("qAdd");
-const qBuy = document.getElementById("qBuy");
-const qFull = document.getElementById("qFull");
-const qSimilar = document.getElementById("qSimilar");
+  let allProducts = [];
+  let displayedProducts = [];
+  let categories = [];
+  let cart = JSON.parse(localStorage.getItem("cart") || "[]");
 
-const cartBadge = document.getElementById("cartBadge");
-const bottomCartBadge = document.getElementById("bottomCartBadge");
+  let PAGE_LIMIT = 48;
+  let currentPage = 1;
+  let isLoadingMore = false;
+  let useCache = true;
+  const CACHE_KEY = "lv12_products_cache_v1";
 
-let allProducts = [];
-let displayedProducts = [];
-let categories = [];
-let cart = JSON.parse(localStorage.getItem("cart") || "[]");
+  function escapeHtml(s) {
+    if (s === null || s === undefined) return "";
+    return String(s).replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[m]));
+  }
+  function numberOrNull(v) {
+    if (v === null || v === undefined || v === "") return null;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  }
+  function debounce(fn, wait = 300) {
+    let t;
+    return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), wait); };
+  }
+  function formatPriceEGP(v) {
+    if (v == null) return '---';
+    try { return Number(v).toLocaleString('ar-EG', { style: 'currency', currency: 'EGP' }); }
+    catch { return `${v} ج.م`; }
+  }
 
-const showToast = (msg, success = true, timeout = 3000) => {
-  if (!toastEl) return;
-  toastEl.innerHTML = `
-    <div class="p-3 rounded-lg shadow text-sm ${success ? 'bg-green-600' : 'bg-red-600'} text-white">${msg}</div>`;
-  toastEl.classList.remove("hidden");
-  clearTimeout(toastEl._t);
-  toastEl._t = setTimeout(() => toastEl.classList.add("hidden"), timeout);
-};
-
-const escapeHtml = s => String(s || "").replace(/[&<>"']/g, m => (
-  { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[m]
-));
-
-async function fetchProducts(options = {}) {
-  const { search = "", category = "", sort = "newest", minPrice = null, maxPrice = null, stock = "" } = options;
-  loadingEl.classList.remove("hidden");
-  productsGrid.classList.add("hidden");
-  noResultsEl.classList.add("hidden");
-
-  try {
-    const { data, error } = await supabase
-      .from("products")
-      .select(`
-        id, name, description, price, stock, created_at, category,
-        product_images(image_url, is_primary, ordering),
-        product_reviews(rating)
-      `)
-      .order("created_at", { ascending: false });
-
-    if (error) throw error;
-allProducts = (data || []).map(p => {
-  const imgs = (p.product_images || []).sort((a, b) => (a.ordering || 0) - (b.ordering || 0));
-  const primary = imgs.find(i => i.is_primary) || imgs[0] || {};
-  const ratings = (p.product_reviews || [])
-    .map(r => Number(r.rating))
-    .filter(Boolean);
-  const avg = ratings.length
-    ? Math.round((ratings.reduce((a, b) => a + b, 0) / ratings.length) * 10) / 10
-    : null;
-
-  return {
-    ...p,
-    primaryImage:
-      primary.image_url ||
-      "https://placehold.co/400x300/EEE/AAA?text=No+Image",
-    avgRating: avg,
-    reviewCount: ratings.length,
+  const showToast = (msg, success = true, timeout = 3500) => {
+    if (!toastEl) return;
+    toastEl.innerHTML = `
+      <div role="status" aria-live="polite" class="p-3 rounded-lg shadow text-sm ${success ? 'bg-green-600' : 'bg-red-600'} text-white">
+        ${escapeHtml(msg)}
+      </div>`;
+    toastEl.classList.remove("hidden");
+    clearTimeout(toastEl._t);
+    toastEl._t = setTimeout(() => toastEl.classList.add("hidden"), timeout);
   };
-});
 
+  async function fetchProductsFromSupabase({ page = 1, limit = PAGE_LIMIT } = {}) {
+    const offset = (page - 1) * limit;
 
-    filterAndRender({ search, category, sort, minPrice, maxPrice, stock });
-    renderCategories();
-  } catch (err) {
-    console.error("خطأ تحميل المنتجات:", err);
-    showToast("⚠️ حدث خطأ أثناء تحميل المنتجات", false);
-  } finally {
-    loadingEl.classList.add("hidden");
+    if (useCache && sessionStorage.getItem(CACHE_KEY)) {
+      try {
+        const cache = JSON.parse(sessionStorage.getItem(CACHE_KEY));
+        if (cache && cache.timestamp && (Date.now() - cache.timestamp) < (5 * 60 * 1000)) {
+          allProducts = cache.products || [];
+          renderCategories();
+          filterAndRenderFromState();
+          return;
+        }
+      } catch (e) { console.warn("cache read failed", e); }
+    }
+
+    loadingEl?.classList.remove("hidden");
+    productsGrid?.classList.add("hidden");
+    noResultsEl?.classList.add("hidden");
+
+    try {
+      const { data, error } = await supabase
+        .from("products")
+        .select(`
+          id, name, description, price, stock, created_at, category,
+          product_images(image_url, is_primary, ordering),
+          product_reviews(rating, comment, created_at)
+        `)
+        .order("created_at", { ascending: false })
+        .range(offset, offset + limit - 1);
+
+      if (error) throw error;
+
+      const normalized = (data || []).map(p => {
+        const imgs = (p.product_images || []).slice().sort((a, b) => (a.ordering || 0) - (b.ordering || 0));
+        const primary = imgs.find(i => i.is_primary) || imgs[0] || null;
+        const primaryURL = primary?.image_url || `${SUPABASE_URL}/storage/v1/object/public/products/no-image.png`;
+
+        const ratings = (p.product_reviews || []).map(r => Number(r.rating)).filter(Boolean);
+        const avgRating = ratings.length ? Math.round((ratings.reduce((a,b)=>a+b,0)/ratings.length)*10)/10 : null;
+
+        return {
+          id: p.id,
+          name: p.name,
+          description: p.description,
+          price: typeof p.price === "number" ? p.price : (p.price ? Number(p.price) : null),
+          stock: Number.isFinite(Number(p.stock)) ? Number(p.stock) : (p.stock ? Number(p.stock) : 0),
+          created_at: p.created_at,
+          category: p.category || "",
+          images: imgs.map(i => i.image_url).filter(Boolean),
+          primaryImage: primaryURL,
+          avgRating,
+          reviewCount: ratings.length
+        };
+      });
+
+      if (page === 1) allProducts = normalized;
+      else allProducts = [...allProducts, ...normalized];
+
+      try {
+        sessionStorage.setItem(CACHE_KEY, JSON.stringify({ timestamp: Date.now(), products: allProducts }));
+      } catch (e) {  }
+
+      renderCategories();
+      filterAndRenderFromState();
+    } catch (err) {
+      console.error("خطأ تحميل المنتجات:", err);
+      showToast("⚠️ حدث خطأ أثناء تحميل المنتجات", false);
+    } finally {
+      loadingEl?.classList.add("hidden");
+    }
   }
-}
 
-function filterAndRender({ search, category, sort, minPrice, maxPrice, stock }) {
-  displayedProducts = allProducts.filter(p => {
-    const matchesSearch = !search || p.name.toLowerCase().includes(search.toLowerCase()) || (p.description || "").toLowerCase().includes(search.toLowerCase());
-    const matchesCategory = !category || p.category === category;
-    const matchesStock = !stock || (stock === "in" ? p.stock > 0 : p.stock <= 0);
-    const matchesPrice = (!minPrice || p.price >= minPrice) && (!maxPrice || p.price <= maxPrice);
-    return matchesSearch && matchesCategory && matchesStock && matchesPrice;
-  });
+  function filterAndRenderFromState() {
+    const search = (searchInput?.value || "").trim().toLowerCase();
+    const category = (categoryFilter?.value || "").trim();
+    const stock = (stockFilter?.value || "").trim();
+    const minPrice = numberOrNull(priceMin?.value);
+    const maxPrice = numberOrNull(priceMax?.value);
 
-  sortAndRender(sort);
-}
+    displayedProducts = allProducts.filter(p => {
+      const matchesSearch = !search ||
+        (p.name || "").toLowerCase().includes(search) ||
+        (p.description || "").toLowerCase().includes(search);
+      const matchesCategory = !category || p.category === category;
+      const matchesStock = !stock || (stock === "in" ? p.stock > 0 : p.stock <= 0);
+      const matchesPrice = (minPrice === null || p.price === null || p.price >= minPrice) &&
+        (maxPrice === null || p.price === null || p.price <= maxPrice);
+      return matchesSearch && matchesCategory && matchesStock && matchesPrice;
+    });
 
-function renderCategories() {
-  categories = [...new Set(allProducts.map(p => p.category).filter(Boolean))];
-  categoriesNav.innerHTML = `<button class="cat-btn px-3 py-1 rounded-full bg-blue-100 text-blue-700" onclick="onCategorySelect('')">الكل</button>`;
-  categoryFilter.innerHTML = `<option value="">كل الفئات</option>`;
-  categories.forEach(cat => {
-    const safe = escapeHtml(cat);
-    categoriesNav.innerHTML += `<button class="cat-btn px-3 py-1 rounded-full bg-gray-100 hover:bg-gray-200" onclick="onCategorySelect('${safe}')">${safe}</button>`;
-    categoryFilter.innerHTML += `<option value="${safe}">${safe}</option>`;
-  });
-}
-function onCategorySelect(cat) {
-  categoryFilter.value = cat;
-  fetchWithFilters();
-}
-
-function sortAndRender(sort) {
-  let products = [...displayedProducts];
-  if (sort === "priceLow") products.sort((a,b)=>a.price-b.price);
-  else if (sort === "priceHigh") products.sort((a,b)=>b.price-a.price);
-  else if (sort === "rating") products.sort((a,b)=>(b.avgRating||0)-(a.avgRating||0));
-  else products.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
-  renderProducts(products);
-}
-
-function renderProducts(products) {
-  productsGrid.innerHTML = "";
-  if (!products.length) {
-    noResultsEl.classList.remove("hidden");
-    productsGrid.classList.add("hidden");
-    return;
+    const sort = sortSelect?.value || "newest";
+    sortAndRender(sort);
   }
-  noResultsEl.classList.add("hidden");
-  productsGrid.classList.remove("hidden");
 
-  products.forEach(p => {
-    const card = document.createElement("div");
-    card.className = "bg-white rounded-lg overflow-hidden shadow hover:shadow-lg transition cursor-pointer flex flex-col";
-    card.innerHTML = `
-      <img src="${escapeHtml(p.primaryImage)}" class="w-full h-48 object-cover" alt="${escapeHtml(p.name)}">
-      <div class="p-3 flex flex-col flex-1">
-        <h3 class="text-sm font-semibold mb-1 truncate">${escapeHtml(p.name)}</h3>
-        <p class="text-xs text-gray-500 mb-2 flex-1">${escapeHtml(p.description?.slice(0,80)||"")}</p>
-        <div class="flex justify-between items-center mt-auto">
-          <div class="text-blue-700 font-bold">${p.price} ج.م</div>
-          <button class="bg-blue-600 text-white px-2 py-1 rounded text-xs" onclick="addToCart(${p.id});event.stopPropagation();">🛒</button>
+  function renderCategories() {
+    categories = [...new Set(allProducts.map(p => p.category).filter(Boolean))];
+    categoriesNav.innerHTML = `<button class="cat-btn px-3 py-1 rounded-full bg-blue-100 text-blue-700 mr-2 mb-2" onclick="onCategorySelect('')">الكل</button>`;
+    categoryFilter.innerHTML = `<option value="">كل الفئات</option>`;
+    categories.forEach(cat => {
+      const safe = escapeHtml(cat);
+      categoriesNav.innerHTML += `<button class="cat-btn px-3 py-1 rounded-full bg-gray-100 hover:bg-gray-200 mr-2 mb-2" onclick="onCategorySelect('${safe}')">${safe}</button>`;
+      categoryFilter.innerHTML += `<option value="${safe}">${safe}</option>`;
+    });
+  }
+  function onCategorySelect(cat) {
+    categoryFilter.value = cat;
+    filterAndRenderFromState();
+  }
+
+  function sortAndRender(sort) {
+    let products = [...displayedProducts];
+    if (sort === "priceLow") products.sort((a, b) => (a.price || 0) - (b.price || 0));
+    else if (sort === "priceHigh") products.sort((a, b) => (b.price || 0) - (a.price || 0));
+    else if (sort === "rating") products.sort((a, b) => (b.avgRating || 0) - (a.avgRating || 0));
+    else products.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    renderProducts(products);
+  }
+
+  function renderProducts(products) {
+    productsGrid.innerHTML = "";
+    if (!products || products.length === 0) {
+      noResultsEl?.classList.remove("hidden");
+      productsGrid?.classList.add("hidden");
+      return;
+    }
+    noResultsEl?.classList.add("hidden");
+    productsGrid?.classList.remove("hidden");
+
+    products.forEach(p => {
+      const card = document.createElement("div");
+      card.className = "bg-white rounded-lg overflow-hidden shadow hover:shadow-lg transition cursor-pointer flex flex-col card-hover fade-in";
+      const imgUrl = escapeHtml(p.primaryImage || `${SUPABASE_URL}/storage/v1/object/public/products/no-image.png`);
+      card.innerHTML = `
+        <img loading="lazy" src="${imgUrl}" class="w-full h-48 object-cover" alt="${escapeHtml(p.name)}">
+        <div class="p-3 flex flex-col flex-1">
+          <h3 class="text-sm font-semibold mb-1 truncate">${escapeHtml(p.name)}</h3>
+          <p class="text-xs text-gray-500 mb-2 flex-1">${escapeHtml((p.description||"").slice(0, 90))}</p>
+          <div class="flex justify-between items-center mt-auto">
+            <div class="text-blue-700 font-bold">${formatPriceEGP(p.price)}</div>
+            <div class="flex items-center gap-2">
+              <button class="bg-blue-600 text-white px-2 py-1 rounded text-xs" onclick="addToCart(${p.id});event.stopPropagation();">🛒</button>
+              <button class="text-sm border px-2 py-1 rounded" onclick="quickViewOpen(${p.id});event.stopPropagation();">عرض</button>
+            </div>
+          </div>
         </div>
-      </div>
-    `;
-    card.addEventListener("click", () => location.href = `product.html?id=${p.id}`);
-    productsGrid.appendChild(card);
-  });
-}
-
-function addToCart(id) {
-  const p = allProducts.find(x => x.id === id);
-  if (!p) return showToast("❌ المنتج غير موجود", false);
-  const existing = cart.find(i => i.id === p.id);
-  if (existing) existing.qty += 1; else cart.push({ id: p.id, name: p.name, price: p.price, qty: 1 });
-  localStorage.setItem("cart", JSON.stringify(cart));
-  updateCartUI();
-  showToast("✅ تمت الإضافة إلى السلة");
-}
-function updateCartUI() {
-  const count = cart.reduce((a,b)=>a+(b.qty||1),0);
-  [cartBadge, bottomCartBadge].forEach(el=>{
-    if (!el) return;
-    if (count > 0) { el.textContent = count; el.classList.remove("hidden"); }
-    else el.classList.add("hidden");
-  });
-}
-
-async function quickViewOpen(id) {
-  try {
-    const { data, error } = await supabase.from("products")
-      .select(`id,name,description,price,stock,category,product_images(image_url,is_primary,ordering),product_reviews(rating,comment)`)
-      .eq("id", id).single();
-    if (error) throw error;
-  const mainImage = p.product_images?.find(img => img.is_primary)?.image_url 
-  || p.product_images?.[0]?.image_url 
-  || "https://nszhzfysitppxssplqfb.supabase.co/storage/v1/object/public/products/no-image.png";
-
-    const ratings = (data.product_reviews||[]).map(r=>r.rating);
-    const avg = ratings.length? (ratings.reduce((a,b)=>a+b,0)/ratings.length).toFixed(1):null;
-
-    qName.textContent = data.name;
-    qDesc.textContent = data.description || "لا يوجد وصف";
-    qPrice.textContent = `${data.price} ج.م`;
-    qStock.textContent = data.stock>0?`المتوفر: ${data.stock}`:"منفذ";
-    qRating.textContent = avg?`⭐ ${avg} (${ratings.length})`:"بدون تقييم";
-    qQty.value = 1;
-
-    qAdd.onclick = ()=>{ addToCart(id); closeQuickView(); };
-    qBuy.onclick = ()=>{ addToCart(id); window.location.href="cart.html"; };
-    qFull.onclick = ()=>{ window.location.href=`product.html?id=${id}`; };
-    quickView.classList.remove("hidden"); quickView.classList.add("flex");
-  } catch(e){ console.error(e); showToast("⚠️ تعذر عرض المنتج",false); }
-}
-function closeQuickView(){ quickView.classList.add("hidden"); quickView.classList.remove("flex"); }
-
-searchInput?.addEventListener("input", debounce(fetchWithFilters, 300));
-sortSelect?.addEventListener("change", fetchWithFilters);
-applyFiltersBtn?.addEventListener("click", fetchWithFilters);
-resetFiltersBtn?.addEventListener("click", ()=>{
-  categoryFilter.value=""; stockFilter.value=""; priceMin.value=""; priceMax.value="";
-  fetchWithFilters();
-});
-function debounce(fn,wait=300){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),wait)};}
-function fetchWithFilters(){
-  fetchProducts({
-    search: searchInput?.value||"",
-    category: categoryFilter?.value||"",
-    sort: sortSelect?.value||"newest",
-    minPrice: priceMin?.value?Number(priceMin.value):null,
-    maxPrice: priceMax?.value?Number(priceMax.value):null,
-    stock: stockFilter?.value||""
-  });
-}
-
-async function checkLogin(){
-  const { data } = await supabase.auth.getSession();
-  const session = data?.session;
-  const userName = document.getElementById("userName");
-  const loginBtn = document.getElementById("loginBtn");
-  if (session?.user){
-    userName.textContent = session.user.email;
-    userName.classList.remove("hidden");
-    loginBtn.classList.add("hidden");
-  }else{
-    userName.classList.add("hidden");
-    loginBtn.classList.remove("hidden");
+      `;
+      card.addEventListener("click", () => {
+        location.href = `product.html?id=${encodeURIComponent(p.id)}`;
+      });
+      productsGrid.appendChild(card);
+    });
   }
-}
 
-(async function init(){
-  updateCartUI();
-  await checkLogin();
-  await fetchProducts();
-})();
-</script>
+  function addToCart(id) {
+    const p = allProducts.find(x => x.id === id);
+    if (!p) return showToast("❌ المنتج غير موجود", false);
+    const existing = cart.find(i => i.id === p.id);
+    if (existing) existing.qty = (existing.qty || 1) + 1;
+    else cart.push({ id: p.id, name: p.name, price: p.price || 0, qty: 1 });
+    localStorage.setItem("cart", JSON.stringify(cart));
+    updateCartUI();
+    showToast(`✅ تمت إضافة «${p.name}» إلى السلة`);
+  }
+  function updateCartUI() {
+    const count = cart.reduce((a, b) => a + (b.qty || 1), 0);
+    [cartBadge, bottomCartBadge].forEach(el => {
+      if (!el) return;
+      if (count > 0) { el.textContent = count; el.classList.remove("hidden"); }
+      else el.classList.add("hidden");
+    });
+  }
 
-</body> </html>
+  async function quickViewOpen(id) {
+    try {
+      quickView?.classList.remove("hidden");
+      quickView?.classList.add("flex");
 
+      const { data, error } = await supabase
+        .from("products")
+        .select(`id,name,description,price,stock,category,product_images(image_url,is_primary,ordering),product_reviews(rating,comment,created_at)`)
+        .eq("id", id)
+        .single();
 
+      if (error) throw error;
+      const p = data;
+      const imgs = (p.product_images || []).slice().sort((a,b)=>(a.ordering||0)-(b.ordering||0));
+      const mainImage = imgs.find(i => i.is_primary)?.image_url || imgs?.[0]?.image_url || `${SUPABASE_URL}/storage/v1/object/public/products/no-image.png`;
 
+      const ratings = (p.product_reviews || []).map(r => Number(r.rating)).filter(Boolean);
+      const avg = ratings.length ? Math.round((ratings.reduce((a,b)=>a+b,0)/ratings.length) * 10) / 10 : null;
 
+      qName.textContent = p.name || "منتج";
+      qDesc.textContent = p.description || "لا يوجد وصف";
+      qPrice.textContent = formatPriceEGP(p.price);
+      qStock.textContent = p.stock > 0 ? `المتوفر: ${p.stock}` : "غير متوفر";
+      qRating.textContent = avg ? `⭐ ${avg} (${ratings.length})` : "بدون تقييم";
+      qQty.value = 1;
+
+      qImages.innerHTML = imgs.length
+        ? imgs.map(i => `<img src="${escapeHtml(i.image_url)}" class="w-full object-cover rounded mb-2" style="height:180px">`).join("")
+        : `<img src="${mainImage}" class="w-full object-cover rounded mb-2" style="height:180px">`;
+
+      qReviews.innerHTML = (p.product_reviews || []).slice().sort((a,b)=> new Date(b.created_at)-new Date(a.created_at)).slice(0,6).map(r => {
+        const comment = escapeHtml(r.comment || '');
+        const rating = r.rating ? `⭐ ${escapeHtml(String(r.rating))}` : '';
+        return `<div class="bg-gray-50 p-2 rounded text-sm"><div class="text-xs text-gray-600">${rating}</div><div class="mt-1">${comment}</div></div>`;
+      }).join('') || '<div class="text-sm text-gray-500">لا توجد تقييمات بعد</div>';
+
+      qAdd.onclick = () => { addToCart(Number(id)); closeQuickView(); };
+      if (qBuy) qBuy.onclick = () => { addToCart(Number(id)); window.location.href = "cart.html"; };
+      if (qFull) qFull.onclick = () => { window.location.href = `product.html?id=${encodeURIComponent(id)}`; };
+
+    } catch (e) {
+      console.error("quickView error", e);
+      showToast("⚠️ تعذر عرض المنتج", false);
+      closeQuickView();
+    }
+  }
+  function closeQuickView() {
+    if (!quickView) return;
+    quickView.classList.add("hidden");
+    quickView.classList.remove("flex");
+  }
+
+  document.getElementById("copyLinkBtn")?.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      showToast("📋 تم نسخ رابط الصفحة");
+    } catch {
+      showToast("⚠️ فشل النسخ، الرجاء المحاولة يدويًا", false);
+    }
+  });
+
+  searchInput?.addEventListener("input", debounce(() => { currentPage = 1; filterAndRenderFromState(); }, 350));
+  sortSelect?.addEventListener("change", () => { currentPage = 1; filterAndRenderFromState(); });
+  applyFiltersBtn?.addEventListener("click", () => { currentPage = 1; filterAndRenderFromState(); });
+  resetFiltersBtn?.addEventListener("click", () => {
+    categoryFilter.value = ""; stockFilter.value = ""; priceMin.value = ""; priceMax.value = "";
+    currentPage = 1; filterAndRenderFromState();
+  });
+  document.getElementById("clearSearch")?.addEventListener("click", () => { searchInput.value=''; filterAndRenderFromState(); });
+
+  async function checkLogin() {
+    try {
+      const { data } = await supabase.auth.getSession();
+      const session = data?.session;
+      const userNameEl = document.getElementById("userName");
+      const loginBtn = document.getElementById("loginBtn");
+      if (session?.user) {
+        if (userNameEl) { userNameEl.textContent = session.user.email; userNameEl.classList.remove("hidden"); }
+        if (loginBtn) loginBtn.classList.add("hidden");
+      } else {
+        if (userNameEl) userNameEl.classList.add("hidden");
+        if (loginBtn) loginBtn.classList.remove("hidden");
+      }
+    } catch (e) { console.warn("auth check failed", e); }
+  }
+
+  async function initialLoad() {
+    updateCartUI();
+    await checkLogin();
+    await fetchProductsFromSupabase({ page: 1, limit: PAGE_LIMIT });
+  }
+
+  function updateCartUI() {
+    try {
+      cart = JSON.parse(localStorage.getItem("cart") || "[]");
+    } catch { cart = []; }
+    const count = cart.reduce((a, b) => a + (b.qty || 1), 0);
+    [cartBadge, bottomCartBadge].forEach(el => {
+      if (!el) return;
+      if (count > 0) { el.textContent = count; el.classList.remove("hidden"); }
+      else el.classList.add("hidden");
+    });
+  }
+
+  (async function init() {
+    document.getElementById("yearFooter").textContent = new Date().getFullYear();
+    initialLoad();
+  })();
+
+  </script>
+
+</body>
+</html>
