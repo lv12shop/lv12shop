@@ -1,3 +1,4 @@
 User-agent: *
 Allow: /
-Sitemap: https://lv12shop.shop/sitemap.xml
+
+Sitemap: https://www.lv12shop.shop/sitemap.xml
