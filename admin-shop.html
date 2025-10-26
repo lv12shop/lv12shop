@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
   <meta charset="utf-8" />
   <title>لوحة تحكم المتجر | LV12</title>
@@ -7,14 +8,58 @@
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="icon" href="lv12.ico" type="image/x-icon">
+
   <style>
-    body { font-family: "Cairo", sans-serif; }
-    .fade-in { animation: fadeIn .3s ease; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px);} to { opacity: 1; transform: translateY(0);} }
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
+    body {
+      font-family: "Cairo", sans-serif;
+      background-color: #f8fafc;
+    }
+
+    .fade-in {
+      animation: fadeIn .3s ease;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    #governorates-list::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    #governorates-list::-webkit-scrollbar-thumb {
+      background: #60a5fa;
+      border-radius: 10px;
+    }
+
+    #toast div {
+      animation: slideIn .3s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateY(15px);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
   </style>
 </head>
-<body class="bg-gray-100 min-h-screen text-gray-800">
 
+<body class="bg-gray-100 min-h-screen text-gray-800">
   <header class="bg-white shadow sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center gap-3">
       <div class="flex items-center gap-2 cursor-pointer" onclick="location.href='shop.html'">
@@ -25,52 +70,98 @@
         </div>
       </div>
       <div class="flex gap-3">
-        <input id="searchInput" type="text" placeholder="ابحث باسم المنتج..." class="border rounded-lg px-3 py-2 w-64" />
-        <select id="categoryFilter" class="border rounded-lg px-3 py-2">
+        <input id="searchInput" type="text" placeholder="ابحث باسم المنتج..."
+          class="border rounded-lg px-3 py-2 w-64 focus:ring-2 focus:ring-blue-400 outline-none" />
+        <select id="categoryFilter"
+          class="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none">
           <option value="">كل الأقسام</option>
         </select>
-        <button id="logoutBtn" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">🚪 خروج</button>
+        <button id="logoutBtn"
+          class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors">🚪 خروج</button>
       </div>
     </div>
   </header>
 
   <main class="max-w-7xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
     <section class="bg-white rounded-xl shadow p-5">
-      <h2 class="text-xl font-bold mb-4">إضافة / تعديل منتج</h2>
+      <h2 class="text-xl font-bold mb-4 text-blue-800">🛍️ إضافة / تعديل منتج</h2>
       <form id="product-form" class="space-y-3">
         <input type="hidden" id="product-id">
 
-        <label class="block font-medium">اسم المنتج</label>
-        <input id="product-name" type="text" class="border p-2 rounded w-full" required>
+        <label class="block font-medium text-gray-700">اسم المنتج</label>
+        <input id="product-name" type="text" class="border p-2 rounded w-full focus:ring-2 focus:ring-blue-400"
+          required>
 
-        <label class="block font-medium">الوصف</label>
-        <textarea id="product-description" rows="3" class="border p-2 rounded w-full"></textarea>
+        <label class="block font-medium text-gray-700">الوصف</label>
+        <textarea id="product-description" rows="3"
+          class="border p-2 rounded w-full focus:ring-2 focus:ring-blue-400"></textarea>
 
-        <label class="block font-medium">السعر (ج.م)</label>
-        <input id="product-price" type="number" min="0" step="0.01" class="border p-2 rounded w-full" required>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-medium text-gray-700">السعر (ج.م)</label>
+            <input id="product-price" type="number" min="0" step="0.01"
+              class="border p-2 rounded w-full focus:ring-2 focus:ring-blue-400" required>
+          </div>
+          <div>
+            <label class="block font-medium text-gray-700">الكمية بالمخزن</label>
+            <input id="product-stock" type="number" min="0"
+              class="border p-2 rounded w-full focus:ring-2 focus:ring-blue-400" required>
+          </div>
+        </div>
 
-        <label class="block font-medium">الكمية بالمخزن</label>
-        <input id="product-stock" type="number" min="0" class="border p-2 rounded w-full" required>
+        <label class="block font-medium text-gray-700">القسم</label>
+        <select id="product-category" class="border p-2 rounded w-full focus:ring-2 focus:ring-blue-400"></select>
+        <input id="new-category" type="text" placeholder="أو أضف قسم جديد"
+          class="border p-2 rounded w-full focus:ring-2 focus:ring-blue-400">
 
-        <label class="block font-medium">القسم</label>
-        <select id="product-category" class="border p-2 rounded w-full"></select>
-        <input id="new-category" type="text" placeholder="أو أضف قسم جديد" class="border p-2 rounded w-full">
-
-        <label class="block font-medium">رفع صور (يمكن رفع أكثر من صورة)</label>
-        <input id="product-images" type="file" accept="image/*" multiple class="w-full border p-2 rounded">
+        <label class="block font-medium text-gray-700 mt-3">📸 رفع صور المنتج</label>
+        <input id="product-images" type="file" accept="image/*" multiple
+          class="w-full border p-2 rounded bg-gray-50 focus:ring-2 focus:ring-blue-400">
         <div id="images-preview" class="flex flex-wrap gap-2 mt-2"></div>
 
-        <div class="flex gap-3">
-          <button type="submit" id="saveBtn" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">💾 حفظ المنتج</button>
-          <button type="button" id="resetBtn" class="bg-gray-300 px-4 py-2 rounded">إلغاء</button>
+        <div class="mt-4">
+          <label class="block font-semibold text-gray-800 mb-1">🏙️ المحافظات المتاحة داخل مصر</label>
+          <p class="text-sm text-gray-600 mb-2">حدد المحافظات التي يتوفر فيها المنتج أو اختر "<strong
+              class="text-blue-600">🟢 الجميع</strong>".</p>
+          <div id="governorates-list" class="border rounded-lg p-3 bg-gray-50 max-h-56 overflow-y-auto">
+            <div class="flex items-center mb-2">
+              <input type="checkbox" id="city-all" class="w-4 h-4 accent-blue-600" />
+              <label for="city-all" class="ml-2 font-semibold text-blue-700">🟢 الجميع</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <label class="block font-semibold text-gray-800 mb-1">🌍 مرئي للجميع (خارج مصر)</label>
+          <div class="flex items-center gap-3 border rounded-lg p-2 bg-gray-50">
+            <input id="visible-to-all" type="checkbox" checked class="w-5 h-5 accent-green-600" />
+            <span class="text-sm text-gray-600">إذا تم تفعيل هذا الخيار، سيكون المنتج مرئيًا للمستخدمين خارج مصر.</span>
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <label class="block font-semibold text-gray-800 mb-1">🚚 أوقات التوصيل السريع لكل مدينة (اختياري)</label>
+          <textarea id="delivery-by-city"
+            placeholder='{"بورسعيد":10,"الاسكندرية":30}' rows="2"
+            class="border p-2 rounded w-full focus:ring-2 focus:ring-blue-400"></textarea>
+          <small class="text-gray-500">أدخل الوقت بالدقائق مثل {"القاهرة":15} أو اتركه فارغًا.</small>
+        </div>
+
+        <div class="flex gap-3 pt-4">
+          <button type="submit" id="saveBtn"
+            class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex-1 transition-colors">💾 حفظ
+            المنتج</button>
+          <button type="button" id="resetBtn"
+            class="bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400 flex-1 transition-colors">إلغاء</button>
         </div>
       </form>
     </section>
 
     <section class="lg:col-span-2 bg-white rounded-xl shadow p-5">
       <div class="flex justify-between items-center mb-4">
-        <h3 class="font-bold text-lg">المنتجات الحالية</h3>
-        <span class="text-sm text-gray-500">عدد المنتجات: <span id="products-count">0</span></span>
+        <h3 class="font-bold text-lg text-blue-800">🛒 المنتجات الحالية</h3>
+        <span class="text-sm text-gray-500">عدد المنتجات: <span id="products-count"
+            class="font-semibold text-blue-700">0</span></span>
       </div>
       <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
     </section>
@@ -78,39 +169,46 @@
 
   <div id="toast" class="fixed bottom-5 left-5 hidden z-50"></div>
 
-  <div id="confirmModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-40">
-    <div class="bg-white p-5 rounded-xl w-80 text-center">
-      <h4 class="font-semibold mb-3">هل أنت متأكد؟</h4>
+  <div id="confirmModal"
+    class="fixed inset-0 bg-black/50 hidden items-center justify-center z-40 backdrop-blur-sm">
+    <div class="bg-white p-5 rounded-xl w-80 text-center shadow-lg">
+      <h4 class="font-semibold mb-3 text-gray-800">هل أنت متأكد من الحذف؟</h4>
       <div class="flex justify-center gap-3">
-        <button id="confirmYes" class="bg-red-600 text-white px-4 py-2 rounded">نعم</button>
-        <button id="confirmNo" class="bg-gray-300 px-4 py-2 rounded">إلغاء</button>
+        <button id="confirmYes"
+          class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors">نعم</button>
+        <button id="confirmNo"
+          class="bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400 transition-colors">إلغاء</button>
       </div>
     </div>
   </div>
-  <section class="bg-white rounded-xl shadow p-5 mb-6">
-  <h2 class="text-xl font-bold mb-4">📊 لوحة الإحصائيات</h2>
-  <div id="stats" class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center text-blue-800 font-semibold"></div>
 
-  <canvas id="viewsChart" class="mt-6 w-full h-64"></canvas>
-  <h3 class="text-lg font-bold mt-8 mb-3 text-blue-800">🕵️‍♂️ أحدث الزيارات</h3>
-<div id="visitsTable" class="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
-  <table class="w-full text-sm text-right">
-    <thead class="bg-blue-100 text-blue-800 font-semibold">
-      <tr>
-        <th class="p-2">🧭 الصفحة</th>
-        <th class="p-2">🌍 الدولة</th>
-        <th class="p-2">💻 IP</th>
-        <th class="p-2">📅 التاريخ</th>
-      </tr>
-    </thead>
-    <tbody id="visitsBody" class="divide-y divide-gray-200"></tbody>
-  </table>
-</div>
+  <section class="bg-white rounded-xl shadow p-5 mb-6 max-w-7xl mx-auto mt-6">
+    <h2 class="text-xl font-bold mb-4 text-blue-800">📊 لوحة الإحصائيات</h2>
+    <div id="stats" class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center text-blue-800 font-semibold"></div>
 
-</section>
+    <canvas id="viewsChart" class="mt-6 w-full h-64"></canvas>
+
+    <h3 class="text-lg font-bold mt-8 mb-3 text-blue-800">🕵️‍♂️ أحدث الزيارات</h3>
+    <div id="visitsTable" class="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
+      <table class="w-full text-sm text-right">
+        <thead class="bg-blue-100 text-blue-800 font-semibold">
+          <tr>
+            <th class="p-2">🧭 الصفحة</th>
+            <th class="p-2">🌍 الدولة</th>
+            <th class="p-2">💻 IP</th>
+            <th class="p-2">📅 التاريخ</th>
+          </tr>
+        </thead>
+        <tbody id="visitsBody" class="divide-y divide-gray-200"></tbody>
+      </table>
+    </div>
+  </section>
+
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+
+
 const SUPABASE_URL = "https://nszhzfysitppxssplqfb.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zemh6ZnlzaXRwcHhzc3BscWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA4OTcsImV4cCI6MjA3MzgwNjg5N30.5KvK4bhqkZ_GpIfED4qecIMfeubAJYwSFJslULwOp-w";
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -138,212 +236,201 @@ const searchInput = document.getElementById("searchInput");
 const categoryFilter = document.getElementById("categoryFilter");
 const logoutBtn = document.getElementById("logoutBtn");
 
-async function loadStats() {
-  const { data, error } = await supabase.from('page_visits').select('*').order('created_at', { ascending: false });
-  if (error) {
-    console.error("⚠️ خطأ أثناء تحميل الإحصائيات:", error);
-    return;
-  }
-
-  if (!data || data.length === 0) {
-    document.getElementById("stats").innerHTML = `<div class='col-span-4 text-gray-500'>لا توجد بيانات بعد</div>`;
-    return;
-  }
-
-  const total = data.length;
-  const uniqueIps = new Set(data.map(v => v.ip_address)).size;
-  const productsViews = data.filter(v => v.product_id).length;
-  const byCountry = {};
-  data.forEach(v => byCountry[v.country] = (byCountry[v.country] || 0) + 1);
-
-  document.getElementById("stats").innerHTML = `
-    <div class="p-4 bg-blue-50 rounded-lg"><div class="text-lg font-bold">${total}</div><div>📈 إجمالي الزيارات</div></div>
-    <div class="p-4 bg-green-50 rounded-lg"><div class="text-lg font-bold">${uniqueIps}</div><div>👤 الزوار الفريدون</div></div>
-    <div class="p-4 bg-yellow-50 rounded-lg"><div class="text-lg font-bold">${productsViews}</div><div>🛒 مشاهدات المنتجات</div></div>
-    <div class="p-4 bg-purple-50 rounded-lg"><div class="text-lg font-bold">${Object.keys(byCountry).length}</div><div>🌍 الدول</div></div>
-  `;
-
-  const ctx = document.getElementById('viewsChart').getContext('2d');
-  new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: Object.keys(byCountry),
-      datasets: [{
-        label: 'عدد الزيارات حسب الدولة',
-        data: Object.values(byCountry),
-        backgroundColor: '#3b82f6'
-      }]
-    },
-    options: {
-      plugins: { legend: { display: false } },
-      scales: { y: { beginAtZero: true } }
-    }
-  });
-
-  const latest = data.slice(0, 20); 
-  const rows = latest.map(v => `
-    <tr>
-      <td class="p-2">${v.page_type || '-'}</td>
-      <td class="p-2">${v.country || 'غير معروف'}</td>
-      <td class="p-2">${v.ip_address || '-'}</td>
-      <td class="p-2">${new Date(v.created_at).toLocaleString('ar-EG')}</td>
-    </tr>
-  `).join('');
-  document.getElementById("visitsBody").innerHTML = rows;
-}
-
-document.addEventListener("DOMContentLoaded", loadStats);
-
 let allProducts = [];
 let pendingDeleteId = null;
 
-function showToast(msg, success = true) {
+function showToast(msg, success = true, ttl = 3000) {
   toast.innerHTML = `<div class="p-3 rounded-lg ${success ? 'bg-green-600' : 'bg-red-600'} text-white shadow">${msg}</div>`;
   toast.classList.remove("hidden");
   clearTimeout(toast._t);
-  toast._t = setTimeout(() => toast.classList.add("hidden"), 3000);
+  toast._t = setTimeout(() => toast.classList.add("hidden"), ttl);
 }
-
-function escapeHtml(s = "") {
-  return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
-}
+function showError(msg) { showToast(msg, false); }
+function escapeHtml(s = "") { return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m])); }
 
 
-async function checkAuth() {
-  const { data } = await supabase.auth.getSession();
-  const user = data?.session?.user;
-  if (!user || user.email !== ADMIN_EMAIL) {
-    alert("🚫 غير مصرح لك بالدخول");
-    window.location.href = "shop.html";
-    return false;
+function safeParseJSON(raw) {
+  if (raw === null || raw === undefined) return null;
+  if (typeof raw === "object") return raw;
+  if (typeof raw !== "string") return null;
+  try {
+    let parsed = JSON.parse(raw);
+    if (typeof parsed === "string") parsed = JSON.parse(parsed);
+    if (typeof parsed === "object" && parsed !== null) return parsed;
+  } catch (err) {
   }
-  return true;
+  return null;
+}
+
+function resetForm() {
+  try {
+    productForm.reset();
+    productIdInput.value = "";
+    imagesPreview.innerHTML = "";
+    document.querySelectorAll(".city-option").forEach(cb => cb.checked = false);
+    const all = document.getElementById("city-all");
+    if (all) all.checked = false;
+    const delEl = document.getElementById("delivery-by-city");
+    if (delEl) delEl.value = "";
+    saveBtn.disabled = false;
+    saveBtn.textContent = "💾 حفظ المنتج";
+  } catch (err) {
+    console.warn("⚠️ خطأ في resetForm:", err);
+  }
+}
+
+async function loadStats() {
+  try {
+    const { data, error } = await supabase.from('page_visits').select('*').order('created_at', { ascending: false });
+    if (error) throw error;
+    if (!data || data.length === 0) {
+      document.getElementById("stats").innerHTML = `<div class='col-span-4 text-gray-500'>لا توجد بيانات بعد</div>`;
+      return;
+    }
+    const total = data.length;
+    const uniqueIps = new Set(data.map(v => v.ip_address)).size;
+    const productsViews = data.filter(v => v.product_id).length;
+    const byCountry = {};
+    data.forEach(v => byCountry[v.country] = (byCountry[v.country] || 0) + 1);
+
+    document.getElementById("stats").innerHTML = `
+      <div class="p-4 bg-blue-50 rounded-lg"><div class="text-lg font-bold">${total}</div><div>📈 إجمالي الزيارات</div></div>
+      <div class="p-4 bg-green-50 rounded-lg"><div class="text-lg font-bold">${uniqueIps}</div><div>👤 الزوار الفريدون</div></div>
+      <div class="p-4 bg-yellow-50 rounded-lg"><div class="text-lg font-bold">${productsViews}</div><div>🛒 مشاهدات المنتجات</div></div>
+      <div class="p-4 bg-purple-50 rounded-lg"><div class="text-lg font-bold">${Object.keys(byCountry).length}</div><div>🌍 الدول</div></div>
+    `;
+
+    const ctxEl = document.getElementById('viewsChart');
+    if (ctxEl) {
+      const ctx = ctxEl.getContext('2d');
+      if (window._lv12Chart) window._lv12Chart.destroy();
+      window._lv12Chart = new Chart(ctx, {
+        type: 'bar',
+        data: { labels: Object.keys(byCountry), datasets: [{ label: 'عدد الزيارات حسب الدولة', data: Object.values(byCountry), backgroundColor: '#3b82f6' }] },
+        options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+      });
+    }
+
+    const latest = data.slice(0, 20);
+    document.getElementById("visitsBody").innerHTML = latest.map(v => `
+      <tr>
+        <td class="p-2">${v.page_type || '-'}</td>
+        <td class="p-2">${v.country || 'غير معروف'}</td>
+        <td class="p-2">${v.ip_address || '-'}</td>
+        <td class="p-2">${new Date(v.created_at).toLocaleString('ar-EG')}</td>
+      </tr>
+    `).join('');
+  } catch (err) {
+    console.error("⚠️ خطأ أثناء تحميل الإحصائيات:", err);
+  }
 }
 
 async function uploadImagesAndSave(productId, files) {
+  if (!files || files.length === 0) return;
   for (const [i, f] of Array.from(files).entries()) {
-    const safeName = f.name
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "") 
-      .replace(/[^\w.-]+/g, "_") 
-      .replace(/_+/g, "_"); 
-
-    const fileName = `${Date.now()}-${i}-${safeName}`;
-    const { data, error } = await supabase.storage
-      .from("products")
-      .upload(fileName, f, { upsert: true });
-
-    if (error) {
-      console.error("❌ خطأ رفع الصورة:", error.message);
-      showToast("⚠️ فشل رفع بعض الصور", false);
-      continue;
-    }
-
-    const imageUrl = `${SUPABASE_URL}/storage/v1/object/public/products/${data.path}`;
-
-    const { error: imgError } = await supabase.from("product_images").insert([
-      {
-        product_id: productId,
-        image_url: imageUrl,
-        is_primary: i === 0,
-        ordering: i
-      }
-    ]);
-
-    if (imgError) {
-      console.error("⚠️ خطأ أثناء حفظ الصورة:", imgError.message);
+    try {
+      const safeName = f.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\w.-]+/g, "_").replace(/_+/g, "_");
+      const fileName = `${Date.now()}-${Math.floor(Math.random()*1000)}-${i}-${safeName}`;
+      const { data, error } = await supabase.storage.from("products").upload(fileName, f, { upsert: true });
+      if (error) { console.warn("⚠️ upload error:", error); showToast("⚠️ فشل رفع بعض الصور", false); continue; }
+      const imageUrl = `${SUPABASE_URL}/storage/v1/object/public/products/${data.path}`;
+      await supabase.from("product_images").insert([{ product_id: productId, image_url: imageUrl, is_primary: i === 0, ordering: i }]);
+    } catch (err) {
+      console.error("⚠️ استثناء أثناء رفع صورة:", err);
     }
   }
 }
-
 
 async function loadCategories() {
-  const { data, error } = await supabase.from("products").select("category");
-  if (error) return;
-  const cats = [...new Set(data.map(p => p.category).filter(Boolean))];
-  categorySelect.innerHTML = `<option value="">اختر قسماً...</option>`;
-  categoryFilter.innerHTML = `<option value="">كل الأقسام</option>`;
-  cats.forEach(c => {
-    categorySelect.innerHTML += `<option value="${c}">${c}</option>`;
-    categoryFilter.innerHTML += `<option value="${c}">${c}</option>`;
-  });
-}
-async function loadProducts() {
-  const { data, error } = await supabase
-    .from("products")
-    .select(`
-      id,
-      name,
-      description,
-      price,
-      stock,
-      category,
-      product_images!product_images_product_id_fkey (image_url, is_primary, ordering)
-    `)
-    .order("id", { ascending: false });
-
-  if (error) {
-    console.error("❌ خطأ في تحميل المنتجات:", error.message);
-    showToast("⚠️ فشل تحميل المنتجات", false);
-    return;
+  try {
+    const { data, error } = await supabase.from("products").select("category");
+    if (error) throw error;
+    const cats = [...new Set((data || []).map(p => p.category).filter(Boolean))];
+    categorySelect.innerHTML = `<option value="">اختر قسماً...</option>`;
+    categoryFilter.innerHTML = `<option value="">كل الأقسام</option>`;
+    cats.forEach(c => { categorySelect.innerHTML += `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`; categoryFilter.innerHTML += `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`; });
+  } catch (err) {
+    console.warn("⚠️ loadCategories error:", err);
   }
+}
 
-  allProducts = (data || []).map(p => {
-    const imgs = (p.product_images || []).sort((a, b) => a.ordering - b.ordering);
-    const mainImg = imgs.find(i => i.is_primary)?.image_url || imgs[0]?.image_url || "https://placehold.co/300x200?text=No+Image";
+async function loadProducts() {
+  try {
+    const { data, error } = await supabase
+      .from("products")
+      .select(`
+        id,name,description,price,stock,category,visible_to_all,available_cities,delivery_by_city,
+        product_images!product_images_product_id_fkey (image_url,is_primary,ordering)
+      `)
+      .order("id", { ascending: false });
 
-    return {
-      ...p,
-      mainImg,
-      images: imgs
-    };
-  });
+    if (error) throw error;
 
-  productsCountEl.textContent = allProducts.length;
+    allProducts = (data || []).map(p => {
+      const imgs = (p.product_images || []).slice().sort((a,b) => (a.ordering||0) - (b.ordering||0));
+      const mainImg = imgs.find(i=>i.is_primary)?.image_url || imgs[0]?.image_url || "https://placehold.co/300x200?text=No+Image";
+      const delivery = safeParseJSON(p.delivery_by_city) || null;
+      let availableCities = [];
+      if (Array.isArray(p.available_cities)) availableCities = p.available_cities;
+      else if (typeof p.available_cities === "string") {
+        availableCities = p.available_cities.replace(/^[{\s]+|[}\s]+$/g, "").split(",").map(s => s.trim()).filter(Boolean);
+      }
 
-  productsGrid.innerHTML = allProducts.map(p => `
+      return { ...p, mainImg, delivery_by_city: delivery, available_cities: availableCities };
+    });
+
+    productsCountEl.textContent = allProducts.length;
+    renderProductsGrid(allProducts);
+  } catch (err) {
+    console.error("❌ خطأ أثناء تحميل المنتجات:", err);
+    showToast("⚠️ فشل تحميل المنتجات", false);
+  }
+}
+
+function renderProductsGrid(items) {
+  productsGrid.innerHTML = items.map(p => `
     <div class="border rounded-xl p-3 shadow-sm fade-in relative">
-      <img src="${p.mainImg}" class="w-full h-40 object-cover rounded-lg mb-2" alt="صورة المنتج" />
+      <img src="${escapeHtml(p.mainImg)}" class="w-full h-40 object-cover rounded-lg mb-2" alt="صورة المنتج" />
       <h4 class="font-semibold text-blue-700">${escapeHtml(p.name)}</h4>
       <p class="text-sm text-gray-600 line-clamp-2">${escapeHtml(p.description || '')}</p>
       <div class="mt-2 flex justify-between items-center text-sm">
-        <span class="font-bold text-green-700">${p.price} ج.م</span>
-        <span class="text-gray-500">📦 ${p.stock} قطعة</span>
+        <span class="font-bold text-green-700">${escapeHtml(String(p.price))} ج.م</span>
+        <span class="text-gray-500">📦 ${escapeHtml(String(p.stock))} قطعة</span>
       </div>
+      <div class="text-xs text-gray-600 mt-1">${p.visible_to_all ? "🌍 للجميع" : "🇪🇬 داخل مصر فقط"}</div>
       <div class="mt-3 flex gap-2">
-        <button onclick="editProduct(${p.id})" class="flex-1 bg-yellow-400 text-white rounded py-1">✏️ تعديل</button>
+        <button onclick="openEditForm(${p.id})" class="flex-1 bg-yellow-400 text-white rounded py-1">✏️ تعديل</button>
         <button onclick="confirmDelete(${p.id})" class="flex-1 bg-red-500 text-white rounded py-1">🗑️ حذف</button>
       </div>
     </div>
   `).join("");
 }
 
-function renderProducts(products) {
-  productsGrid.innerHTML = "";
-  if (!products.length) {
-    productsGrid.innerHTML = `<div class='text-center text-gray-500 py-10'>🚫 لا توجد منتجات</div>`;
-    return;
-  }
-
-  products.forEach(p => {
-    productsGrid.innerHTML += `
-      <div class="bg-white rounded-lg shadow p-3 fade-in">
-        <img src="${p.mainImage}" class="w-full h-40 object-cover rounded">
-        <h4 class="font-bold mt-2">${escapeHtml(p.name)}</h4>
-        <p class="text-sm text-gray-600">${escapeHtml(p.category || '-')}</p>
-        <div class="flex justify-between items-center mt-2">
-          <span class="font-semibold text-orange-600">${p.price} ج.م</span>
-          <div class="flex gap-1">
-            <button onclick="openEditForm(${p.id})" class="bg-yellow-500 text-white px-2 py-1 rounded text-sm">✏️</button>
-            <button onclick="confirmDelete(${p.id})" class="bg-red-600 text-white px-2 py-1 rounded text-sm">🗑️</button>
-          </div>
-        </div>
-      </div>`;
+const governorates = [
+  "القاهرة","الجيزة","الاسكندرية","الدقهلية","البحر الأحمر","البحيرة","الفيوم","الغربية",
+  "الإسماعيلية","المنوفية","المنيا","القليوبية","الوادي الجديد","السويس","اسوان","اسيوط",
+  "بني سويف","بورسعيد","دمياط","الشرقية","سوهاج","قنا","كفر الشيخ","مطروح","الأقصر","شمال سيناء","جنوب سيناء"
+];
+const govContainer = document.getElementById("governorates-list");
+if (govContainer) {
+  const allBox = document.createElement("div");
+  allBox.className = "flex items-center mb-2";
+  allBox.innerHTML = `<input type="checkbox" id="city-all"><label for="city-all" class="ml-2 font-semibold text-blue-600">🟢 الجميع</label>`;
+  govContainer.appendChild(allBox);
+  governorates.forEach(city => {
+    const div = document.createElement("div");
+    div.className = "flex items-center mb-1";
+    div.innerHTML = `<input type="checkbox" class="city-option" value="${escapeHtml(city)}" id="city-${escapeHtml(city)}"><label for="city-${escapeHtml(city)}" class="ml-2">${escapeHtml(city)}</label>`;
+    govContainer.appendChild(div);
   });
-}
-
-
-
+  document.getElementById("city-all").addEventListener("change", e => {
+    const all = e.target.checked;
+    document.querySelectorAll(".city-option").forEach(cb => cb.checked = all);
+  });
+  document.addEventListener("change", e => {
+    if (e.target.classList && e.target.classList.contains("city-option")) document.getElementById("city-all").checked = false;
+  });
+}// ✅ حفظ المنتج
 productForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   saveBtn.disabled = true;
@@ -356,26 +443,62 @@ productForm.addEventListener("submit", async (e) => {
     const price = parseFloat(priceInput.value) || 0;
     const stock = parseInt(stockInput.value) || 0;
     const category = newCategoryInput.value.trim() || categorySelect.value || null;
+    const visibleToAll = document.getElementById("visible-to-all")?.checked || false;
 
-    if (!name) {
-      showToast("⚠️ أدخل اسم المنتج", false);
-      return;
+    // 🏙️ المحافظات المختارة
+    let availableCities = [];
+    if (document.getElementById("city-all")?.checked) {
+      availableCities = ["الجميع"];
+    } else {
+      availableCities = Array.from(document.querySelectorAll(".city-option:checked")).map(el => el.value);
     }
 
-    if (id) {
-      const { error: updateError } = await supabase
-        .from("products")
-        .update({
-          name,
-          description: desc,
-          price,
-          stock,
-          category,
-          updated_at: new Date().toISOString()
-        })
-        .eq("id", id);
+    // 🚚 وقت التوصيل — يمكن يكون رقم بسيط
+    let deliveryByCity = null;
+    const deliveryRaw = document.getElementById("delivery-by-city")?.value?.trim();
 
-      if (updateError) throw updateError;
+    if (deliveryRaw) {
+      // لو المستخدم كتب رقم فقط
+      if (/^\d+$/.test(deliveryRaw)) {
+        const mins = `${deliveryRaw} دقيقة`;
+        deliveryByCity = {};
+        // لو اختار "الجميع"
+        if (availableCities.includes("الجميع")) {
+          governorates.forEach(city => { deliveryByCity[city] = mins; });
+        } else {
+          availableCities.forEach(city => { deliveryByCity[city] = mins; });
+        }
+      } 
+      // أو كتب JSON بالطريقة القديمة
+      else {
+        const parsed = safeParseJSON(deliveryRaw);
+        if (parsed && typeof parsed === "object") deliveryByCity = parsed;
+        else {
+          showToast("⚠️ صيغة وقت التوصيل غير صحيحة (اكتب رقم فقط أو JSON صحيح)", false, 5000);
+          saveBtn.disabled = false;
+          saveBtn.textContent = "💾 حفظ المنتج";
+          return;
+        }
+      }
+    }
+
+    // 🧾 البيانات المرسلة
+    const payload = {
+      name,
+      description: desc,
+      price,
+      stock,
+      category,
+      visible_to_all: visibleToAll,
+      available_cities: Array.isArray(availableCities) && availableCities.length ? availableCities : null,
+      delivery_by_city: deliveryByCity,
+      updated_at: new Date().toISOString()
+    };
+
+    // 🛠️ تحديث أو إضافة
+    if (id) {
+      const { error: updErr } = await supabase.from("products").update(payload).eq("id", id);
+      if (updErr) throw updErr;
 
       if (imagesInput.files.length > 0) {
         await supabase.from("product_images").delete().eq("product_id", id);
@@ -383,28 +506,20 @@ productForm.addEventListener("submit", async (e) => {
       }
 
       showToast("✅ تم تعديل المنتج بنجاح");
-    } else {
-      const { data: newProd, error: insertError } = await supabase
+    } 
+    else {
+      delete payload.id; // ✅ منع خطأ المفتاح المكرر
+
+      const { data: newProd, error: insertErr } = await supabase
         .from("products")
-        .insert([
-          {
-            name,
-            description: desc,
-            price,
-            stock,
-            category,
-            created_at: new Date().toISOString()
-          }
-        ])
+        .insert([{ ...payload, created_at: new Date().toISOString() }])
         .select("id")
         .single();
 
-      if (insertError) throw insertError;
-
-      const newId = newProd.id;
+      if (insertErr) throw insertErr;
 
       if (imagesInput.files.length > 0) {
-        await uploadImagesAndSave(newId, imagesInput.files);
+        await uploadImagesAndSave(newProd.id, imagesInput.files);
       }
 
       showToast("✅ تم إضافة المنتج بنجاح");
@@ -413,93 +528,154 @@ productForm.addEventListener("submit", async (e) => {
     resetForm();
     await loadProducts();
     await loadCategories();
-
   } catch (err) {
-    console.error("❌ خطأ أثناء الحفظ:", err);
-    showToast("❌ حدث خطأ أثناء حفظ المنتج", false);
+    console.error("❌ خطأ أثناء حفظ المنتج:", err);
+    showToast("❌ حدث خطأ أثناء حفظ المنتج", false, 5000);
   } finally {
     saveBtn.disabled = false;
     saveBtn.textContent = "💾 حفظ المنتج";
   }
 });
 
-function resetForm() {
-  productForm.reset();
-  productIdInput.value = "";
-  imagesPreview.innerHTML = "";
-}
-
-
-imagesInput.addEventListener("change", () => {
-  imagesPreview.innerHTML = "";
-  Array.from(imagesInput.files).forEach(f => {
-    const url = URL.createObjectURL(f);
-    imagesPreview.innerHTML += `<img src="${url}" class="w-20 h-20 object-cover rounded border" />`;
-  });
-});
 
 
 async function openEditForm(id) {
-  const { data, error } = await supabase.from("products").select("*").eq("id", id).single();
-  if (error) {
-    showToast("❌ فشل جلب المنتج", false);
-    return;
+  try {
+    const { data, error } = await supabase.from("products").select("*").eq("id", id).single();
+    if (error) throw error;
+
+    productIdInput.value = data.id;
+    nameInput.value = data.name || "";
+    descInput.value = data.description || "";
+    priceInput.value = data.price ?? "";
+    stockInput.value = data.stock ?? "";
+    categorySelect.value = data.category || "";
+    document.getElementById("visible-to-all").checked = data.visible_to_all ?? true;
+
+    document.querySelectorAll(".city-option").forEach(cb => cb.checked = false);
+    const all = document.getElementById("city-all");
+    if (all) all.checked = false;
+    if (Array.isArray(data.available_cities) && data.available_cities.length) {
+      if (data.available_cities.includes("الجميع")) {
+        if (all) all.checked = true;
+      } else {
+        data.available_cities.forEach(c => {
+          const el = document.getElementById(`city-${c}`);
+          if (el) el.checked = true;
+        });
+      }
+    } else if (typeof data.available_cities === "string") {
+      const arr = data.available_cities.replace(/^[{\s]+|[}\s]+$/g, "").split(",").map(s => s.trim()).filter(Boolean);
+      arr.forEach(c => { const el = document.getElementById(`city-${c}`); if (el) el.checked = true; });
+    }
+
+    let deliveryFormatted = "";
+    try {
+      const deliveryData = safeParseJSON(data.delivery_by_city);
+      if (deliveryData && typeof deliveryData === "object") {
+        deliveryFormatted = JSON.stringify(deliveryData);
+      }
+    } catch (err) {
+      console.warn("⚠️ delivery_by_city parsing error:", err);
+    }
+    const delEl = document.getElementById("delivery-by-city");
+    if (delEl) delEl.value = deliveryFormatted || "";
+
+    const { data: imgs, error: imgsErr } = await supabase.from("product_images").select("*").eq("product_id", id);
+    imagesPreview.innerHTML = "";
+    if (imgsErr) console.warn("⚠️ images fetch err:", imgsErr);
+    if (imgs && imgs.length) {
+      imgs.forEach(i => {
+        imagesPreview.innerHTML += `<img src="${escapeHtml(i.image_url)}" class="w-20 h-20 object-cover rounded border" />`;
+      });
+    }
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  } catch (err) {
+    console.error("⚠️ openEditForm error:", err);
+    showToast("⚠️ فشل جلب بيانات المنتج", false);
   }
-  productIdInput.value = data.id;
-  nameInput.value = data.name;
-  descInput.value = data.description || "";
-  priceInput.value = data.price;
-  stockInput.value = data.stock;
-  categorySelect.value = data.category || "";
-  imagesPreview.innerHTML = data.image_url ? `<img src="${data.image_url}" class="w-20 h-20 object-cover rounded border" />` : "";
-  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-
-function confirmDelete(id, imageUrl) {
+function confirmDelete(id) {
   confirmModal.classList.remove("hidden");
-  pendingDeleteId = { id, imageUrl };
+  pendingDeleteId = id;
 }
 confirmYes.onclick = async () => {
   confirmModal.classList.add("hidden");
-  const { id, imageUrl } = pendingDeleteId;
-  const { error } = await supabase.from("products").delete().eq("id", id);
-  if (error) {
-    showToast("❌ فشل الحذف", false);
-  } else {
-    if (imageUrl) {
-      const path = imageUrl.split("/products/")[1];
-      await supabase.storage.from("products").remove([path]);
-    }
+  if (!pendingDeleteId) return;
+  try {
+    const { error } = await supabase.from("products").delete().eq("id", pendingDeleteId);
+    if (error) throw error;
     showToast("✅ تم الحذف");
     await loadProducts();
+  } catch (err) {
+    console.error("⚠️ delete error:", err);
+    showToast("❌ فشل الحذف", false);
+  } finally {
+    pendingDeleteId = null;
   }
 };
 confirmNo.onclick = () => confirmModal.classList.add("hidden");
 
+imagesInput.addEventListener("change", () => {
+  imagesPreview.innerHTML = "";
+  Array.from(imagesInput.files).forEach(f => {
+    try {
+      const url = URL.createObjectURL(f);
+      imagesPreview.innerHTML += `<img src="${escapeHtml(url)}" class="w-20 h-20 object-cover rounded border" />`;
+    } catch (err) {
+      console.warn("⚠️ image preview err:", err);
+    }
+  });
+});
 
 searchInput.addEventListener("input", () => {
   const q = searchInput.value.toLowerCase();
   const cat = categoryFilter.value;
-  const filtered = allProducts.filter(p =>
-    (!q || p.name.toLowerCase().includes(q)) && (!cat || p.category === cat)
-  );
-  renderProducts(filtered);
+  const filtered = allProducts.filter(p => {
+    const nameMatch = !q || (p.name && p.name.toLowerCase().includes(q));
+    const catMatch = !cat || p.category === cat;
+    return nameMatch && catMatch;
+  });
+  productsCountEl.textContent = filtered.length;
+  renderProductsGrid(filtered);
 });
 categoryFilter.addEventListener("change", () => searchInput.dispatchEvent(new Event("input")));
 
-
 logoutBtn.addEventListener("click", async () => {
-  await supabase.auth.signOut();
-  showToast("👋 تم تسجيل الخروج");
-  setTimeout(() => (window.location.href = "shop-login.html"), 1000);
+  try {
+    await supabase.auth.signOut();
+    showToast("👋 تم تسجيل الخروج");
+    setTimeout(() => window.location.href = "shop-login.html", 700);
+  } catch (err) {
+    console.warn("⚠️ logout error:", err);
+    showToast("⚠️ فشل تسجيل الخروج", false);
+  }
 });
+
+async function checkAuth() {
+  try {
+    const { data } = await supabase.auth.getSession();
+    const user = data?.session?.user;
+    if (!user || user.email !== ADMIN_EMAIL) {
+      alert("🚫 غير مصرح لك بالدخول");
+      window.location.href = "shop.html";
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.warn("⚠️ auth check error:", err);
+    return false;
+  }
+}
 
 (async function init() {
   const ok = await checkAuth();
   if (!ok) return;
   await loadCategories();
   await loadProducts();
+  await loadStats();
 })();
 </script>
 

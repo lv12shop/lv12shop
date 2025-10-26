@@ -396,7 +396,6 @@ async function loadSalesCount(productId) {
     console.error('⚠️ استثناء أثناء تحميل عدد المبيعات:', err);
   }
 }
-
 async function loadProduct() {
   if (!productId) {
     productSkeleton.innerHTML = `<div class="text-center text-red-600">رقم المنتج غير صالح</div>`;
@@ -404,12 +403,13 @@ async function loadProduct() {
   }
 
   try {
-    console.log(`جاري جلب المنتج بالرقم: ${productId}`);
+    console.log(`📦 جاري جلب المنتج بالرقم: ${productId}`);
 
     const { data, error } = await supabase
       .from('products')
       .select(`
         id, name, description, price, stock, category, created_at,
+        available_cities, delivery_by_city,
         product_images!product_images_product_id_fkey(image_url, is_primary, ordering)
       `)
       .eq('id', productId)
@@ -438,39 +438,77 @@ async function loadProduct() {
     pCategory.textContent = data.category || 'غير مصنف';
     pDate.textContent = formatDate(data.created_at);
 
-    if (data.stock <= 0) {
-      soldBadge.classList.remove('hidden');
-      addToCartBtn.disabled = true;
+    const availableCities = Array.isArray(data.available_cities)
+      ? data.available_cities.join(", ")
+      : "غير محددة";
+
+    const cityEl = document.createElement("p");
+    cityEl.className = "text-gray-600 text-sm mt-2";
+    cityEl.innerHTML = `🏙️ متاح في: <span class="font-medium">${availableCities}</span>`;
+    pDate.insertAdjacentElement("afterend", cityEl);
+
+    let deliveryText = "خلال 1–3 أيام";
+    let deliveryData = {};
+    try {
+      deliveryData = data.delivery_by_city
+        ? (typeof data.delivery_by_city === "object"
+            ? data.delivery_by_city
+            : JSON.parse(data.delivery_by_city))
+        : {};
+    } catch (e) {
+      console.warn("⚠️ خطأ في قراءة بيانات التوصيل:", e);
     }
 
-   addToCartBtn.onclick = async () => {
-  addToCartLocal(data.id, data.name, data.price);
+    if (userCountry && userCountry.includes("Egypt")) {
+      if (userCity && deliveryData[userCity]) {
+        deliveryText = `التوصيل لمحافظتك (${userCity}): ${deliveryData[userCity]}`;
+      } else {
+        deliveryText = `التوصيل لمحافظتك (${userCity || "غير محددة"}): خلال 1–3 أيام`;
+      }
+    } else {
+      deliveryText = "❌ غير متوفر في بلدك";
+    }
 
-  try {
-    const { error } = await supabase.from('cart_events').insert([
-      { product_id: data.id }
-    ]);
-    if (error) console.error("❌ فشل تسجيل عملية إضافة للسلة:", error);
-    else console.log("🛒 تم تسجيل إضافة المنتج للسلة:", data.id);
-  } catch (err) {
-    console.error("⚠️ خطأ أثناء تسجيل إضافة للسلة:", err);
-  }
-};
+    const deliveryEl = document.createElement("p");
+    deliveryEl.className = "text-green-700 text-sm mt-1";
+    deliveryEl.innerHTML = `🚚 <span class="font-medium">${deliveryText}</span>`;
+    cityEl.insertAdjacentElement("afterend", deliveryEl);
 
-    buyNowBtn.onclick = () => { 
-      addToCartLocal(data.id, data.name, data.price); 
-      location.href = 'cart.html'; 
-    };
+    const insideEgypt = userCountry && userCountry.includes("Egypt");
+
+    if (!insideEgypt) {
+      addToCartBtn.classList.add("hidden");
+      buyNowBtn.classList.add("hidden");
+
+      const warning = document.createElement("div");
+      warning.className = "text-red-600 text-sm mt-3 font-semibold";
+      warning.textContent = "❌ هذا المنتج غير متاح للشراء من خارج مصر.";
+      pCategory.insertAdjacentElement("afterend", warning);
+    } else {
+      addToCartBtn.onclick = async () => {
+        addToCartLocal(data.id, data.name, data.price);
+        try {
+          const { error } = await supabase.from('cart_events').insert([{ product_id: data.id }]);
+          if (error) console.error("❌ فشل تسجيل عملية إضافة للسلة:", error);
+          else console.log("🛒 تم تسجيل إضافة المنتج للسلة:", data.id);
+        } catch (err) {
+          console.error("⚠️ خطأ أثناء تسجيل إضافة للسلة:", err);
+        }
+      };
+
+      buyNowBtn.onclick = () => {
+        addToCartLocal(data.id, data.name, data.price);
+        location.href = 'cart.html';
+      };
+    }
 
     productSkeleton.classList.add('hidden');
     productContent.classList.remove('hidden');
 
     logVisit("product", data.id);
-
     loadProductViews(data.id);
-loadSalesCount(data.id);
+    loadSalesCount(data.id);
     loadRelatedProducts(data.category, data.id);
-
     subscribeReviewsRealtime();
 
   } catch (err) {
@@ -478,6 +516,7 @@ loadSalesCount(data.id);
     productSkeleton.innerHTML = `<div class="text-red-600 text-center">حدث خطأ أثناء تحميل المنتج</div>`;
   }
 }
+
 async function loadRelatedProducts(category, currentId) {
   try {
     if (!category) {
@@ -523,6 +562,79 @@ async function loadRelatedProducts(category, currentId) {
   }
 }
 
+function normalizeCityName(city) {
+  const map = {
+    "Cairo": "القاهرة", "Giza": "الجيزة", "Alexandria": "الاسكندرية",
+    "Suez": "السويس", "Port Said": "بورسعيد", "Damietta": "دمياط",
+    "Ismailia": "الإسماعيلية", "Faiyum": "الفيوم", "Beni Suef": "بني سويف",
+    "Minya": "المنيا", "Assiut": "اسيوط", "Sohag": "سوهاج", "Qena": "قنا",
+    "Aswan": "اسوان", "Luxor": "الأقصر", "Red Sea": "البحر الأحمر",
+    "Beheira": "البحيرة", "Dakahlia": "الدقهلية", "Sharqia": "الشرقية",
+    "Kafr el-Sheikh": "كفر الشيخ", "Menoufia": "المنوفية", "Gharbia": "الغربية",
+    "Qalyubia": "القليوبية", "Matrouh": "مطروح",
+    "North Sinai": "شمال سيناء", "South Sinai": "جنوب سيناء",
+    "New Valley": "الوادي الجديد"
+  };
+  return map[city] || city;
+}
+
+
+
+let userCity = null;
+let userCountry = null;
+
+async function detectUserLocation() {
+  try {
+    const res = await fetch("https://ipwho.is/");
+    const data = await res.json();
+
+    if (data && data.success) {
+      userCity = normalizeCityName(data.city || "غير معروف");
+      userCountry = data.country || "غير معروف";
+      console.log("📍 موقع المستخدم:", userCity, "-", userCountry);
+    } else {
+      userCity = "غير معروف";
+      userCountry = "غير معروف";
+      console.warn("⚠️ لم يتمكن من تحديد الموقع بدقة.");
+    }
+  } catch (err) {
+    console.error("❌ خطأ أثناء تحديد الموقع:", err);
+    userCity = "غير معروف";
+    userCountry = "غير معروف";
+  }
+}
+
+function normalizeCityName(city) {
+  const map = {
+    "Cairo": "القاهرة",
+    "Giza": "الجيزة",
+    "Alexandria": "الاسكندرية",
+    "Suez": "السويس",
+    "Port Said": "بورسعيد",
+    "Ismailia": "الإسماعيلية",
+    "Faiyum": "الفيوم",
+    "Beni Suef": "بني سويف",
+    "Minya": "المنيا",
+    "Assiut": "اسيوط",
+    "Sohag": "سوهاج",
+    "Qena": "قنا",
+    "Aswan": "اسوان",
+    "Luxor": "الأقصر",
+    "Red Sea": "البحر الأحمر",
+    "Beheira": "البحيرة",
+    "Dakahlia": "الدقهلية",
+    "Sharqia": "الشرقية",
+    "Kafr el-Sheikh": "كفر الشيخ",
+    "Menoufia": "المنوفية",
+    "Gharbia": "الغربية",
+    "Qalyubia": "القليوبية",
+    "Matrouh": "مطروح",
+    "North Sinai": "شمال سيناء",
+    "South Sinai": "جنوب سيناء",
+    "New Valley": "الوادي الجديد"
+  };
+  return map[city] || city;
+}
 
 async function loadReviews(initial = true) {
   if (initial) {
@@ -681,7 +793,7 @@ function subscribeReviewsRealtime() {
     updateCartBadgeUI();
     buildStarInput();
 
-  
+    await detectUserLocation(); 
     await loadProduct();   
     await loadReviews();  
     await checkAuth();  

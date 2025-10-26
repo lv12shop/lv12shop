@@ -8,69 +8,42 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    :root {
-      --lv-blue-500: #2563eb;
-      --lv-blue-600: #1d4ed8;
-      --lv-blue-700: #1e40af;
-    }
-
     body {
       font-family: "Cairo", sans-serif;
       background: #f9fafb;
       color: #1f2937;
     }
-
-    .card {
-      background: #fff;
-      border-radius: 1rem;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-      transition: transform 0.2s ease;
+    .tab-btn {
+      padding: 0.5rem 1rem;
+      border-radius: 9999px;
+      font-weight: 600;
+      transition: all 0.2s ease;
     }
-
-    .card:hover {
-      transform: translateY(-3px);
+    .tab-btn.active {
+      background-color: #2563eb;
+      color: white;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
-
     .status-badge {
       font-weight: 600;
       border-radius: 9999px;
       padding: 4px 12px;
       font-size: 0.875rem;
     }
-
     .status-pending { background: #fff3cd; color: #856404; }
     .status-shipped { background: #cce5ff; color: #004085; }
     .status-delivered { background: #d4edda; color: #155724; }
     .status-cancelled { background: #f8d7da; color: #721c24; }
-
+    .status-returned { background: #fef3c7; color: #92400e; }
+    .card { background: white; border-radius: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: 0.2s; }
+    .card:hover { transform: translateY(-2px); }
     .toast {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      z-index: 60;
-      background: var(--lv-blue-600);
-      color: white;
-      padding: .8rem 1rem;
-      border-radius: .75rem;
-      font-size: .9rem;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      animation: fadeIn .4s ease;
+      position: fixed; bottom: 20px; right: 20px;
+      background: #2563eb; color: white;
+      padding: .75rem 1rem; border-radius: .75rem;
+      animation: fade .3s ease;
     }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .order-details {
-      display: none;
-      padding-top: .75rem;
-      border-top: 1px solid #e5e7eb;
-      margin-top: .5rem;
-    }
-    .order-details.active {
-      display: block;
-    }
+    @keyframes fade { from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
   </style>
 </head>
 
@@ -101,6 +74,16 @@
       </button>
     </div>
 
+    <!-- Tabs -->
+    <div class="flex flex-wrap gap-2 justify-center border-b pb-3">
+      <button class="tab-btn active" onclick="filterOrders('all')">الكل</button>
+      <button class="tab-btn" onclick="filterOrders('pending')">قيد المعالجة</button>
+      <button class="tab-btn" onclick="filterOrders('shipped')">جاري التوصيل</button>
+      <button class="tab-btn" onclick="filterOrders('delivered')">تم التسليم</button>
+      <button class="tab-btn" onclick="filterOrders('cancelled')">الملغاة</button>
+      <button class="tab-btn" onclick="filterOrders('returned')">المرتجعة</button>
+    </div>
+
     <div id="toast" class="toast hidden"></div>
 
     <div id="loader" class="text-center hidden text-gray-600 py-8">
@@ -118,14 +101,15 @@
 const SUPABASE_URL = "https://nszhzfysitppxssplqfb.supabase.co";
 const SUPABASE_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zemh6ZnlzaXRwcHhzc3BscWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA4OTcsImV4cCI6MjA3MzgwNjg5N30.5KvK4bhqkZ_GpIfED4qecIMfeubAJYwSFJslULwOp-w";
+
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+let allOrders = [];
+let currentFilter = "all";
 const ordersList = document.getElementById("orders-list");
-const toast = document.getElementById("toast");
 const loader = document.getElementById("loader");
 const userName = document.getElementById("userName");
-
-let allOrders = [];
+const toast = document.getElementById("toast");
 
 const showToast = (msg, ok = true) => {
   toast.textContent = msg;
@@ -133,6 +117,13 @@ const showToast = (msg, ok = true) => {
   toast.classList.remove("hidden");
   setTimeout(() => toast.classList.add("hidden"), 3000);
 };
+
+supabase.auth.onAuthStateChange((event, session) => {
+  if (!session) {
+    showToast("⚠️ يجب تسجيل الدخول أولاً", false);
+    setTimeout(() => (location.href = "shop-login.html"), 1000);
+  }
+});
 
 async function loadOrders() {
   loader.classList.remove("hidden");
@@ -143,119 +134,149 @@ async function loadOrders() {
     const user = sessionData?.session?.user;
     if (!user) {
       showToast("⚠️ يرجى تسجيل الدخول أولاً", false);
-      setTimeout(() => (location.href = "shop-login.html"), 1000);
-      return;
+      return setTimeout(() => (location.href = "shop-login.html"), 1000);
     }
 
     userName.textContent = `👤 ${user.user_metadata?.full_name || user.email.split("@")[0]}`;
-const { data: orders, error } = await supabase
-  .from("orders")
-  .select(`
-    id,
-    user_id,
-    product_id,
-    quantity,
-    price,
-    status,
-    created_at,
-    delivery_date,
-    products!orders_product_id_fkey (
-      id,
-      name,
-      product_images!product_images_product_id_fkey (
-        image_url,
-        is_primary
-      )
-    )
-  `)
-  .eq("user_id", user.id)
-  .order("created_at", { ascending: false });
+
+    const { data: orders, error } = await supabase
+      .from("orders")
+      .select(`
+        id, user_id, product_id, quantity, price, status, created_at, delivery_date, return_reason,
+        products!orders_product_id_fkey (
+          id, name,
+          product_images!product_images_product_id_fkey (image_url, is_primary)
+        )
+      `)
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
 
     loader.classList.add("hidden");
 
     if (error) {
-      console.error("❌ خطأ في تحميل الطلبات:", error);
-      showToast("❌ حدث خطأ أثناء تحميل الطلبات", false);
+      console.error("❌ خطأ Supabase:", error);
+      return showToast("❌ فشل تحميل الطلبات، تحقق من الاتصال أو الصلاحيات", false);
+    }
+
+    if (!orders?.length) {
+      ordersList.innerHTML = `<div class="text-center text-gray-500 py-10 text-lg">🚫 لا توجد طلبات بعد</div>`;
       return;
     }
 
-    allOrders = (orders || []).map(o => {
-      const product = o.products || {};
-      const images = product.product_images || [];
-      const mainImg = images.find(i => i.is_primary)?.image_url || images[0]?.image_url || "https://placehold.co/300x200?text=No+Image";
-
-      return {
-        ...o,
-        products: {
-          ...product,
-          image: mainImg
-        }
-      };
+    allOrders = orders.map((o) => {
+      const p = o.products || {};
+      const imgs = p.product_images || [];
+      const img =
+        imgs.find((i) => i.is_primary)?.image_url ||
+        imgs[0]?.image_url ||
+        "https://placehold.co/300x200?text=No+Image";
+      return { ...o, products: { ...p, image: img } };
     });
 
     renderOrders(allOrders);
   } catch (err) {
-    console.error("❌ خطأ عام أثناء تحميل الطلبات:", err);
+    console.error("❌ فشل الاتصال بـ Supabase:", err);
     loader.classList.add("hidden");
     showToast("⚠️ فشل الاتصال بالخادم", false);
   }
 }
 
 function renderOrders(orders) {
-  ordersList.innerHTML = "";
+  const filtered =
+    currentFilter === "all"
+      ? orders
+      : orders.filter((o) => o.status === currentFilter);
 
-  if (!orders.length) {
-    ordersList.innerHTML = `<div class="text-center text-gray-500 text-lg py-10">🚫 لا توجد طلبات حتى الآن</div>`;
+  if (!filtered.length) {
+    ordersList.innerHTML = `<div class="text-center text-gray-500 py-10 text-lg">🚫 لا توجد طلبات في هذا القسم</div>`;
     return;
   }
 
-  const orderCards = orders.map((o, index) => {
-    const p = o.products || {};
-    const img = p.image || "https://placehold.co/300x200?text=No+Image";
-    const total = (o.price || 0) * (o.quantity || 1);
-    const createdAt = new Date(o.created_at).toLocaleString("ar-EG");
-
-    let statusClass = "status-pending", statusText = "⏳ قيد المعالجة";
-    if (o.status === "shipped") { statusClass = "status-shipped"; statusText = "🚚 جاري التوصيل"; }
-    else if (o.status === "delivered") { statusClass = "status-delivered"; statusText = "✅ تم التسليم"; }
-    else if (o.status === "cancelled") { statusClass = "status-cancelled"; statusText = "❌ تم الإلغاء"; }
-
-    return `
-      <div class="card p-4 cursor-pointer transition" onclick="toggleDetails(${index})">
-        <div class="flex justify-between items-center">
-          <div>
-            <h3 class="font-bold text-blue-700">${p.name || "منتج غير متوفر"}</h3>
-            <p class="text-sm text-gray-500">تاريخ الطلب: ${createdAt}</p>
-          </div>
-          <span class="status-badge ${statusClass}">${statusText}</span>
-        </div>
-
-        <div id="details-${index}" class="order-details">
-          <div class="flex flex-col md:flex-row gap-4 mt-3">
-            <img src="${img}" alt="${p.name}" class="w-full md:w-1/4 h-44 object-cover rounded-lg cursor-pointer"
-                 onclick="event.stopPropagation(); window.location='product.html?id=${p.id}'" />
-            <div class="flex-1 space-y-1">
-              <p>📦 الكمية: <b>${o.quantity}</b></p>
-              <p>💰 السعر الفردي: <b>${o.price.toFixed(2)} ج.م</b></p>
-              <p>💵 الإجمالي: <b class="text-blue-600">${total.toFixed(2)} ج.م</b></p>
-              <p>🗓️ تاريخ التوصيل المتوقع: ${
-                o.delivery_date
-                  ? new Date(o.delivery_date).toLocaleDateString("ar-EG")
-                  : "غير محدد"
-              }</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
-  }).join("");
-
-  ordersList.innerHTML = orderCards;
+  ordersList.innerHTML = filtered.map(renderOrderCard).join("");
 }
 
-function toggleDetails(index) {
-  const el = document.getElementById(`details-${index}`);
-  el?.classList.toggle("active");
+function renderOrderCard(o) {
+  const p = o.products || {};
+  const total = (o.price || 0) * (o.quantity || 1);
+  const createdAt = new Date(o.created_at).toLocaleString("ar-EG");
+  const img = p.image;
+
+  const statusMap = {
+    pending: ["⏳ قيد المعالجة", "status-pending"],
+    shipped: ["🚚 جاري التوصيل", "status-shipped"],
+    delivered: ["✅ تم التسليم", "status-delivered"],
+    cancelled: ["❌ تم الإلغاء", "status-cancelled"],
+    returned: ["↩️ تم الإرجاع", "status-returned"],
+  };
+  const [statusText, statusClass] =
+    statusMap[o.status] || ["غير معروف", "status-pending"];
+
+  const canReturn = o.status === "delivered";
+
+  return `
+  <div class="card p-5">
+    <div class="flex justify-between items-center">
+      <div>
+        <h3 class="font-bold text-blue-700">${p.name || "منتج غير متوفر"}</h3>
+        <p class="text-sm text-gray-500">📅 تاريخ الطلب: ${createdAt}</p>
+      </div>
+      <span class="status-badge ${statusClass}">${statusText}</span>
+    </div>
+
+    <div class="flex flex-col md:flex-row gap-4 mt-4">
+      <img src="${img}" alt="${p.name}" 
+        class="w-full md:w-1/4 h-44 object-cover rounded-lg border cursor-pointer"
+        onclick="window.location='product.html?id=${p.id}'" />
+
+      <div class="flex-1 space-y-1">
+        <p>📦 الكمية: <b>${o.quantity}</b></p>
+        <p>💰 السعر الفردي: <b>${o.price.toFixed(2)} ج.م</b></p>
+        <p>💵 الإجمالي: <b class="text-blue-600">${total.toFixed(2)} ج.م</b></p>
+        <p>🗓️ التوصيل المتوقع: ${
+          o.delivery_date
+            ? new Date(o.delivery_date).toLocaleDateString("ar-EG")
+            : "غير محدد"
+        }</p>
+
+        ${
+          o.return_reason
+            ? `<p class="text-red-600">🔁 سبب الإرجاع: ${o.return_reason}</p>`
+            : ""
+        }
+
+        ${
+          canReturn
+            ? `<button onclick="returnOrder('${o.id}')" class="mt-3 bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1.5 rounded-lg shadow">🔁 طلب استرجاع</button>`
+            : ""
+        }
+      </div>
+    </div>
+  </div>`;
+}
+
+async function returnOrder(orderId) {
+  const reason = prompt("📦 اكتب سبب طلب الاسترجاع:");
+  if (!reason) return;
+  const { error } = await supabase
+    .from("orders")
+    .update({ status: "return_requested", return_reason: reason })
+    .eq("id", orderId);
+  if (error) return showToast("❌ فشل إرسال طلب الاسترجاع", false);
+  showToast("✅ تم إرسال طلب الاسترجاع للمراجعة");
+  loadOrders();
+}
+
+
+function filterOrders(status) {
+  currentFilter = status;
+  document
+    .querySelectorAll(".tab-btn")
+    .forEach((b) => b.classList.remove("active"));
+  const activeBtn = document.querySelector(
+    `.tab-btn[onclick="filterOrders('${status}')"]`
+  );
+  if (activeBtn) activeBtn.classList.add("active");
+  renderOrders(allOrders);
 }
 
 async function logout() {
@@ -267,6 +288,5 @@ async function logout() {
 loadOrders();
 </script>
 
- 
 </body>
 </html>

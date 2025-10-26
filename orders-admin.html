@@ -133,10 +133,10 @@
   </div>
 
   <div id="toast" class="toast hidden"></div>
-
 <script>
 const SUPABASE_URL = "https://nszhzfysitppxssplqfb.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zemh6ZnlzaXRwcHhzc3BscWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA4OTcsImV4cCI6MjA3MzgwNjg5N30.5KvK4bhqkZ_GpIfED4qecIMfeubAJYwSFJslULwOp-w";
+const SUPABASE_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zemh6ZnlzaXRwcHhzc3BscWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA4OTcsImV4cCI6MjA3MzgwNjg5N30.5KvK4bhqkZ_GpIfED4qecIMfeubAJYwSFJslULwOp-w";
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const ADMIN_EMAIL = "lv12wlv12@gmail.com";
 
@@ -148,127 +148,175 @@ const toastEl = document.getElementById('toast');
 const summaryEl = document.getElementById('summary');
 const pageInfo = document.getElementById('pageInfo');
 
-function showToast(msg, ok=true, ms=3000){
-  toastEl.innerHTML = `<div class="${ok?'bg-green-600':'bg-red-600'} text-white px-4 py-2 rounded shadow">${msg}</div>`;
+function showToast(msg, ok = true, ms = 3000) {
+  toastEl.innerHTML = `<div class="${ok ? 'bg-green-600' : 'bg-red-600'} text-white px-4 py-2 rounded shadow">${msg}</div>`;
   toastEl.classList.remove('hidden');
   clearTimeout(toastEl._t);
-  toastEl._t = setTimeout(()=>toastEl.classList.add('hidden'),ms);
+  toastEl._t = setTimeout(() => toastEl.classList.add('hidden'), ms);
 }
 
-async function checkAdmin(){
+async function checkAdmin() {
   const { data } = await supabase.auth.getSession();
   const user = data?.session?.user;
-  if(!user){
+
+  if (!user) {
     document.getElementById('adminArea').innerHTML = `<a href="shop-login.html" class="text-blue-600 underline">تسجيل الدخول</a>`;
     showToast("يجب تسجيل الدخول", false);
-    setTimeout(()=>location.href="shop-login.html", 1500);
+    setTimeout(() => (location.href = "shop-login.html"), 1500);
     return false;
   }
-  if(user.email.toLowerCase()!==ADMIN_EMAIL.toLowerCase()){
+
+  if (user.email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
     showToast("🚫 ليس لديك صلاحية الأدمن", false);
-    setTimeout(()=>location.href="/",1500);
+    setTimeout(() => (location.href = "/"), 1500);
     return false;
   }
-  document.getElementById('adminArea').innerHTML=`${user.email} <button onclick="logout()" class="text-red-600 underline ml-2">خروج</button>`;
+
+  document.getElementById('adminArea').innerHTML = `
+    <span class="text-gray-700">${user.email}</span>
+    <button onclick="logout()" class="text-red-600 underline ml-2">خروج</button>`;
   return true;
 }
-async function logout(){ await supabase.auth.signOut(); location.reload(); }
 
-function fmtDate(d){ try{return new Date(d).toLocaleString('ar-EG')}catch{return '';} }
+async function logout() {
+  await supabase.auth.signOut();
+  location.reload();
+}
 
-async function loadOrders(){
+async function loadOrders() {
   loadingBar.classList.remove('hidden');
-  ordersBody.innerHTML='';
-  try{
-    let q=supabase.from('orders').select(`id,name,phone,address,quantity,status,delivery_date,product_id,products(name),user_id`,{count:'exact'}).order('id',{ascending:false});
-    if(statusFilter!=='all') q=q.eq('status',statusFilter);
-    const qSearch=document.getElementById('qSearch').value.trim();
-    if(qSearch) q=q.or(`name.ilike.%${qSearch}%,products.name.ilike.%${qSearch}%`);
-    const start=document.getElementById('startDate').value; const end=document.getElementById('endDate').value;
-    if(start) q=q.gte('created_at',start+'T00:00:00');
-    if(end) q=q.lte('created_at',end+'T23:59:59');
-    const from=(page-1)*pageSize,to=from+pageSize-1;
-    const {data,error,count}=await q.range(from,to);
-    if(error) throw error;
-    orders=data; totalCount=count; renderOrders();
-  }catch(e){ console.error(e); showToast("❌ خطأ في التحميل",false);}
+  ordersBody.innerHTML = '';
+
+  try {
+    let q = supabase
+      .from('orders')
+      .select(`id,name,phone,address,quantity,status,delivery_date,product_id,return_reason,
+               products!orders_product_id_fkey ( name )`, { count: 'exact' })
+      .order('id', { ascending: false });
+
+    if (statusFilter !== 'all') q = q.eq('status', statusFilter);
+
+    const qSearch = document.getElementById('qSearch').value.trim();
+    if (qSearch) q = q.or(`name.ilike.%${qSearch}%,products.name.ilike.%${qSearch}%`);
+
+    const start = document.getElementById('startDate').value;
+    const end = document.getElementById('endDate').value;
+    if (start) q = q.gte('created_at', start + 'T00:00:00');
+    if (end) q = q.lte('created_at', end + 'T23:59:59');
+
+    const from = (page - 1) * pageSize;
+    const to = from + pageSize - 1;
+    const { data, error, count } = await q.range(from, to);
+
+    if (error) throw error;
+
+    orders = data;
+    totalCount = count;
+    renderOrders();
+  } catch (err) {
+    console.error(err);
+    showToast("❌ خطأ في تحميل الطلبات", false);
+  }
+
   loadingBar.classList.add('hidden');
 }
 
-function renderOrders(){
-  ordersBody.innerHTML='';
-  if(!orders.length){ ordersBody.innerHTML=`<tr><td colspan="9" class="p-4 text-center text-gray-500">لا توجد طلبات</td></tr>`; return; }
+function renderOrders() {
+  ordersBody.innerHTML = '';
 
-  orders.forEach(o=>{
-    const prodName=o.products?.name||'منتج';
-    const deliveryInput=`
-      <input type="datetime-local" id="d-${o.id}" value="${o.delivery_date?new Date(o.delivery_date).toISOString().slice(0,16):''}"
-      class="border rounded p-1 text-xs"/>
-      <button onclick="saveDelivery(${o.id})" class="bg-purple-600 text-white px-2 py-1 text-xs rounded">💾</button>`;
+  if (!orders.length) {
+    ordersBody.innerHTML = `<tr><td colspan="9" class="p-4 text-center text-gray-500">🚫 لا توجد طلبات</td></tr>`;
+    return;
+  }
 
-    let statusHTML={
-      pending:`<span class="pill bg-yellow-100 text-yellow-800">معلقة</span>`,
-      shipped:`<span class="pill bg-blue-100 text-blue-800">قيد التوصيل</span>`,
-      delivered:`<span class="pill bg-green-100 text-green-800">تم التسليم</span>`,
-      cancelled:`<span class="pill bg-red-100 text-red-800">ملغاة</span>`
-    }[o.status] || '';
+  orders.forEach(o => {
+    const prodName = o.products?.name || 'منتج غير معروف';
+    const statusMap = {
+      pending: ['bg-yellow-100 text-yellow-800', 'معلقة'],
+      shipped: ['bg-blue-100 text-blue-800', 'قيد التوصيل'],
+      delivered: ['bg-green-100 text-green-800', 'تم التسليم'],
+      return_requested: ['bg-orange-100 text-orange-800', '🔁 معالجة استرجاع'],
+      replaced: ['bg-purple-100 text-purple-800', 'تم الاستبدال'],
+      refunded: ['bg-emerald-100 text-emerald-800', 'استرجاع نقدي'],
+      cancelled: ['bg-red-100 text-red-800', 'ملغاة']
+    };
 
-    let actions='';
-    if(o.status==='pending')
-      actions=`<button onclick="updateStatus(${o.id},${o.product_id},${o.quantity},'shipped')" class="bg-blue-600 text-white text-xs px-2 py-1 rounded">🚚 شحن</button>
-               <button onclick="updateStatus(${o.id},${o.product_id},${o.quantity},'cancelled')" class="bg-red-600 text-white text-xs px-2 py-1 rounded">❌</button>`;
-    else if(o.status==='shipped')
-      actions=`<button onclick="updateStatus(${o.id},${o.product_id},${o.quantity},'delivered')" class="bg-green-600 text-white text-xs px-2 py-1 rounded">✅ تسليم</button>
-               <button onclick="updateStatus(${o.id},${o.product_id},${o.quantity},'cancelled')" class="bg-red-600 text-white text-xs px-2 py-1 rounded">❌</button>`;
+    const [bg, label] = statusMap[o.status] || ['bg-gray-100 text-gray-800', 'غير معروف'];
+    const statusHTML = `<span class="pill ${bg}">${label}</span>`;
 
-    ordersBody.innerHTML+=`
-    <tr class="border-b bg-white">
-      <td class="p-3">${o.id}</td>
-      <td class="p-3">${o.name||'---'}</td>
-      <td class="p-3 desktop-only">${o.phone||'---'}</td>
-      <td class="p-3 desktop-only">${o.address||'---'}</td>
-      <td class="p-3">${prodName}</td>
-      <td class="p-3">${o.quantity}</td>
-      <td class="p-3 desktop-only">${deliveryInput}</td>
-      <td class="p-3">${statusHTML}</td>
-      <td class="p-3 flex gap-2">${actions||'-'}</td>
-    </tr>`;
+    let actions = '';
+    if (o.status === 'pending') {
+      actions = `
+        <button onclick="updateStatus(${o.id},${o.product_id},${o.quantity},'shipped')" class="bg-blue-600 text-white text-xs px-2 py-1 rounded">🚚 شحن</button>
+        <button onclick="updateStatus(${o.id},${o.product_id},${o.quantity},'cancelled')" class="bg-red-600 text-white text-xs px-2 py-1 rounded">❌ إلغاء</button>`;
+    } else if (o.status === 'shipped') {
+      actions = `
+        <button onclick="updateStatus(${o.id},${o.product_id},${o.quantity},'delivered')" class="bg-green-600 text-white text-xs px-2 py-1 rounded">✅ تسليم</button>`;
+    } else if (o.status === 'return_requested') {
+      actions = `
+        <button onclick="resolveReturn(${o.id},'replaced')" class="bg-purple-600 text-white text-xs px-2 py-1 rounded">🔁 تم الاستبدال</button>
+        <button onclick="resolveReturn(${o.id},'refunded')" class="bg-emerald-600 text-white text-xs px-2 py-1 rounded">💵 استرجاع نقدي</button>
+        <button onclick="resolveReturn(${o.id},'delivered')" class="bg-gray-500 text-white text-xs px-2 py-1 rounded">❌ رفض</button>`;
+    }
+
+    ordersBody.innerHTML += `
+      <tr class="border-b bg-white">
+        <td class="p-3">${o.id}</td>
+        <td class="p-3">${o.name || '---'}</td>
+        <td class="p-3 desktop-only">${o.phone || '---'}</td>
+        <td class="p-3 desktop-only">${o.address || '---'}</td>
+        <td class="p-3">${prodName}</td>
+        <td class="p-3">${o.quantity}</td>
+        <td class="p-3">${statusHTML}</td>
+        <td class="p-3">${o.return_reason || '-'}</td>
+        <td class="p-3 flex flex-wrap gap-2">${actions || '-'}</td>
+      </tr>`;
   });
 
-  summaryEl.textContent=`عرض ${(page-1)*pageSize+1} إلى ${Math.min(page*pageSize,totalCount)} من ${totalCount}`;
-  pageInfo.textContent=`صفحة ${page}`;
+  summaryEl.textContent = `عرض ${(page - 1) * pageSize + 1} إلى ${Math.min(page * pageSize, totalCount)} من ${totalCount}`;
+  pageInfo.textContent = `صفحة ${page}`;
 }
 
-async function saveDelivery(id){
-  const input=document.getElementById(`d-${id}`);
-  if(!input.value){showToast("⚠️ اختر التاريخ",false);return;}
-  const iso=new Date(input.value).toISOString();
-  const {error}=await supabase.from('orders').update({delivery_date:iso}).eq('id',id);
-  if(error){showToast("❌ فشل الحفظ",false);return;}
-  showToast("✅ تم تحديث موعد التسليم");
-}
-
-async function updateStatus(id,productId,qty,status){
-  if(!confirm("هل أنت متأكد؟"))return;
-  const {error}=await supabase.from('orders').update({status}).eq('id',id);
-  if(error)return showToast("❌ فشل التحديث",false);
-  if(status==='delivered'){
-    const {data:p}=await supabase.from('products').select('stock,sold').eq('id',productId).single();
-    if(p)await supabase.from('products').update({stock:Math.max(0,p.stock-qty),sold:(p.sold||0)+qty}).eq('id',productId);
+async function updateStatus(id, productId, qty, status) {
+  if (!confirm("هل أنت متأكد من تغيير الحالة؟")) return;
+  const { error } = await supabase.from('orders').update({ status }).eq('id', id);
+  if (error) return showToast("❌ فشل التحديث", false);
+  if (status === 'delivered') {
+    const { data: p } = await supabase.from('products').select('stock,sold').eq('id', productId).single();
+    if (p)
+      await supabase.from('products').update({ stock: Math.max(0, p.stock - qty), sold: (p.sold || 0) + qty }).eq('id', productId);
   }
   showToast("✅ تم تحديث الحالة");
   loadOrders();
 }
 
-function setStatusFilter(s){statusFilter=s;page=1;loadOrders();}
-function applyFilters(){page=1;loadOrders();}
-function resetFilters(){document.getElementById('qSearch').value='';document.getElementById('startDate').value='';document.getElementById('endDate').value='';setStatusFilter('all');}
-function prevPage(){if(page>1){page--;loadOrders();}}
-function nextPage(){page++;loadOrders();}
-function changePageSize(){pageSize=+document.getElementById('pageSize').value;page=1;loadOrders();}
+async function resolveReturn(id, action) {
+  const map = {
+    replaced: "✅ تم الاستبدال بنجاح",
+    refunded: "💵 تم الاسترجاع النقدي بنجاح",
+    delivered: "❌ تم رفض طلب الإرجاع"
+  };
+  const { error } = await supabase.from('orders').update({ status: action }).eq('id', id);
+  if (error) return showToast("❌ فشل تنفيذ الإجراء", false);
+  showToast(map[action]);
+  loadOrders();
+}
 
-(async()=>{ if(await checkAdmin()) loadOrders(); })();
+function setStatusFilter(s) { statusFilter = s; page = 1; loadOrders(); }
+function applyFilters() { page = 1; loadOrders(); }
+function resetFilters() {
+  document.getElementById('qSearch').value = '';
+  document.getElementById('startDate').value = '';
+  document.getElementById('endDate').value = '';
+  setStatusFilter('all');
+}
+function prevPage() { if (page > 1) { page--; loadOrders(); } }
+function nextPage() { if (page * pageSize < totalCount) { page++; loadOrders(); } }
+function changePageSize() { pageSize = +document.getElementById('pageSize').value; page = 1; loadOrders(); }
+
+(async () => { if (await checkAdmin()) loadOrders(); })();
 </script>
+
 
 </body>
 </html>

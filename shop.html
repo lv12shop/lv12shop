@@ -8,6 +8,19 @@
   <meta property="og:image" content="/assets/og-image.jpg" />
   <link rel="icon" href="/lv12.ico" />
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="manifest" href="/manifest.json">
+  
+<meta name="theme-color" content="#2563eb">
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("/sw.js")
+        .then(() => console.log("✅ Service Worker مسجل"))
+        .catch(err => console.warn("⚠️ فشل تسجيل SW:", err));
+    });
+  }
+</script>
+
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -319,6 +332,52 @@
     </div>
   </footer>
 <script>
+// ✅ إشعار تثبيت التطبيق (PWA Install Prompt)
+let deferredPrompt;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+
+  // إنشاء شريط إشعار لطيف أعلى الصفحة
+  const installBanner = document.createElement('div');
+  installBanner.id = 'installBanner';
+  installBanner.className = 'fixed bottom-5 right-5 left-5 bg-blue-600 text-white rounded-xl shadow-lg flex justify-between items-center px-4 py-3 z-50';
+  installBanner.innerHTML = `
+    <div class="flex items-center gap-2">
+      📱 <span>تصفح متجر LV12 بشكل أسرع من التطبيق</span>
+    </div>
+    <div class="flex gap-2">
+      <button id="installBtn" class="bg-white text-blue-700 px-3 py-1 rounded font-semibold">تثبيت</button>
+      <button id="closeInstall" class="text-white/80 hover:text-white font-medium">✖</button>
+    </div>
+  `;
+  document.body.appendChild(installBanner);
+
+  document.getElementById('closeInstall').onclick = () => installBanner.remove();
+
+  document.getElementById('installBtn').onclick = async () => {
+    installBanner.remove();
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      console.log('✅ تم تثبيت التطبيق');
+      showToast("تم تثبيت متجر LV12 بنجاح ✅");
+    } else {
+      console.log('❌ تم تجاهل التثبيت');
+    }
+    deferredPrompt = null;
+  };
+});
+
+window.addEventListener('appinstalled', () => {
+  console.log('🎉 تم تثبيت التطبيق بنجاح!');
+  showToast('تم تثبيت التطبيق بنجاح ✅');
+});
+</script>
+
+
+<script>
 const SUPABASE_URL = "https://nszhzfysitppxssplqfb.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zemh6ZnlzaXRwcHhzc3BscWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA4OTcsImV4cCI6MjA3MzgwNjg5N30.5KvK4bhqkZ_GpIfED4qecIMfeubAJYwSFJslULwOp-w";
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -363,6 +422,38 @@ document.querySelectorAll(".loc-tab").forEach(btn => {
     renderProducts(list);
   });
 });
+function normalizeCityName(city) {
+  const map = {
+    "Cairo": "القاهرة",
+    "Giza": "الجيزة",
+    "Alexandria": "الاسكندرية",
+    "Suez": "السويس",
+    "Port Said": "بورسعيد",
+    "Damietta": "دمياط",
+    "Ismailia": "الإسماعيلية",
+    "Faiyum": "الفيوم",
+    "Beni Suef": "بني سويف",
+    "Minya": "المنيا",
+    "Assiut": "اسيوط",
+    "Sohag": "سوهاج",
+    "Qena": "قنا",
+    "Aswan": "اسوان",
+    "Luxor": "الأقصر",
+    "Red Sea": "البحر الأحمر",
+    "Beheira": "البحيرة",
+    "Dakahlia": "الدقهلية",
+    "Sharqia": "الشرقية",
+    "Kafr el-Sheikh": "كفر الشيخ",
+    "Menoufia": "المنوفية",
+    "Gharbia": "الغربية",
+    "Qalyubia": "القليوبية",
+    "Matrouh": "مطروح",
+    "North Sinai": "شمال سيناء",
+    "South Sinai": "جنوب سيناء",
+    "New Valley": "الوادي الجديد"
+  };
+  return map[city] || city;
+}
 
 let userCity = null;
 let userCountry = null;
@@ -371,7 +462,7 @@ async function detectUserLocation() {
     const res = await fetch("https://ipwho.is/");
     const data = await res.json();
     if (data && data.city) {
-      userCity = data.city;
+      userCity = normalizeCityName(data.city); 
       userCountry = data.country || "Egypt";
       console.log("📍 الموقع:", userCity, "-", userCountry);
       return;
@@ -384,6 +475,7 @@ async function detectUserLocation() {
   userCountry = "Egypt";
   console.log("📍 تم إدخال الموقع يدويًا:", userCity, "-", userCountry);
 }
+
 
 function filterByLocation(type) {
   if (!userCity) return allProducts;
@@ -510,9 +602,10 @@ async function loadProducts() {
     try {
       const { data, ts } = JSON.parse(cache);
       if (data && Date.now() - ts < 6 * 60 * 60 * 1000) {
-        allProducts = data;
+        allProducts = data.slice(0, PAGE_SIZE);
         renderCategories();
         renderFiltered();
+        console.log("⚡ تم التحميل من الكاش");
         fetchProducts(true);
         return;
       }
@@ -521,9 +614,17 @@ async function loadProducts() {
     }
   }
 
-  await fetchProducts(false);
+  await fetchProducts(true);
 }
 
+window.addEventListener("scroll", async () => {
+  if (isLoadingMore || allLoaded) return;
+  const scrollBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 400;
+  if (scrollBottom) {
+    console.log("⬇️ تحميل المزيد من المنتجات...");
+    await fetchProducts(false);
+  }
+});
 
 async function loadTopViewedProducts() {
   try {
@@ -590,49 +691,38 @@ async function getSalesCount(productId) {
     return 0;
   }
   return count || 0;
-}
-async function fetchProducts(background = false) {
-  if (!background) showLoading(true);
+}const PAGE_SIZE = 100; 
+let currentPage = 0;
+let isLoadingMore = false;
+let allLoaded = false;
+
+async function fetchProducts(initial = false) {
+  if (isLoadingMore || allLoaded) return;
+  isLoadingMore = true;
+  if (initial) showLoading(true);
 
   try {
-    let { data, error } = await supabase
+    const start = currentPage * PAGE_SIZE;
+    const end = start + PAGE_SIZE - 1;
+
+    console.log(`📦 تحميل من ${start} إلى ${end}`);
+
+    const { data, error, count } = await supabase
       .from("products")
       .select(`
-        id,
-        name,
-        description,
-        price,
-        stock,
-        category,
-        created_at,
-        visible_to_all,
-        available_cities,
-        delivery_by_city,
-        product_images!product_images_product_id_fkey (
-          image_url,
-          is_primary,
-          ordering
-        )
-      `)
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      console.warn("⚠️ خطأ في العلاقة product_images:", error.message);
-      ({ data, error } = await supabase
-        .from("products")
-        .select("*")
-        .order("created_at", { ascending: false }));
-    }
+        id, name, description, price, stock, category, created_at,
+        visible_to_all, available_cities, delivery_by_city,
+        product_images!product_images_product_id_fkey(image_url, is_primary, ordering)
+      `, { count: 'exact' })
+      .order("created_at", { ascending: false })
+      .range(start, end);
 
     if (error) throw error;
 
-    allProducts = (data || []).map((p) => {
-      const imgs = (p.product_images || []).sort(
-        (a, b) => (a.ordering || 0) - (b.ordering || 0)
-      );
+    const newProducts = (data || []).map((p) => {
+      const imgs = (p.product_images || []).sort((a, b) => (a.ordering || 0) - (b.ordering || 0));
       const main = imgs.find((i) => i.is_primary) || imgs[0];
 
-      // ✅ إصلاح parsing حقل delivery_by_city (يدعم JSON داخل JSON)
       const deliveryData = (() => {
         try {
           if (!p.delivery_by_city) return {};
@@ -642,11 +732,17 @@ async function fetchProducts(background = false) {
             if (typeof parsed === "string") parsed = JSON.parse(parsed);
             return parsed;
           }
-        } catch (err) {
-          console.warn("⚠️ خطأ في قراءة delivery_by_city:", err, p.delivery_by_city);
+        } catch {
+          return {};
         }
         return {};
       })();
+
+      const availableCities = Array.isArray(p.available_cities)
+        ? p.available_cities
+        : typeof p.available_cities === "string"
+          ? p.available_cities.replace(/[{}"]/g, "").split(",").map(c => c.trim())
+          : Object.keys(deliveryData || {});
 
       return {
         id: p.id,
@@ -656,41 +752,40 @@ async function fetchProducts(background = false) {
         stock: Number(p.stock) || 0,
         category: p.category || "غير مصنف",
         visible_to_all: p.visible_to_all ?? true,
-        available_cities: Array.isArray(p.available_cities)
-          ? p.available_cities
-          : typeof p.available_cities === "string"
-          ? p.available_cities
-              .replace(/[{}"]/g, "")
-              .split(",")
-              .map((c) => c.trim())
-          : [],
+        available_cities: availableCities,
         delivery_by_city: deliveryData,
-        image:
-          (main && main.image_url) ||
-          p.image_url ||
-          `${SUPABASE_URL}/storage/v1/object/public/products/no-image.png`,
+        image: (main && main.image_url) || `${SUPABASE_URL}/storage/v1/object/public/products/no-image.png`,
       };
     });
 
-    // 💾 حفظ الكاش
-    localStorage.setItem(
-      CACHE_KEY,
-      JSON.stringify({ data: allProducts, ts: Date.now() })
-    );
-
-    if (!background) {
-      renderCategories();
-      renderFiltered();
+    if (initial) {
+      allProducts = newProducts;
+    } else {
+      allProducts = [...allProducts, ...newProducts];
     }
+
+    if (initial) {
+      localStorage.setItem(CACHE_KEY, JSON.stringify({ data: allProducts, ts: Date.now() }));
+    }
+
+    renderFiltered();
+    currentPage++;
+
+    if (!newProducts.length || (count && allProducts.length >= count)) {
+      allLoaded = true;
+      console.log("✅ كل المنتجات تم تحميلها");
+    }
+
   } catch (e) {
     console.error("❌ خطأ أثناء تحميل المنتجات:", e);
-    if (!background) showError("حدث خطأ أثناء تحميل المنتجات.");
   } finally {
-    if (!background) showLoading(false);
+    if (initial) showLoading(false);
+    isLoadingMore = false;
   }
 }
 function renderProducts(list) {
   productsGrid.innerHTML = "";
+
   if (!list.length) {
     showLoading(false);
     noResultsEl.classList.remove("hidden");
@@ -701,46 +796,63 @@ function renderProducts(list) {
   noResultsEl.classList.add("hidden");
   productsGrid.classList.remove("hidden");
 
-  productsGrid.innerHTML = list.map(p => {
-    // 🏙️ المحافظات المتاحة
-    const cityList = Array.isArray(p.available_cities) && p.available_cities.length > 0
-      ? p.available_cities.join(", ")
-      : (p.delivery_by_city ? Object.keys(p.delivery_by_city).join(", ") : "غير محددة");
 
-    // ✅ تحليل بيانات التوصيل (حتى لو JSON داخل JSON)
-    const deliveryObj = safeParseJSON(p.delivery_by_city);
+  if (userCountry === "Egypt" && userCity) {
+    list = list.sort((a, b) => {
+      const aLocal = Array.isArray(a.available_cities) && a.available_cities.includes(userCity);
+      const bLocal = Array.isArray(b.available_cities) && b.available_cities.includes(userCity);
+      return aLocal === bLocal ? 0 : aLocal ? -1 : 1;
+    });
+  }
+
+  productsGrid.innerHTML = list.map(p => {
+
+    const mainCity = Array.isArray(p.available_cities) && p.available_cities.length > 0
+      ? p.available_cities[0]
+      : (Object.keys(p.delivery_by_city || {})[0] || "غير محددة");
+
+    const deliveryData = safeParseJSON(p.delivery_by_city);
     let deliveryText = "";
 
-    // 🔹 إذا كان المستخدم من محافظة موجودة في المنتج → نعرض الوقت الفعلي
-    if (userCity && deliveryObj[userCity]) {
-      deliveryText = `لمحافظتك (${userCity}): ${deliveryObj[userCity]} دقيقة`;
+    if (userCountry === "Egypt") {
+      if (userCity && deliveryData && deliveryData[userCity]) {
+        deliveryText = `التوصيل لمحافظتك (${userCity}): ${deliveryData[userCity]}`;
+      } else {
+        deliveryText = `التوصيل لمحافظتك (${userCity || "غير محددة"}): خلال 1–3 أيام`;
+      }
     } else {
-      // 🔹 أما لو المستخدم من محافظة غير موجودة → نعرض الوقت الافتراضي
-      deliveryText = `لمحافظتك (${userCity || "غير محددة"}): خلال 1-3 أيام`;
+      deliveryText = "❌ غير متوفر في بلدك";
     }
 
+
+    const canBuy = userCountry === "Egypt";
+
+  
     return `
-      <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition-all p-2 cursor-pointer"
+      <div class="flex flex-col sm:flex-row bg-white rounded-xl shadow-sm hover:shadow-md transition-all overflow-hidden cursor-pointer"
            onclick="window.location='product.html?id=${p.id}'">
-        <img src="${p.image}" class="w-full h-48 object-cover rounded-lg mb-2" alt="${escapeHtml(p.name)}">
-        <h3 class="font-bold text-sm text-blue-700 mb-1">${escapeHtml(p.name)}</h3>
-        <p class="text-xs text-gray-500 mb-2">${escapeHtml(p.description.slice(0, 60))}</p>
 
-        <p class="text-xs text-gray-600 mt-1">
-          🏙️ من محافظة:
-          <span class="font-medium">${escapeHtml(cityList)}</span>
-        </p>
+        <img src="${p.image}" class="w-full sm:w-48 h-48 object-cover sm:rounded-l-xl rounded-t-xl" alt="${escapeHtml(p.name)}">
 
-        <p class="text-xs text-green-700 mt-1">
-          🚚 <span class="font-medium">${escapeHtml(deliveryText)}</span>
-        </p>
+        <div class="flex-1 p-4 flex flex-col justify-between">
+          <div>
+            <h3 class="font-bold text-base text-blue-700 mb-1">${escapeHtml(p.name)}</h3>
+            <p class="text-xs text-gray-500 mb-2">${escapeHtml(p.description.slice(0, 80))}</p>
+            <p class="text-xs text-gray-600">🏙️ من محافظة: <span class="font-medium">${escapeHtml(mainCity)}</span></p>
+            <p class="text-xs text-green-700 mt-1">🚚 ${escapeHtml(deliveryText)}</p>
+          </div>
 
-        <div class="flex justify-between items-center mt-2">
-          <span class="text-blue-700 font-semibold">${formatPrice(p.price)}</span>
-          <button onclick="addToCart(${p.id});event.stopPropagation();"
-            class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 rounded">
-            🛒
-          </button>
+          <div class="flex justify-between items-center mt-3">
+            <span class="text-blue-700 font-semibold">${formatPrice(p.price)}</span>
+            ${
+              canBuy
+                ? `<button onclick="addToCart(${p.id});event.stopPropagation();"
+                    class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 rounded">
+                    🛒 أضف للسلة
+                  </button>`
+                : `<span class="text-red-500 text-xs font-medium">❌ غير متاح للشراء</span>`
+            }
+          </div>
         </div>
       </div>
     `;
@@ -748,6 +860,7 @@ function renderProducts(list) {
 
   showLoading(false);
 }
+
 
 
 async function refreshInBackground() {
@@ -758,18 +871,51 @@ async function refreshInBackground() {
 }
 
 function renderCategories() {
-  const cats = [...new Set(allProducts.map(p => p.category))];
-  categoryFilter.innerHTML = `<option value="">كل الفئات</option>` + cats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
-  categoriesNav.innerHTML = cats.map(c =>
-    `<button class="cat-btn px-3 py-1.5 rounded-full bg-gray-100 hover:bg-blue-100 text-sm" onclick="selectCategory('${escapeHtml(c)}')">${escapeHtml(c)}</button>`
-  ).join("");
+  const cats = [...new Set(allProducts.map(p => p.category).filter(Boolean))];
+
+  categoryFilter.innerHTML = `
+    <option value="">كل الفئات</option>
+    ${cats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("")}
+  `;
+
+  categoriesNav.innerHTML = cats.map(c => `
+    <button
+      class="cat-btn px-3 py-1.5 rounded-full bg-gray-100 hover:bg-blue-100 text-sm transition-all"
+      data-cat="${escapeHtml(c)}"
+      onclick="selectCategory('${escapeHtml(c)}', this)"
+    >
+      ${escapeHtml(c)}
+    </button>
+  `).join("");
+
+  const allBtn = document.createElement("button");
+  allBtn.textContent = "الكل";
+  allBtn.className = "cat-btn px-3 py-1.5 rounded-full bg-blue-600 text-white text-sm font-medium";
+  allBtn.dataset.cat = "";
+  allBtn.onclick = () => selectCategory("", allBtn);
+  categoriesNav.prepend(allBtn);
 }
 
-function selectCategory(cat) {
+
+function selectCategory(cat, btn = null) {
+  document.querySelectorAll("#categoriesNav .cat-btn").forEach(b => {
+    b.classList.remove("bg-blue-600", "text-white");
+    b.classList.add("bg-gray-100", "text-gray-800");
+  });
+  if (btn) {
+    btn.classList.remove("bg-gray-100", "text-gray-800");
+    btn.classList.add("bg-blue-600", "text-white");
+  }
+
   categoryFilter.value = cat;
   renderFiltered();
-  window.scrollTo({ top: document.getElementById("products").offsetTop - 100, behavior: "smooth" });
+
+  window.scrollTo({
+    top: document.getElementById("products").offsetTop - 80,
+    behavior: "smooth"
+  });
 }
+
 function renderFiltered() {
   const search = searchInput.value.trim().toLowerCase();
   const cat = categoryFilter.value;
@@ -811,8 +957,12 @@ function renderProducts(list) {
     const cityList = Array.isArray(p.available_cities)
       ? p.available_cities.join(", ")
       : "غير محددة";
+const mainCity = Array.isArray(p.available_cities) && p.available_cities.length > 0
+  ? p.available_cities[0]
+  : (Object.keys(p.delivery_by_city || {})[0] || "غير محددة");
+const fromCityText = `من محافظة: <span class="font-medium">${escapeHtml(mainCity)}</span>`;
 
-    // 🚚 تحديد نص التوصيل
+
     let deliveryText = "خلال 1-3 أيام";
     if (userCountry === "Egypt" && p.delivery_by_city) {
       const d = typeof p.delivery_by_city === "object" ? p.delivery_by_city : safeParseJSON(p.delivery_by_city);
@@ -825,7 +975,6 @@ function renderProducts(list) {
       deliveryText = "غير متوفر في بلدك";
     }
 
-    // 🔒 حالة الشراء
     const canBuy = userCountry === "Egypt";
 
     return `
@@ -835,10 +984,7 @@ function renderProducts(list) {
         <h3 class="font-bold text-sm text-blue-700 mb-1">${escapeHtml(p.name)}</h3>
         <p class="text-xs text-gray-500 mb-2">${escapeHtml(p.description.slice(0, 60))}</p>
 
-        <p class="text-xs text-gray-600 mt-1">
-          🏙️ من محافظة:
-          <span class="font-medium">${escapeHtml(cityList)}</span>
-        </p>
+        <p class="text-xs text-gray-600 mt-1">🏙️ ${fromCityText}</p>
 
         <p class="text-xs text-green-700 mt-1">
           🚚 <span class="font-medium">${escapeHtml(deliveryText)}</span>
@@ -862,6 +1008,7 @@ function renderProducts(list) {
   showLoading(false);
 }
 
+
 function safeParseJSON(raw) {
   if (!raw) return {};
   try {
@@ -873,12 +1020,6 @@ function safeParseJSON(raw) {
     return {};
   }
 }
-
-
-
-
-
-
 
 
 function addToCart(id) {
@@ -911,11 +1052,125 @@ searchInput.addEventListener("input", debounce(() => {
   renderFiltered();
 }, 300));
 
+
+function levenshtein(a, b) {
+  const m = a.length, n = b.length;
+  const dp = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
+  for (let i = 0; i <= m; i++) dp[i][0] = i;
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      dp[i][j] = Math.min(
+        dp[i - 1][j] + 1,
+        dp[i][j - 1] + 1,
+        dp[i - 1][j - 1] + cost
+      );
+    }
+  }
+  return dp[m][n];
+}
+
+function smartSearch(query, items) {
+  if (!query) return items;
+  query = query.trim().toLowerCase();
+  const threshold = 2; 
+  return items.filter(p => {
+    const name = (p.name || "").toLowerCase();
+    const desc = (p.description || "").toLowerCase();
+
+    if (name.includes(query) || desc.includes(query)) return true;
+
+    const dist = levenshtein(name, query);
+    return dist <= threshold;
+  });
+}
+
+const suggestionsBox = document.createElement("div");
+suggestionsBox.id = "search-suggestions";
+suggestionsBox.className = "absolute bg-white border rounded shadow-md mt-1 max-h-48 overflow-auto hidden z-50";
+document.body.appendChild(suggestionsBox);
+
+function showSearchSuggestions(query) {
+  if (!query || !allProducts.length) {
+    suggestionsBox.classList.add("hidden");
+    return;
+  }
+
+  const lowerQ = query.toLowerCase();
+  const matches = allProducts
+    .filter(p => p.name && p.name.toLowerCase().includes(lowerQ))
+    .slice(0, 5);
+
+  if (!matches.length) {
+    suggestionsBox.classList.add("hidden");
+    return;
+  }
+
+  const rect = searchInput.getBoundingClientRect();
+  suggestionsBox.style.left = `${rect.left}px`;
+  suggestionsBox.style.top = `${rect.bottom + window.scrollY}px`;
+  suggestionsBox.style.width = `${rect.width}px`;
+
+  suggestionsBox.innerHTML = matches.map(m => `
+    <div class="p-2 hover:bg-blue-100 cursor-pointer text-sm">${escapeHtml(m.name)}</div>
+  `).join("");
+
+  suggestionsBox.classList.remove("hidden");
+
+  Array.from(suggestionsBox.children).forEach((el, i) => {
+    el.addEventListener("click", () => {
+      searchInput.value = matches[i].name;
+      suggestionsBox.classList.add("hidden");
+      performSearch(); 
+    });
+  });
+}
+
+function performSearch() {
+  const q = searchInput.value.trim().toLowerCase();
+  const cat = categoryFilter.value;
+  const stock = stockFilter.value;
+  const minP = parseFloat(priceMin.value) || 0;
+  const maxP = parseFloat(priceMax.value) || Infinity;
+
+  let list = smartSearch(q, allProducts).filter(p =>
+    (!cat || p.category === cat) &&
+    (!stock || (stock === "in" ? p.stock > 0 : p.stock <= 0)) &&
+    (p.price >= minP && p.price <= maxP)
+  );
+
+  if (userCountry === "Egypt" && userCity) {
+    list = list.sort((a, b) => {
+      const aLocal = a.available_cities?.includes(userCity);
+      const bLocal = b.available_cities?.includes(userCity);
+      return aLocal === bLocal ? 0 : aLocal ? -1 : 1;
+    });
+  }
+
+  renderProducts(list);
+}
+
+searchInput.addEventListener("input", debounce(() => {
+  const val = searchInput.value.trim();
+  clearSearch.classList.toggle("hidden", !val);
+  showSearchSuggestions(val);
+  performSearch();
+}, 300));
+
+document.addEventListener("click", e => {
+  if (!suggestionsBox.contains(e.target) && e.target !== searchInput) {
+    suggestionsBox.classList.add("hidden");
+  }
+});
+
 clearSearch.addEventListener("click", () => {
   searchInput.value = "";
   clearSearch.classList.add("hidden");
+  suggestionsBox.classList.add("hidden");
   renderFiltered();
 });
+
 
 applyFiltersBtn.addEventListener("click", renderFiltered);
 resetFiltersBtn.addEventListener("click", () => {
