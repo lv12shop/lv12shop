@@ -87,6 +87,29 @@
       </div>
     </div>
   </div>
+  <section class="bg-white rounded-xl shadow p-5 mb-6">
+  <h2 class="text-xl font-bold mb-4">📊 لوحة الإحصائيات</h2>
+  <div id="stats" class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center text-blue-800 font-semibold"></div>
+
+  <canvas id="viewsChart" class="mt-6 w-full h-64"></canvas>
+  <h3 class="text-lg font-bold mt-8 mb-3 text-blue-800">🕵️‍♂️ أحدث الزيارات</h3>
+<div id="visitsTable" class="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
+  <table class="w-full text-sm text-right">
+    <thead class="bg-blue-100 text-blue-800 font-semibold">
+      <tr>
+        <th class="p-2">🧭 الصفحة</th>
+        <th class="p-2">🌍 الدولة</th>
+        <th class="p-2">💻 IP</th>
+        <th class="p-2">📅 التاريخ</th>
+      </tr>
+    </thead>
+    <tbody id="visitsBody" class="divide-y divide-gray-200"></tbody>
+  </table>
+</div>
+
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 const SUPABASE_URL = "https://nszhzfysitppxssplqfb.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zemh6ZnlzaXRwcHhzc3BscWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA4OTcsImV4cCI6MjA3MzgwNjg5N30.5KvK4bhqkZ_GpIfED4qecIMfeubAJYwSFJslULwOp-w";
@@ -114,6 +137,62 @@ const confirmNo = document.getElementById("confirmNo");
 const searchInput = document.getElementById("searchInput");
 const categoryFilter = document.getElementById("categoryFilter");
 const logoutBtn = document.getElementById("logoutBtn");
+
+async function loadStats() {
+  const { data, error } = await supabase.from('page_visits').select('*').order('created_at', { ascending: false });
+  if (error) {
+    console.error("⚠️ خطأ أثناء تحميل الإحصائيات:", error);
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    document.getElementById("stats").innerHTML = `<div class='col-span-4 text-gray-500'>لا توجد بيانات بعد</div>`;
+    return;
+  }
+
+  const total = data.length;
+  const uniqueIps = new Set(data.map(v => v.ip_address)).size;
+  const productsViews = data.filter(v => v.product_id).length;
+  const byCountry = {};
+  data.forEach(v => byCountry[v.country] = (byCountry[v.country] || 0) + 1);
+
+  document.getElementById("stats").innerHTML = `
+    <div class="p-4 bg-blue-50 rounded-lg"><div class="text-lg font-bold">${total}</div><div>📈 إجمالي الزيارات</div></div>
+    <div class="p-4 bg-green-50 rounded-lg"><div class="text-lg font-bold">${uniqueIps}</div><div>👤 الزوار الفريدون</div></div>
+    <div class="p-4 bg-yellow-50 rounded-lg"><div class="text-lg font-bold">${productsViews}</div><div>🛒 مشاهدات المنتجات</div></div>
+    <div class="p-4 bg-purple-50 rounded-lg"><div class="text-lg font-bold">${Object.keys(byCountry).length}</div><div>🌍 الدول</div></div>
+  `;
+
+  const ctx = document.getElementById('viewsChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: Object.keys(byCountry),
+      datasets: [{
+        label: 'عدد الزيارات حسب الدولة',
+        data: Object.values(byCountry),
+        backgroundColor: '#3b82f6'
+      }]
+    },
+    options: {
+      plugins: { legend: { display: false } },
+      scales: { y: { beginAtZero: true } }
+    }
+  });
+
+  const latest = data.slice(0, 20); 
+  const rows = latest.map(v => `
+    <tr>
+      <td class="p-2">${v.page_type || '-'}</td>
+      <td class="p-2">${v.country || 'غير معروف'}</td>
+      <td class="p-2">${v.ip_address || '-'}</td>
+      <td class="p-2">${new Date(v.created_at).toLocaleString('ar-EG')}</td>
+    </tr>
+  `).join('');
+  document.getElementById("visitsBody").innerHTML = rows;
+}
+
+document.addEventListener("DOMContentLoaded", loadStats);
 
 let allProducts = [];
 let pendingDeleteId = null;
@@ -143,12 +222,11 @@ async function checkAuth() {
 
 async function uploadImagesAndSave(productId, files) {
   for (const [i, f] of Array.from(files).entries()) {
-    // 🧩 تنظيف اسم الملف (يمنع الحروف العربية والرموز)
     const safeName = f.name
       .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "") // إزالة التشكيل
-      .replace(/[^\w.-]+/g, "_") // استبدال الحروف غير المسموح بها بـ _
-      .replace(/_+/g, "_"); // منع تكرار _
+      .replace(/[\u0300-\u036f]/g, "") 
+      .replace(/[^\w.-]+/g, "_") 
+      .replace(/_+/g, "_"); 
 
     const fileName = `${Date.now()}-${i}-${safeName}`;
     const { data, error } = await supabase.storage
@@ -179,7 +257,6 @@ async function uploadImagesAndSave(productId, files) {
 }
 
 
-
 async function loadCategories() {
   const { data, error } = await supabase.from("products").select("category");
   if (error) return;
@@ -191,7 +268,6 @@ async function loadCategories() {
     categoryFilter.innerHTML += `<option value="${c}">${c}</option>`;
   });
 }
-
 async function loadProducts() {
   const { data, error } = await supabase
     .from("products")
@@ -202,27 +278,44 @@ async function loadProducts() {
       price,
       stock,
       category,
-      product_images (image_url, is_primary, ordering)
+      product_images!product_images_product_id_fkey (image_url, is_primary, ordering)
     `)
     .order("id", { ascending: false });
 
   if (error) {
-    console.error(error);
-    showToast("❌ فشل تحميل المنتجات", false);
+    console.error("❌ خطأ في تحميل المنتجات:", error.message);
+    showToast("⚠️ فشل تحميل المنتجات", false);
     return;
   }
 
   allProducts = (data || []).map(p => {
-    const imgs = (p.product_images || []).sort((a, b) => (a.ordering || 0) - (b.ordering || 0));
-    const mainImg = imgs.find(i => i.is_primary) || imgs[0];
+    const imgs = (p.product_images || []).sort((a, b) => a.ordering - b.ordering);
+    const mainImg = imgs.find(i => i.is_primary)?.image_url || imgs[0]?.image_url || "https://placehold.co/300x200?text=No+Image";
+
     return {
       ...p,
-      mainImage: mainImg ? mainImg.image_url : "https://placehold.co/300x200?text=No+Image"
+      mainImg,
+      images: imgs
     };
   });
 
-  renderProducts(allProducts);
   productsCountEl.textContent = allProducts.length;
+
+  productsGrid.innerHTML = allProducts.map(p => `
+    <div class="border rounded-xl p-3 shadow-sm fade-in relative">
+      <img src="${p.mainImg}" class="w-full h-40 object-cover rounded-lg mb-2" alt="صورة المنتج" />
+      <h4 class="font-semibold text-blue-700">${escapeHtml(p.name)}</h4>
+      <p class="text-sm text-gray-600 line-clamp-2">${escapeHtml(p.description || '')}</p>
+      <div class="mt-2 flex justify-between items-center text-sm">
+        <span class="font-bold text-green-700">${p.price} ج.م</span>
+        <span class="text-gray-500">📦 ${p.stock} قطعة</span>
+      </div>
+      <div class="mt-3 flex gap-2">
+        <button onclick="editProduct(${p.id})" class="flex-1 bg-yellow-400 text-white rounded py-1">✏️ تعديل</button>
+        <button onclick="confirmDelete(${p.id})" class="flex-1 bg-red-500 text-white rounded py-1">🗑️ حذف</button>
+      </div>
+    </div>
+  `).join("");
 }
 
 function renderProducts(products) {

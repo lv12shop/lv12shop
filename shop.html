@@ -214,23 +214,26 @@
     </nav>
   </header>
 
-  <section class="bg-gradient-to-l from-blue-100 to-blue-50 py-16">
-    <div class="max-w-7xl mx-auto grid md:grid-cols-2 gap-10 items-center px-4">
+ <section class="bg-gradient-to-l from-blue-100 to-blue-50 py-16">
+  <div class="max-w-7xl mx-auto px-4">
+    <div class="grid md:grid-cols-2 gap-10 items-center">
       <div>
         <h2 class="text-4xl font-extrabold text-blue-900 mb-4 leading-snug">
-          اكتشف منتجات <span class="text-blue-600">فريدة</span> بأسعار لا تقاوم
+          اكتشف <span class="text-blue-600">المنتجات الأكثر مشاهدة</span>
         </h2>
-        <p class="text-gray-700 mb-6 text-lg">استمتع بتجربة تسوق آمنة وسريعة، مع خصومات يومية وتوصيل مضمون.</p>
+        <p class="text-gray-700 mb-6 text-lg">هذه المنتجات نالت اهتمام المتسوقين، جرّبها الآن!</p>
         <div class="flex flex-wrap gap-4">
           <a href="#products" class="btn-main px-5 py-3 rounded-md text-sm font-semibold">ابدأ التسوق الآن</a>
           <a href="about.html" class="btn-outline px-5 py-3 rounded-md text-sm font-semibold">من نحن</a>
         </div>
       </div>
-      <div class="hidden md:block">
-        <img src="/assets/og-image.jpg" alt="منتجات مميزة" class="rounded-3xl shadow-lg w-full h-80 object-cover">
+      <div>
+        <div id="featuredProducts" class="grid grid-cols-2 gap-4"></div>
       </div>
     </div>
-  </section>
+  </div>
+</section>
+
 
   <main id="products" class="max-w-7xl mx-auto px-4 py-16">
     <div class="grid lg:grid-cols-4 gap-8">
@@ -342,7 +345,53 @@ if (!userArea) {
 const escapeHtml = s => String(s || "").replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[m]));
 const formatPrice = v => v ? Number(v).toLocaleString('ar-EG', { style: 'currency', currency: 'EGP' }) : "غير متوفر";
 const debounce = (fn, ms = 400) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
+async function logVisit(pageType, productId = null) {
+  try {
+    const ipData = await fetch("https://api.ipify.org?format=json").then(r => r.json());
+    const ip = ipData.ip;
 
+    let country = "غير معروف", city = "غير معروف";
+    try {
+      const loc = await fetch(`https://ipapi.co/${ip}/json/`).then(r => r.json());
+      if (loc && loc.country_name) country = loc.country_name;
+      if (loc && loc.city) city = loc.city;
+    } catch (err) {
+      console.warn("⚠️ فشل في جلب بيانات الموقع:", err);
+    }
+
+    const { error } = await supabase.from("page_visits").insert([{
+      page_type: pageType,
+      product_id: productId,
+      ip_address: ip,
+      country,
+      city,
+      user_agent: navigator.userAgent,
+      created_at: new Date().toISOString()
+    }]);
+
+    if (error) {
+      console.error("❌ فشل تسجيل الزيارة في Supabase:", error);
+    } else {
+      console.log("✅ تم تسجيل الزيارة بنجاح:", { pageType, productId, ip, country, city });
+    }
+  } catch (err) {
+    console.error("⚠️ استثناء أثناء تسجيل الزيارة:", err);
+  }
+}
+
+const currentPath = window.location.pathname;
+
+if (currentPath.includes("product.html")) {
+  logVisit("product", productId);
+} else if (currentPath.includes("shop.html")) {
+  logVisit("shop");
+} else if (currentPath.includes("cart.html")) {
+  logVisit("cart");
+} else if (currentPath.includes("my-orders.html")) {
+  logVisit("my_orders");
+} else {
+  logVisit(currentPath);
+}
 function showToast(msg, ok = true, time = 2500) {
   const toast = document.createElement("div");
   toast.textContent = msg;
@@ -389,12 +438,10 @@ async function loadProducts() {
   if (cache) {
     try {
       const { data, ts } = JSON.parse(cache);
-
-      if (data && Date.now() - ts < 12 * 60 * 60 * 1000) {
+      if (data && Date.now() - ts < 6 * 60 * 60 * 1000) {
         allProducts = data;
         renderCategories();
         renderFiltered();
-
         fetchProducts(true);
         return;
       }
@@ -404,6 +451,74 @@ async function loadProducts() {
   }
 
   await fetchProducts(false);
+}
+
+
+async function loadTopViewedProducts() {
+  try {
+    const { data, error } = await supabase
+      .from('page_visits')
+      .select('product_id')
+      .not('product_id', 'is', null);
+
+    if (error) throw error;
+
+    const viewsCount = {};
+    data.forEach(v => {
+      viewsCount[v.product_id] = (viewsCount[v.product_id] || 0) + 1;
+    });
+
+    const sorted = Object.entries(viewsCount)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 4)
+      .map(([id]) => parseInt(id));
+
+    if (sorted.length === 0) {
+      document.getElementById("featuredProducts").innerHTML = `
+        <p class="text-gray-500">لا توجد منتجات مميزة بعد.</p>`;
+      return;
+    }
+
+    const { data: products, error: pErr } = await supabase
+      .from('products')
+      .select(`
+        id, name, price,
+        product_images!product_images_product_id_fkey(image_url, is_primary)
+      `)
+      .in('id', sorted);
+
+    if (pErr) throw pErr;
+
+    const html = products.map(p => {
+      const img = p.product_images?.find(i => i.is_primary)?.image_url || "https://placehold.co/300x200";
+      return `
+        <div onclick="location.href='product.html?id=${p.id}'"
+             class="cursor-pointer bg-white rounded-xl shadow hover:shadow-lg transition p-2 text-center">
+          <img src="${img}" class="w-full h-32 object-cover rounded-md mb-2">
+          <h4 class="font-semibold text-blue-700 text-sm">${p.name}</h4>
+          <p class="text-green-700 text-sm font-bold">${p.price} ج.م</p>
+        </div>`;
+    }).join('');
+
+    document.getElementById("featuredProducts").innerHTML = html;
+
+  } catch (err) {
+    console.error("⚠️ خطأ أثناء تحميل المنتجات المميزة:", err);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", loadTopViewedProducts);
+async function getSalesCount(productId) {
+  const { count, error } = await supabase
+    .from('cart_events')
+    .select('id', { count: 'exact', head: true })
+    .eq('product_id', productId);
+
+  if (error) {
+    console.error("⚠️ خطأ في حساب عدد المبيعات:", error);
+    return 0;
+  }
+  return count || 0;
 }
 
 async function fetchProducts(background = false) {
@@ -590,13 +705,15 @@ resetFiltersBtn.addEventListener("click", () => {
   renderFiltered();
 });
 
-// 🚀 بدء التنفيذ
+
 (async function init() {
   document.getElementById("yearFooter").textContent = new Date().getFullYear();
   updateCartUI();
   await checkAuth();
   await loadProducts();
 })();
+
+
 </script>
 
 
