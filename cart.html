@@ -269,6 +269,7 @@ function removeItem(i) {
   renderCart();
   showToast("🗑️ تم حذف المنتج");
 }
+
 clearBtn.onclick = () => {
   if (confirm("هل تريد تفريغ السلة؟")) {
     cart = [];
@@ -322,6 +323,16 @@ async function fetchProductImage(productId) {
     return "https://placehold.co/100x80?text=LV12";
   }
 }
+(async function checkLoginBeforeCart() {
+  const { data } = await supabase.auth.getSession();
+  const user = data?.session?.user;
+
+  if (!user) {
+    localStorage.setItem("redirectAfterLogin", window.location.pathname);
+    window.location.href = "shop-login.html";
+    return;
+  }
+})();
 
 async function checkAuth() {
   const { data } = await supabase.auth.getSession();
