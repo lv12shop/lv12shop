@@ -1,32 +1,41 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <meta name="description" content="متجر LV12 | تسوق منتجات إلكترونية وعروض حصرية بأسعار مذهلة. استمتع بتجربة تسوق آمنة وسريعة مع توصيل لباب المنزل.">
-  <meta name="keywords" content="LV12, متجر, تسوق اونلاين, عروض, منتجات, الكترونيات, موبايلات, اجهزة, lv12shop, تسوق آمن, خصومات">
+  <title>LV12 Shop | تسوق منتجات مميزة بأسعار لا تُضاهى</title>
+  <meta name="description" content="🛒 متجر LV12 يقدم لك تجربة تسوق ذكية وسريعة — منتجات أصلية، عروض يومية، وخدمة توصيل إلى باب المنزل في جميع المحافظات.">
+  <meta name="keywords" content="LV12, متجر, تسوق اونلاين, عروض, منتجات, الكترونيات, موبايلات, اجهزة, lv12shop, خصومات, شحن مجاني, تسوق آمن">
   <meta name="robots" content="index, follow">
+  <meta name="author" content="LV12 Shop">
 
   <meta name="google-adsense-account" content="ca-pub-4465576706318134">
   <meta name="google-site-verification" content="zHW0SLEn31rSn3Joj_Hwgn6PR5_PPvGv07d0DJaiUSM" />
 
   <meta property="og:title" content="LV12 Shop | تسوق بسهولة وأمان">
   <meta property="og:description" content="أفضل المنتجات والعروض اليومية مع توصيل سريع وخدمة عملاء مميزة. اكتشف متجر LV12 الآن!">
-  <meta property="og:url" content="https://lv12shop.shop">
   <meta property="og:type" content="website">
-  <meta property="og:image" content="https://lv12shop.shop/assets/lv12.png">
-  <link rel="icon" href="/lv12.ico" />
+<meta property="og:image" content="https://lv12shop.shop/lv12.png">
+<meta name="twitter:image" content="https://lv12shop.shop/lv12.png">
 
-  <link rel="apple-touch-icon" href="/lv12.ico">
+  <meta property="og:locale" content="ar_AR">
 
-  <title>LV12 Shop | تسوق منتجات مميزة بأسعار لا تُضاهى</title>
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="LV12 Shop | متجر التسوق الذكي">
+  <meta name="twitter:description" content="اكتشف أحدث المنتجات والعروض المميزة من متجر LV12 — تجربة تسوق لا مثيل لها!">
+  <meta name="twitter:image" content="https://lv12shop.shop/lv12.png">
+
+  <link rel="icon" href="/lv12.ico">
+  <link rel="apple-touch-icon" href="/lv12.png">
+  <meta name="theme-color" content="#2563eb">
 
   <meta http-equiv="refresh" content="3; url=shop.html">
 
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4465576706318134" crossorigin="anonymous"></script>
 
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;600;700&display=swap" rel="stylesheet">
+
   <style>
     body {
       background: linear-gradient(to bottom right, #f9fafb, #e0ecff);
@@ -38,6 +47,7 @@
       font-family: 'Tajawal', sans-serif;
       text-align: center;
       color: #1e3a8a;
+      overflow: hidden;
     }
 
     img.logo {
@@ -72,15 +82,27 @@
       font-weight: 600;
     }
 
-    a:hover {
-      text-decoration: underline;
-    }
+    a:hover { text-decoration: underline; }
 
     .tagline {
       margin-top: 1rem;
       color: #3b82f6;
       font-size: 1.1rem;
       font-weight: 600;
+    }
+
+    .loader {
+      margin-top: 1.2rem;
+      width: 35px;
+      height: 35px;
+      border: 3px solid #2563eb;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
   </style>
 </head>
@@ -90,9 +112,11 @@
 
   <h1>مرحبًا بك في متجر <span style="color:#2563eb;">LV12</span> 🛍️</h1>
   <p>تسوق أحدث المنتجات بأفضل الأسعار</p>
-  <p class="tagline">✨ عروض جديدة كل يوم – خصومات حتى 50% ✨</p>
+  <p class="tagline">✨ عروض جديدة كل يوم — خصومات حتى 50% ✨</p>
 
-  <p><a href="shop.html">ابدأ التسوق الآن</a></p>
+  <div class="loader"></div>
+
+  <p style="margin-top: 1rem;"><a href="shop.html">ابدأ التسوق الآن</a></p>
   <p style="font-size:0.9rem;color:#777;">سيتم تحويلك تلقائيًا خلال لحظات...</p>
 </body>
 </html>

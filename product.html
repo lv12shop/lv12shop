@@ -2,11 +2,46 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <title>تفاصيل المنتج | متجر LV12</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="icon" href="lv12.ico" type="image/x-icon" />
+  
+  <title>تفاصيل المنتج | متجر LV12</title>
+  <meta name="description" content="📦 تصفح تفاصيل المنتج في متجر LV12 — صور عالية الجودة، السعر، المواصفات، والمراجعات من العملاء. تسوق بسهولة وأمان.">
+
+  <meta property="og:title" content="تفاصيل المنتج | متجر LV12" />
+  <meta property="og:description" content="تعرف على مميزات هذا المنتج الرائع من متجر LV12 — جودة عالية وسعر مناسب!" />
+  <meta property="og:image" content="https://www.lv12shop.shop/lv12.jpg" />
+  <meta property="og:type" content="product" />
+  <meta property="og:site_name" content="متجر LV12" />
+  <meta property="og:locale" content="ar_AR" />
+  
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="تفاصيل المنتج | متجر LV12" />
+  <meta name="twitter:description" content="اكتشف تفاصيل المنتج من متجر LV12 — جودة وأمان وسرعة في التوصيل." />
+  <meta name="twitter:image" content="https://www.lv12shop.shop/lv12.jpg" />
+
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="icon" href="/lv12.ico" type="image/x-icon" />
+  <link rel="apple-touch-icon" href="/lv12-192.png" />
+  <meta name="theme-color" content="#2563eb" />
+
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <meta name="robots" content="index, follow" />
+  <meta name="author" content="LV12 Shop" />
+  <meta name="keywords" content="متجر, LV12, منتجات, تسوق, شراء, عروض, مصر, الكترونيات, اكسسوارات, ازياء, تسوق اونلاين" />
+
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("/sw.js")
+          .then(() => console.log("✅ Service Worker مسجل بنجاح"))
+          .catch(err => console.warn("⚠️ فشل تسجيل Service Worker:", err));
+      });
+    }
+  </script>
+</head>
 
   <style>
     :root {
@@ -225,7 +260,7 @@
       }
 
       .grid.md\:grid-cols-2 {
-        grid-template-columns: 1fr !important; /* يجعل الصورة فوق التفاصيل في الموبايل */
+        grid-template-columns: 1fr !important; 
       }
 
       #mainImage {

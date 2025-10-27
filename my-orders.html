@@ -2,11 +2,32 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <title>طلباتي | متجر LV12</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" href="lv12.ico" type="image/x-icon" />
+
+  <title>طلباتي — تتبع مشترياتك بسهولة | متجر LV12</title>
+  <meta name="description" content="📦 تتبع طلباتك السابقة والجارية في متجر LV12 — تعرف على حالة الشحن ومواعيد التوصيل بسهولة تامة. تجربة تسوق آمنة وسريعة!">
+
+  <meta property="og:title" content="طلباتي | متجر LV12" />
+  <meta property="og:description" content="تابع حالة مشترياتك وتفاصيل الطلبات السابقة بكل سهولة من متجر LV12." />
+  <meta property="og:image" content="https://www.lv12shop.shop/lv12.jpg" />
+  <meta property="og:url" content="https://www.lv12shop.shop/my-orders.html" />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="ar_AR" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="طلباتي | متجر LV12" />
+  <meta name="twitter:description" content="📦 تتبع مشترياتك السابقة والجارية بسهولة مع متجر LV12." />
+  <meta name="twitter:image" content="https://www.lv12shop.shop/lv12.jpg" />
+
+  <link rel="icon" href="/lv12.ico" />
+  <link rel="apple-touch-icon" href="/lv12-192.png" />
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#2563eb" />
+
   <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <style>
     body {
       font-family: "Cairo", sans-serif;
@@ -74,7 +95,6 @@
       </button>
     </div>
 
-    <!-- Tabs -->
     <div class="flex flex-wrap gap-2 justify-center border-b pb-3">
       <button class="tab-btn active" onclick="filterOrders('all')">الكل</button>
       <button class="tab-btn" onclick="filterOrders('pending')">قيد المعالجة</button>

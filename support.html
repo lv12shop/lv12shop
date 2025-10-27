@@ -3,19 +3,82 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>الدعم الفني — متجر LV12</title>
-  <meta name="description" content="تواصل مع الدعم الفني لمتجر LV12 عبر البريد أو الدردشة المباشرة. نحن هنا لخدمتك." />
-  <link rel="icon" href="/lv12.ico" />
+
+  <title>الدعم الفني | متجر LV12</title>
+  <meta name="description" content="💬 تواصل مع فريق الدعم الفني لمتجر LV12 في أي وقت. نحن هنا لمساعدتك في الطلبات، الشحن، أو أي استفسار." />
+
+  <meta property="og:title" content="الدعم الفني | متجر LV12" />
+  <meta property="og:description" content="هل لديك استفسار؟ تواصل الآن مع دعم متجر LV12 — الرد خلال دقائق!" />
+  <meta property="og:image" content="https://www.lv12shop.shop/lv12.jpg" />
+  <meta property="og:url" content="https://www.lv12shop.shop/support.html" />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="ar_AR" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="الدعم الفني | متجر LV12" />
+  <meta name="twitter:description" content="تواصل مباشرة مع فريق الدعم الفني لمتجر LV12 عبر البريد أو الرسائل." />
+  <meta name="twitter:image" content="https://www.lv12shop.shop/lv12.jpg" />
+
+  <link rel="icon" href="/lv12.ico" type="image/x-icon" />
+  <link rel="apple-touch-icon" href="/lv12-192.png" />
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#2563eb" />
+
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+
   <style>
-    body { font-family: 'Cairo', sans-serif; scroll-behavior: smooth; }
+    body {
+      font-family: 'Cairo', sans-serif;
+      background: #f9fafb;
+      color: #1e293b;
+      line-height: 1.8;
+      scroll-behavior: smooth;
+    }
+
     summary::-webkit-details-marker { display: none; }
+
+    summary {
+      cursor: pointer;
+      background: #fff;
+      padding: 1rem 1.25rem;
+      border-radius: 0.75rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      color: #2563eb;
+      transition: all .3s ease;
+    }
+
+    summary:hover {
+      background: #eff6ff;
+    }
+
+    details[open] summary {
+      background: #2563eb;
+      color: #fff;
+    }
+
     summary::after {
-      content: "＋"; float: left; color: #2563eb;
+      content: "＋";
+      float: left;
+      color: #2563eb;
       transition: transform 0.3s ease;
     }
-    details[open] summary::after { content: "－"; transform: rotate(90deg); }
+
+    details[open] summary::after {
+      content: "－";
+      color: #fff;
+      transform: rotate(90deg);
+    }
+
+    details p {
+      background: #fff;
+      border-radius: 0.75rem;
+      padding: 1rem;
+      margin-top: 0.5rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
   </style>
 </head>
 

@@ -3,23 +3,40 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>متجر LV12 — تسوق بسهولة وأمان</title>
-  <meta name="description" content="متجر LV12 — أحدث المنتجات بأسعار منافسة وتوصيل سريع. تسوق بسهولة وأمان." />
-  <meta property="og:image" content="/assets/og-image.jpg" />
+
+  <title>متجر LV12 — اكتشف أحدث المنتجات بأسعار تنافسية وتوصيل سريع</title>
+  <meta name="description" content="🛍️ متجر LV12 يقدم لك تجربة تسوق ذكية وسهلة — منتجات متنوعة، عروض حصرية، وتوصيل لجميع المحافظات بأسرع وقت. اكتشف الأفضل الآن!">
+
+  <meta property="og:title" content="متجر LV12 — تسوق بسهولة وأمان" />
+  <meta property="og:description" content="منتجات مميزة وعروض حصرية كل يوم! جرّب تجربة التسوق الذكية من متجر LV12." />
+  <meta property="og:image" content="https://www.lv12shop.shop/lv12.jpg" />
+  <meta property="og:url" content="https://www.lv12shop.shop" />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="ar_AR" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="متجر LV12 — تسوق بسهولة وأمان" />
+  <meta name="twitter:description" content="منتجات مميزة وعروض حصرية كل يوم! تسوق الآن من LV12." />
+  <meta name="twitter:image" content="https://www.lv12shop.shop/lv12.jpg" />
+
   <link rel="icon" href="/lv12.ico" />
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="apple-touch-icon" href="/lv12-192.png" />
   <link rel="manifest" href="/manifest.json">
-  
-<meta name="theme-color" content="#2563eb">
-<script>
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-      navigator.serviceWorker.register("/sw.js")
-        .then(() => console.log("✅ Service Worker مسجل"))
-        .catch(err => console.warn("⚠️ فشل تسجيل SW:", err));
-    });
-  }
-</script>
+  <meta name="theme-color" content="#2563eb" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("/sw.js")
+          .then(() => console.log("✅ Service Worker مسجل"))
+          .catch(err => console.warn("⚠️ فشل تسجيل Service Worker:", err));
+      });
+    }
+  </script>
+
 
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -344,18 +361,29 @@
     setTimeout(() => toast.remove(), 5000);
   }
 
-  // 🆕 مراقبة أي منتج جديد في قاعدة البيانات
   supabase
-    .channel("products-realtime")
-    .on("postgres_changes", { event: "INSERT", schema: "public", table: "products" }, (payload) => {
-      const p = payload.new;
-      showToast(`🆕 تم إضافة منتج جديد: ${p.name} بسعر ${p.price} جنيه 💸`);
-    })
-    .subscribe();
+  .channel("products-realtime")
+  .on("postgres_changes", { event: "INSERT", schema: "public", table: "products" }, async (payload) => {
+    const p = payload.new;
+    const msg = `🆕 تم إضافة منتج جديد: ${p.name} بسعر ${p.price} جنيه 💸`;
+    showToast(msg);
+
+    if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({
+        type: "SHOW_NOTIFICATION",
+        title: "🆕 منتج جديد في متجر LV12",
+        body: `${p.name} متاح الآن بسعر ${p.price} جنيه 💸`,
+        url: `/product.html?id=${p.id}`
+      });
+    } else {
+      console.log("⚠️ لا يوجد Service Worker متصل حالياً");
+    }
+  })
+  .subscribe();
+
 </script>
 
 <style>
-  /* 💅 تنسيق الإشعار (Toast) */
   .toast {
     position: fixed;
     top: 20px;

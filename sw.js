@@ -1,6 +1,5 @@
 
-
-const CACHE_NAME = "lv12-cache-v3";
+const CACHE_NAME = "lv12-cache-v5";
 const APP_FILES = [
   "/",                    
   "/index.html",
@@ -16,7 +15,6 @@ const APP_FILES = [
   "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2",
 ];
 
-
 self.addEventListener("install", event => {
   console.log("🧩 Service Worker: التثبيت...");
   event.waitUntil(
@@ -28,11 +26,10 @@ self.addEventListener("install", event => {
   self.skipWaiting();
 });
 
-
 self.addEventListener("activate", event => {
   console.log("♻️ تفعيل الـ Service Worker الجديد...");
   event.waitUntil(
-    caches.keys().then(keys => 
+    caches.keys().then(keys =>
       Promise.all(
         keys
           .filter(key => key !== CACHE_NAME)
@@ -46,11 +43,9 @@ self.addEventListener("activate", event => {
   self.clients.claim();
 });
 
-
 self.addEventListener("fetch", event => {
   const { request } = event;
-
-  if (request.url.includes("supabase.co")) return;
+  if (request.url.includes("supabase.co")) return; 
 
   event.respondWith(
     caches.match(request).then(cachedResponse => {
@@ -75,7 +70,6 @@ self.addEventListener("fetch", event => {
 
 self.addEventListener("push", event => {
   if (!event.data) return;
-
   const data = event.data.json();
   const title = data.title || "🛍️ إشعار من متجر LV12";
   const options = {
@@ -85,7 +79,6 @@ self.addEventListener("push", event => {
     data: data.url || "https://www.lv12shop.shop/",
     vibrate: [200, 100, 200],
   };
-
   event.waitUntil(self.registration.showNotification(title, options));
 });
 
@@ -94,10 +87,20 @@ self.addEventListener("notificationclick", event => {
   event.waitUntil(clients.openWindow(event.notification.data || "/"));
 });
 
-
 self.addEventListener("message", event => {
   if (event.data === "SKIP_WAITING") {
     console.log("⚡ تحديث النسخة الحالية من Service Worker");
     self.skipWaiting();
+  }
+
+  if (event.data && event.data.type === "SHOW_NOTIFICATION") {
+    const { title, body, url } = event.data;
+    console.log("📢 إشعار مخصص:", title, body);
+    self.registration.showNotification(title || "🆕 منتج جديد", {
+      body: body || "تمت إضافة منتج جديد في متجر LV12",
+      icon: "/lv12-192.png",
+      badge: "/lv12-192.png",
+      data: url || "/shop.html",
+    });
   }
 });
