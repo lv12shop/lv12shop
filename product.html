@@ -7,86 +7,171 @@
   <link rel="icon" href="lv12.ico" type="image/x-icon" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --lv-blue-500: #2563eb;
+    --lv-blue-600: #1d4ed8;
+    --lv-blue-700: #1e40af;
+    --lv-gray-50: #f9fafb;
+    --lv-gray-100: #f3f4f6;
+    --lv-gray-200: #e5e7eb;
+    --lv-gray-700: #374151;
+    --lv-gray-900: #111827;
+    --lv-yellow: #fbbf24;
+  }
 
-  <style>
-    :root {
-      --lv-blue-500: #2563eb;
-      --lv-blue-600: #1d4ed8;
-      --lv-blue-700: #1e40af;
-      --lv-gray-50: #f9fafb;
-      --lv-gray-200: #e5e7eb;
-      --lv-gray-700: #374151;
-      --lv-yellow: #fbbf24;
+  body {
+    font-family: 'Cairo', sans-serif;
+    background: var(--lv-gray-50);
+    color: var(--lv-gray-700);
+    line-height: 1.8;
+    margin: 0;
+    padding: 0;
+  }
+
+  .btn-main {
+    display: inline-block;
+    background: linear-gradient(90deg, var(--lv-blue-500), var(--lv-blue-600));
+    color: #fff;
+    transition: all 0.3s ease;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    box-shadow: 0 3px 8px rgba(37, 99, 235, 0.25);
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    text-align: center;
+  }
+  .btn-main:hover {
+    transform: translateY(-2px);
+    opacity: 0.9;
+  }
+  .btn-main:active {
+    transform: scale(0.98);
+  }
+
+  .card {
+    background: #fff;
+    border-radius: 1rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  }
+
+  #reviewsList > div {
+    background: #fff;
+    border: 1px solid var(--lv-gray-200);
+    border-radius: 1rem;
+    padding: 1rem 1.25rem;
+    transition: all 0.3s ease;
+    margin-bottom: 1rem;
+  }
+  #reviewsList > div:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transform: translateY(-3px);
+  }
+
+  #starInput span {
+    cursor: pointer;
+    font-size: 1.8rem;
+    color: #d1d5db;
+    transition: color 0.2s ease, transform 0.2s ease;
+  }
+  #starInput span:hover {
+    transform: scale(1.2);
+    color: var(--lv-yellow);
+  }
+
+  .review-stars {
+    color: var(--lv-yellow);
+    font-size: 1.2rem;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--lv-blue-600);
+    color: #fff;
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    opacity: 0;
+    transform: translateY(10px);
+    animation: fadeIn 0.4s forwards;
+    z-index: 1000;
+  }
+  @keyframes fadeIn {
+    to {
+      opacity: 1;
+      transform: translateY(0);
     }
+  }
 
+  @media (max-width: 768px) {
     body {
-      font-family: 'Cairo', sans-serif;
-      background: var(--lv-gray-50);
-      color: var(--lv-gray-700);
-      line-height: 1.8;
+      line-height: 1.6;
+      font-size: 15px;
     }
 
     .btn-main {
-      background: linear-gradient(90deg, var(--lv-blue-500), var(--lv-blue-600));
-      color: #fff;
-      transition: all .3s ease;
-      border-radius: .75rem;
-      font-weight: 600;
-      box-shadow: 0 3px 8px rgba(37, 99, 235, .25);
+      width: 100%;
+      padding: 0.9rem 1rem;
+      font-size: 1rem;
+      border-radius: 0.6rem;
     }
-    .btn-main:hover { transform: translateY(-2px); opacity: .9; }
 
     .card {
-      background: #fff;
-      border-radius: 1rem;
-      box-shadow: 0 4px 20px rgba(0,0,0,.05);
-      transition: transform .3s ease;
+      padding: 1rem;
+      margin-bottom: 1rem;
     }
-    .card:hover { transform: translateY(-4px); }
 
     #reviewsList > div {
-      background: #fff;
-      border: 1px solid var(--lv-gray-200);
-      border-radius: 1rem;
-      padding: 1rem 1.25rem;
-      transition: all .3s ease;
-    }
-    #reviewsList > div:hover {
-      box-shadow: 0 4px 12px rgba(0,0,0,.08);
-      transform: translateY(-3px);
+      padding: 0.9rem 1rem;
     }
 
     #starInput span {
-      cursor: pointer;
-      font-size: 1.8rem;
-      color: #d1d5db;
-      transition: color .2s ease, transform .2s ease;
-    }
-    #starInput span:hover { transform: scale(1.2); color: var(--lv-yellow); }
-
-    .review-stars {
-      color: var(--lv-yellow);
-      font-size: 1.2rem;
+      font-size: 1.5rem;
     }
 
     .toast {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: var(--lv-blue-600);
-      color: #fff;
-      padding: .75rem 1rem;
-      border-radius: .75rem;
-      font-size: .9rem;
-      box-shadow: 0 4px 10px rgba(0,0,0,.15);
-      opacity: 0;
-      transform: translateY(10px);
-      animation: fadeIn .4s forwards;
+      bottom: 15px;
+      right: 15px;
+      width: calc(100% - 30px);
+      text-align: center;
+      border-radius: 0.6rem;
     }
-    @keyframes fadeIn {
-      to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 480px) {
+    body {
+      font-size: 14px;
     }
-  </style>
+
+    .btn-main {
+      font-size: 0.95rem;
+    }
+
+    .card {
+      border-radius: 0.75rem;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    #starInput span {
+      font-size: 1.4rem;
+    }
+
+    .review-stars {
+      font-size: 1rem;
+    }
+  }
+</style>
+
 </head>
 
 <body class="antialiased">
