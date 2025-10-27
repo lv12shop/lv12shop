@@ -7,171 +7,256 @@
   <link rel="icon" href="lv12.ico" type="image/x-icon" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<style>
-  :root {
-    --lv-blue-500: #2563eb;
-    --lv-blue-600: #1d4ed8;
-    --lv-blue-700: #1e40af;
-    --lv-gray-50: #f9fafb;
-    --lv-gray-100: #f3f4f6;
-    --lv-gray-200: #e5e7eb;
-    --lv-gray-700: #374151;
-    --lv-gray-900: #111827;
-    --lv-yellow: #fbbf24;
-  }
 
-  body {
-    font-family: 'Cairo', sans-serif;
-    background: var(--lv-gray-50);
-    color: var(--lv-gray-700);
-    line-height: 1.8;
-    margin: 0;
-    padding: 0;
-  }
-
-  .btn-main {
-    display: inline-block;
-    background: linear-gradient(90deg, var(--lv-blue-500), var(--lv-blue-600));
-    color: #fff;
-    transition: all 0.3s ease;
-    border-radius: 0.75rem;
-    font-weight: 600;
-    box-shadow: 0 3px 8px rgba(37, 99, 235, 0.25);
-    padding: 0.75rem 1.5rem;
-    font-size: 1rem;
-    text-align: center;
-  }
-  .btn-main:hover {
-    transform: translateY(-2px);
-    opacity: 0.9;
-  }
-  .btn-main:active {
-    transform: scale(0.98);
-  }
-
-  .card {
-    background: #fff;
-    border-radius: 1rem;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    padding: 1rem 1.25rem;
-    margin-bottom: 1.25rem;
-  }
-  .card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
-  }
-
-  #reviewsList > div {
-    background: #fff;
-    border: 1px solid var(--lv-gray-200);
-    border-radius: 1rem;
-    padding: 1rem 1.25rem;
-    transition: all 0.3s ease;
-    margin-bottom: 1rem;
-  }
-  #reviewsList > div:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    transform: translateY(-3px);
-  }
-
-  #starInput span {
-    cursor: pointer;
-    font-size: 1.8rem;
-    color: #d1d5db;
-    transition: color 0.2s ease, transform 0.2s ease;
-  }
-  #starInput span:hover {
-    transform: scale(1.2);
-    color: var(--lv-yellow);
-  }
-
-  .review-stars {
-    color: var(--lv-yellow);
-    font-size: 1.2rem;
-  }
-
-  .toast {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: var(--lv-blue-600);
-    color: #fff;
-    padding: 0.75rem 1rem;
-    border-radius: 0.75rem;
-    font-size: 0.9rem;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-    opacity: 0;
-    transform: translateY(10px);
-    animation: fadeIn 0.4s forwards;
-    z-index: 1000;
-  }
-  @keyframes fadeIn {
-    to {
-      opacity: 1;
-      transform: translateY(0);
+  <style>
+    :root {
+      --lv-blue-500: #2563eb;
+      --lv-blue-600: #1d4ed8;
+      --lv-blue-700: #1e40af;
+      --lv-gray-50: #f9fafb;
+      --lv-gray-100: #f3f4f6;
+      --lv-gray-200: #e5e7eb;
+      --lv-gray-700: #374151;
+      --lv-gray-900: #111827;
+      --lv-yellow: #fbbf24;
     }
-  }
 
-  @media (max-width: 768px) {
+    html, body {
+      max-width: 100%;
+      overflow-x: hidden;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      line-height: 1.6;
-      font-size: 15px;
+      font-family: 'Cairo', sans-serif;
+      background: var(--lv-gray-50);
+      color: var(--lv-gray-700);
+      line-height: 1.8;
+      margin: 0;
+      padding: 0;
+      overflow-y: scroll;
     }
 
     .btn-main {
-      width: 100%;
-      padding: 0.9rem 1rem;
+      display: inline-block;
+      background: linear-gradient(90deg, var(--lv-blue-500), var(--lv-blue-600));
+      color: #fff;
+      transition: all 0.3s ease;
+      border-radius: 0.75rem;
+      font-weight: 600;
+      box-shadow: 0 3px 8px rgba(37, 99, 235, 0.25);
+      padding: 0.75rem 1.5rem;
       font-size: 1rem;
-      border-radius: 0.6rem;
+      text-align: center;
+    }
+    .btn-main:hover {
+      transform: translateY(-2px);
+      opacity: 0.9;
+    }
+    .btn-main:active {
+      transform: scale(0.98);
     }
 
     .card {
-      padding: 1rem;
-      margin-bottom: 1rem;
+      background: #fff;
+      border-radius: 1rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
     }
 
     #reviewsList > div {
-      padding: 0.9rem 1rem;
+      background: #fff;
+      border: 1px solid var(--lv-gray-200);
+      border-radius: 1rem;
+      padding: 1rem 1.25rem;
+      transition: all 0.3s ease;
+      margin-bottom: 1rem;
+    }
+    #reviewsList > div:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      transform: translateY(-3px);
     }
 
     #starInput span {
-      font-size: 1.5rem;
+      cursor: pointer;
+      font-size: 1.8rem;
+      color: #d1d5db;
+      transition: color 0.2s ease, transform 0.2s ease;
     }
-
-    .toast {
-      bottom: 15px;
-      right: 15px;
-      width: calc(100% - 30px);
-      text-align: center;
-      border-radius: 0.6rem;
-    }
-  }
-
-  @media (max-width: 480px) {
-    body {
-      font-size: 14px;
-    }
-
-    .btn-main {
-      font-size: 0.95rem;
-    }
-
-    .card {
-      border-radius: 0.75rem;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    }
-
-    #starInput span {
-      font-size: 1.4rem;
+    #starInput span:hover {
+      transform: scale(1.2);
+      color: var(--lv-yellow);
     }
 
     .review-stars {
-      font-size: 1rem;
+      color: var(--lv-yellow);
+      font-size: 1.2rem;
     }
-  }
-</style>
 
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--lv-blue-600);
+      color: #fff;
+      padding: 0.75rem 1rem;
+      border-radius: 0.75rem;
+      font-size: 0.9rem;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+      opacity: 0;
+      transform: translateY(10px);
+      animation: fadeIn 0.4s forwards;
+      z-index: 1000;
+    }
+    @keyframes fadeIn {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    #thumbs {
+      display: flex;
+      gap: 0.5rem;
+      overflow-x: auto;
+      scroll-behavior: smooth;
+      padding-bottom: 0.5rem;
+    }
+    #thumbs img {
+      flex-shrink: 0;
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 0.5rem;
+      border: 2px solid transparent;
+      transition: all 0.3s ease;
+    }
+    #thumbs img:hover {
+      border-color: var(--lv-blue-500);
+      transform: scale(1.05);
+    }
+
+    #mainImage {
+      max-width: 100%;
+      height: auto;
+      border-radius: 1rem;
+    }
+
+    #relatedProducts {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 1rem;
+    }
+    #relatedProducts .card {
+      text-align: center;
+      padding: 1rem;
+    }
+    #relatedProducts img {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+      border-radius: 0.75rem;
+      margin-bottom: 0.5rem;
+      transition: transform 0.3s ease;
+    }
+    #relatedProducts img:hover {
+      transform: scale(1.03);
+    }
+
+    p, h1, h2, h3, span, div {
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        line-height: 1.6;
+        font-size: 15px;
+      }
+
+      .btn-main {
+        width: 100%;
+        padding: 0.9rem 1rem;
+        font-size: 1rem;
+        border-radius: 0.6rem;
+      }
+
+      .card {
+        padding: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      #reviewsList > div {
+        padding: 0.9rem 1rem;
+      }
+
+      #starInput span {
+        font-size: 1.5rem;
+      }
+
+      .toast {
+        bottom: 15px;
+        right: 15px;
+        width: calc(100% - 30px);
+        text-align: center;
+        border-radius: 0.6rem;
+      }
+
+      main {
+        padding: 1rem;
+      }
+
+      #thumbs img {
+        width: 70px;
+        height: 70px;
+      }
+
+      #relatedProducts {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      }
+
+      .grid.md\:grid-cols-2 {
+        grid-template-columns: 1fr !important; /* يجعل الصورة فوق التفاصيل في الموبايل */
+      }
+
+      #mainImage {
+        height: auto;
+        margin-bottom: 1rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      body {
+        font-size: 14px;
+      }
+
+      .btn-main {
+        font-size: 0.95rem;
+      }
+
+      .card {
+        border-radius: 0.75rem;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      }
+
+      #starInput span {
+        font-size: 1.4rem;
+      }
+
+      .review-stars {
+        font-size: 1rem;
+      }
+    }
+  </style>
 </head>
 
 <body class="antialiased">
@@ -197,29 +282,34 @@
 
   <main class="max-w-6xl mx-auto px-4 py-8 space-y-6">
     <section id="productBlock" class="card p-6">
-      <div id="productSkeleton" class="animate-pulse text-center py-10 text-gray-500">⏳ جاري تحميل تفاصيل المنتج...</div>
+      <div id="productSkeleton" class="animate-pulse text-center py-10 text-gray-500">
+        ⏳ جاري تحميل تفاصيل المنتج...
+      </div>
+
       <div id="productContent" class="hidden">
         <div class="grid md:grid-cols-2 gap-8 items-start">
           <div>
             <img id="mainImage" class="w-full h-96 object-cover rounded-xl shadow-md" />
             <div id="thumbs" class="flex gap-2 mt-3 overflow-x-auto"></div>
           </div>
+
           <div>
             <h1 id="pName" class="text-3xl font-bold text-blue-700 mb-2"></h1>
             <p id="pDesc" class="text-gray-600 mb-4 leading-relaxed"></p>
-            <div class="text-2xl font-bold text-blue-700 mb-2" id="pPrice"></div>
-            <div class="text-sm text-gray-500 mb-4" id="pStock"></div>
-            <div class="flex gap-3 mb-4">
+            <div id="pPrice" class="text-2xl font-bold text-blue-700 mb-2"></div>
+            <div id="pStock" class="text-sm text-gray-500 mb-4"></div>
+
+            <div class="flex flex-wrap gap-3 mb-4 items-center">
               <button id="addToCartBtn" class="btn-main px-4 py-2">🛒 أضف للسلة</button>
-              <button id="buyNowBtn" class="border border-blue-600 text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition">💳 اشتري الآن</button>
+              <button id="buyNowBtn" class="border border-blue-600 text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition">
+                💳 اشتري الآن
+              </button>
               <p id="viewsCounter" class="text-sm text-gray-600 mt-2">👁️ المشاهدات: <span id="viewsNum">0</span></p>
-<p class="text-sm text-gray-600 mt-1">🛍️ المبيعات: <span id="salesCount">0</span></p>
-
-
-
+              <p class="text-sm text-gray-600 mt-1">🛍️ المبيعات: <span id="salesCount">0</span></p>
             </div>
+
             <div class="text-sm text-gray-500">
-              <span class="font-semibold">الفئة:</span> <span id="pCategory"></span> • 
+              <span class="font-semibold">الفئة:</span> <span id="pCategory"></span> •
               <span class="font-semibold">أضيف في:</span> <span id="pDate"></span>
             </div>
           </div>
@@ -232,6 +322,7 @@
         <h2 class="text-xl font-bold text-blue-700">⭐ تقييمات العملاء</h2>
         <div id="avgBadge" class="text-sm bg-blue-50 px-3 py-1 rounded-full text-blue-700 font-medium"></div>
       </div>
+
       <div id="ratingSummary" class="mb-4 text-gray-600 text-sm"></div>
       <div id="reviewsList" class="space-y-4 mb-5"></div>
 
@@ -239,6 +330,7 @@
         <div id="reviewLoginNotice" class="text-sm text-gray-600 hidden">
           لتتمكن من كتابة تقييم، يرجى <a href="shop-login.html" class="text-blue-600 underline">تسجيل الدخول</a>.
         </div>
+
         <form id="reviewForm" class="hidden space-y-3">
           <div id="starInput" class="flex gap-1"></div>
           <textarea id="reviewComment" rows="3" placeholder="اكتب رأيك حول المنتج..." class="w-full border rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
@@ -250,11 +342,10 @@
       </div>
     </section>
 
-   <section class="mt-10">
-  <h3 class="text-xl font-bold text-blue-800 mb-4">🛍️ منتجات مشابهة</h3>
-  <div id="relatedProducts" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6"></div>
-</section>
-
+    <section class="mt-10">
+      <h3 class="text-xl font-bold text-blue-800 mb-4">🛍️ منتجات مشابهة</h3>
+      <div id="relatedProducts" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+    </section>
   </main>
 
   <div id="toast" class="toast hidden"></div>
