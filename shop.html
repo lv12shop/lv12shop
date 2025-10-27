@@ -332,14 +332,12 @@
     </div>
   </footer>
 <script>
-// ✅ إشعار تثبيت التطبيق (PWA Install Prompt)
 let deferredPrompt;
 
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
 
-  // إنشاء شريط إشعار لطيف أعلى الصفحة
   const installBanner = document.createElement('div');
   installBanner.id = 'installBanner';
   installBanner.className = 'fixed bottom-5 right-5 left-5 bg-blue-600 text-white rounded-xl shadow-lg flex justify-between items-center px-4 py-3 z-50';
@@ -507,6 +505,30 @@ function sortByLocation(products) {
     return 0;
   });
 }
+async function setupPushNotifications() {
+  if (!("Notification" in window) || !("serviceWorker" in navigator)) return;
+
+  const permission = await Notification.requestPermission();
+  if (permission !== "granted") {
+    console.log("❌ المستخدم رفض الإشعارات");
+    return;
+  }
+
+  const reg = await navigator.serviceWorker.ready;
+  console.log("🔔 Service Worker جاهز:", reg);
+
+  const subscription = await reg.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: "<VAPID_PUBLIC_KEY>"
+  });
+
+  console.log("✅ تم الاشتراك:", subscription);
+  await supabase.from("push_subscriptions").insert([
+    { endpoint: subscription.endpoint, data: subscription.toJSON() }
+  ]);
+}
+
+setupPushNotifications();
 
 
 async function logVisit(pageType, productId = null) {
