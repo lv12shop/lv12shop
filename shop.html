@@ -331,6 +331,53 @@
       © <span id="yearFooter"></span> LV12 — جميع الحقوق محفوظة.
     </div>
   </footer>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zemh6ZnlzaXRwcHhzc3BscWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA4OTcsImV4cCI6MjA3MzgwNjg5N30.5KvK4bhqkZ_GpIfED4qecIMfeubAJYwSFJslULwOp-w";
+
+
+  function showToast(message) {
+    const toast = document.createElement("div");
+    toast.className = "toast";
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 5000);
+  }
+
+  // 🆕 مراقبة أي منتج جديد في قاعدة البيانات
+  supabase
+    .channel("products-realtime")
+    .on("postgres_changes", { event: "INSERT", schema: "public", table: "products" }, (payload) => {
+      const p = payload.new;
+      showToast(`🆕 تم إضافة منتج جديد: ${p.name} بسعر ${p.price} جنيه 💸`);
+    })
+    .subscribe();
+</script>
+
+<style>
+  /* 💅 تنسيق الإشعار (Toast) */
+  .toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #1d4ed8;
+    color: #fff;
+    padding: 0.8rem 1.2rem;
+    border-radius: 0.75rem;
+    font-size: 0.95rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    opacity: 0;
+    transform: translateY(-10px);
+    animation: toastIn 0.4s forwards;
+    z-index: 9999;
+  }
+  @keyframes toastIn {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>
 <script>
 let deferredPrompt;
 
