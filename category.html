@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LV12 Shop — تصفح الفئة</title>
+  <meta name="description" content="تصفح منتجات الفئة المختارة من متجر LV12 — عروض، خصومات، وأسعار مميزة.">
+  <link rel="icon" href="/lv12.ico" />
+  <meta name="theme-color" content="#2563eb" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Cairo', sans-serif; background-color: #f9fafb; color: #0a3d62; }
+    header {
+      background: #2563eb; color: white;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 16px; position: sticky; top: 0; z-index: 50;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    header img { height: 42px; border-radius: 10px; }
+    .product-card {
+      background: #fff; border-radius: 14px; padding: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08); transition: 0.3s ease;
+      cursor: pointer; position: relative;
+    }
+    .product-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 5px 14px rgba(0,0,0,0.18);
+    }
+    .product-card img {
+      width: 100%; height: 170px; border-radius: 12px; object-fit: cover;
+    }
+    .price-new { color: #d60000; font-weight: 700; font-size: 16px; }
+    .price-old { text-decoration: line-through; color: #777; font-size: 13px; margin-right: 4px; }
+    .discount-badge {
+      position: absolute; top: 8px; right: 8px;
+      background: linear-gradient(45deg,#ff0000,#b30000);
+      color: #fff; padding: 3px 7px; border-radius: 6px;
+      font-size: 11px; font-weight: 700;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+  </style>
+</head>
+
+<body>
+  <!-- ✅ الهيدر -->
+  <header>
+    <a href="index.html" class="flex items-center gap-2">
+      <img src="https://www.lv12shop.shop/lv12.png" alt="LV12">
+      <h1 class="text-lg font-bold">LV12 Shop</h1>
+    </a>
+    <button onclick="history.back()" class="bg-white text-blue-700 px-3 py-1 rounded-lg text-sm font-semibold">⬅️ رجوع</button>
+  </header>
+
+  <!-- ✅ الصفحة -->
+  <main class="max-w-7xl mx-auto px-4 py-8">
+    <h2 id="categoryTitle" class="text-xl font-bold mb-5 text-center text-blue-900"></h2>
+    <div id="loading" class="text-center text-gray-500 py-10">⏳ جاري تحميل المنتجات...</div>
+    <div id="productsGrid" class="hidden grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6"></div>
+    <p id="noProducts" class="text-center text-gray-500 mt-4 hidden">لا توجد منتجات في هذه الفئة.</p>
+  </main>
+
+  <!-- ✅ فوتر حديث -->
+  <footer class="bg-blue-950 text-gray-100 mt-16">
+    <div class="max-w-7xl mx-auto px-4 py-12 grid grid-cols-1 md:grid-cols-4 gap-10">
+      <div>
+        <img src="https://www.lv12shop.shop/lv12.png" class="w-14 h-14 rounded mb-3" alt="LV12 logo">
+        <h4 class="font-bold text-lg text-white mb-1">متجر LV12</h4>
+        <p class="text-sm text-gray-300">أفضل تجربة تسوق عبر الإنترنت — شحن سريع واسترجاع مضمون.</p>
+      </div>
+
+      <div>
+        <h4 class="font-semibold mb-3 text-white">روابط مفيدة</h4>
+        <ul class="space-y-2 text-sm text-gray-300">
+          <li><a href="about.html" class="hover:text-white">من نحن</a></li>
+          <li><a href="return-policy.html" class="hover:text-white">سياسة الاسترجاع</a></li>
+          <li><a href="shipping-policy.html" class="hover:text-white">سياسة الشحن</a></li>
+          <li><a href="support.html" class="hover:text-white">الدعم الفني</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 class="font-semibold mb-3 text-white">تواصل معنا</h4>
+        <a href="mailto:shoplv12shop@gmail.com" class="inline-block bg-blue-50 hover:bg-blue-100 text-blue-700 px-4 py-2 rounded-lg text-sm font-medium transition">
+          📧 shoplv12shop@gmail.com
+        </a>
+        <a href="tel:01094965067" class="block text-blue-400 text-lg font-bold hover:underline mt-2">
+          📞 01094965067
+        </a>
+        <p class="text-sm text-gray-400 mt-1">📍 مصر - السويس</p>
+      </div>
+
+      <div>
+        <h4 class="font-semibold mb-3 text-white">تابعنا</h4>
+        <div class="flex gap-3">
+          <a href="https://facebook.com" target="_blank">
+            <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" class="w-6">
+          </a>
+          <a href="https://instagram.com" target="_blank">
+            <img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" class="w-6">
+          </a>
+          <a href="https://wa.me/201094965067" target="_blank">
+            <img src="https://cdn-icons-png.flaticon.com/512/733/733585.png" class="w-6">
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="border-t border-gray-700 text-center py-4 text-sm text-gray-400">
+      © <span id="yearFooter"></span> LV12 — جميع الحقوق محفوظة.
+    </div>
+  </footer>
+
+  <!-- ✅ جافا سكريبت -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const supabase = window.supabase.createClient(
+      "https://nszhzfysitppxssplqfb.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zemh6ZnlzaXRwcHhzc3BscWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA4OTcsImV4cCI6MjA3MzgwNjg5N30.5KvK4bhqkZ_GpIfED4qecIMfeubAJYwSFJslULwOp-w"
+    );
+async function renderCategoryPage() {
+  const params = new URLSearchParams(window.location.search);
+  const category = params.get("name");
+  const titleEl = document.getElementById("categoryTitle");
+  const grid = document.getElementById("productsGrid");
+  const noData = document.getElementById("noProducts");
+  const loader = document.getElementById("loading");
+
+  if (!category) {
+    titleEl.textContent = "⚠️ الفئة غير محددة";
+    return;
+  }
+
+  titleEl.textContent = `منتجات فئة: ${category}`;
+  loader.classList.remove("hidden");
+  grid.classList.add("hidden");
+
+  // ✅ تحميل المنتجات مع الصور من Supabase
+  const { data, error } = await supabase
+    .from("products")
+    .select("*, product_images(*)") // تحميل الصور التابعة
+    .eq("category", category);
+
+  loader.classList.add("hidden");
+
+  if (error) {
+    console.error("❌ خطأ أثناء تحميل المنتجات:", error.message);
+    grid.innerHTML = `<p class="text-center text-red-500">حدث خطأ أثناء تحميل المنتجات</p>`;
+    return;
+  }
+
+  if (!data || !data.length) {
+    noData.classList.remove("hidden");
+    grid.innerHTML = "";
+    return;
+  }
+
+  // ✅ تجهيز كل منتج مع صورته الرئيسية
+  const processed = data.map(p => {
+    const imgs = (p.product_images || []).sort((a, b) => (a.ordering || 0) - (b.ordering || 0));
+    const mainImg =
+      imgs.find(i => i.is_primary)?.image_url ||
+      imgs[0]?.image_url ||
+      "https://www.lv12shop.shop/lv12.jpg"; // صورة افتراضية
+
+    return { ...p, mainImg };
+  });
+
+  // ✅ عرض المنتجات
+  grid.classList.remove("hidden");
+  grid.innerHTML = processed.map(p => `
+    <div class="product-card" onclick="window.location.href='product.html?id=${p.id}'">
+      ${p.discount > 0 ? `<span class="discount-badge">-${p.discount}%</span>` : ""}
+      <img src="${p.mainImg}" alt="${p.name}" loading="lazy" />
+      <h3 class="font-semibold mt-2 text-sm">${p.name}</h3>
+      <div class="flex items-center gap-1 mt-1">
+        ${p.discount > 0 ? `<span class="price-old">${p.price} ج.م</span>` : ""}
+        <span class="price-new">
+          ${p.discount > 0
+            ? (p.price - (p.price * p.discount / 100)).toFixed(0)
+            : p.price} ج.م
+        </span>
+      </div>
+    </div>
+  `).join("");
+}
+
+    document.addEventListener("DOMContentLoaded", () => {
+      document.getElementById("yearFooter").textContent = new Date().getFullYear();
+      renderCategoryPage();
+    });
+  </script>
+</body>
+</html>

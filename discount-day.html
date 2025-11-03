@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>عروض اليوم | متجر LV12</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "LV12 Shop",
+  "url": "https://lv12shop.shop",
+  "logo": "https://lv12shop.shop/lv12.png",
+  "sameAs": [
+    "https://www.facebook.com/",
+    "https://www.instagram.com/"
+  ]
+}
+</script>
+
+<style>
+body { font-family: 'Cairo', sans-serif; background:#F2F4F7; }
+.countdown { font-size: 13px; font-weight: 700; color:#C30000; margin-top: 6px; text-align:center; }
+.badge {
+  background: linear-gradient(45deg, #ff0000, #ff7b00);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  display: inline-block;
+  margin-bottom: 6px;
+}
+</style>
+</head>
+
+<body class="min-h-screen flex flex-col">
+
+<header class="bg-gradient-to-r from-red-600 to-yellow-500 text-white p-4 shadow-lg flex items-center gap-3 sticky top-0 z-50">
+  <img src="lv12.ico" class="w-10 h-10 rounded-md border border-white/30 cursor-pointer" onclick="location.href='index.html'">
+  <div class="flex-1">
+    <h1 class="text-lg font-bold">متجر LV12</h1>
+    <p class="text-xs opacity-90">🔥 عروض خاصة حسب اليوم</p>
+  </div>
+  <button onclick="location.href='shop.html'" class="bg-white text-red-700 font-bold px-3 py-1 rounded-lg text-sm shadow">
+    🛍 المتجر
+  </button>
+</header>
+
+<h2 id="dayTitle" class="text-center text-xl font-bold text-red-700 mt-4"></h2>
+
+<div id="productsGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 p-4"></div>
+
+<footer class="bg-white border-t mt-auto sticky bottom-0 z-50">
+  <div class="grid grid-cols-5 text-center text-sm py-2 text-gray-700">
+    <a href="index.html" class="hover:text-red-600">🏠 الرئيسية</a>
+    <a href="shop.html" class="hover:text-red-600">🛍 المتجر</a>
+    <a href="cart.html" class="hover:text-red-600">🛒 السلة</a>
+    <a href="my-orders.html" class="hover:text-red-600">📦 طلباتي</a>
+    <a href="wallet.html" class="hover:text-red-600">💰 حسابي</a>
+  </div>
+</footer>
+
+<script>
+const days = ["السبت","الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة"];
+
+const day = localStorage.getItem("selectedDiscountDay") || "";
+document.getElementById("dayTitle").textContent = "🛍 عروض يوم " + day;
+
+const productsCache = JSON.parse(localStorage.getItem("lv12shop_products_v4") || "{}");
+const products = productsCache.data || [];
+
+const groups = {};
+products.forEach(p => {
+  if (!p.discount_start) return;
+
+  const d = new Date(p.discount_start);
+  const dayName = days[d.getDay()]; 
+  if (!groups[dayName]) groups[dayName] = [];
+  groups[dayName].push(p);
+});
+
+const list = groups[day] || [];
+
+document.getElementById("productsGrid").innerHTML = list.map((p,i) => `
+  <div onclick="location.href='product.html?id=${p.id}'" 
+  class="bg-white rounded-xl shadow-sm hover:shadow-md transition p-2 cursor-pointer">
+
+    <img src="${p.image}" class="w-full h-48 rounded-lg object-cover">
+
+    <div class="mt-2 text-center">
+      ${p.discount_price ? `<span class="badge">خصم ${Math.round((1 - p.discount_price / p.price) * 100)}%</span>` : ""}
+      <h3 class="text-sm font-bold text-blue-800 line-clamp-2 min-h-[40px]">${p.name}</h3>
+      
+      <div class="mt-1">
+        <span class="text-red-600 font-extrabold text-lg">${p.discount_price ?? p.price} ج.م</span>
+        ${p.discount_price ? `<span class="text-gray-400 line-through text-xs">${p.price} ج.م</span>` : ""}
+      </div>
+
+      ${p.discount_end ? `<div class="countdown" id="cd-${i}"></div>` : ""}
+    </div>
+  </div>
+`).join("");
+
+list.forEach((p,i)=>{
+  if(!p.discount_end) return;
+  const end = new Date(p.discount_end).getTime();
+  setInterval(()=>{
+    const diff = end - Date.now();
+    if(diff <= 0){
+      document.getElementById(`cd-${i}`).innerHTML = "⛔ انتهى العرض";
+      return;
+    }
+    const h = Math.floor(diff/(1000*60*60));
+    const m = Math.floor((diff%(1000*60*60))/(1000*60));
+    const s = Math.floor((diff%(1000*60))/1000);
+    document.getElementById(`cd-${i}`).innerHTML = `⏳ ${h} س ${m} د ${s} ث`;
+  },1000);
+});
+</script>
+
+</body>
+</html>

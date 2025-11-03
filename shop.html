@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.5/dist/umd/supabase.min.js"></script>
 
   <title>متجر LV12 — اكتشف أحدث المنتجات بأسعار تنافسية وتوصيل سريع</title>
   <meta name="description" content="🛍️ متجر LV12 يقدم لك تجربة تسوق ذكية وسهلة — منتجات متنوعة، عروض حصرية، وتوصيل لجميع المحافظات بأسرع وقت. اكتشف الأفضل الآن!">
@@ -38,176 +39,143 @@
       });
     }
   </script>
+<style>
 
+#productsGrid,
+.products-day-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
+  gap: 14px;
+}
+
+.product-card {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  transition: 0.3s ease;
+  cursor: pointer;
+  position: relative;
+}
+.product-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 5px 14px rgba(0,0,0,0.18);
+}
+
+.product-card img {
+  width: 100%;
+  height: 170px;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.price-new {
+  color: #d60000;
+  font-weight: 700;
+  font-size: 16px;
+}
+.price-old {
+  text-decoration: line-through;
+  color: #777;
+  font-size: 13px;
+  margin-right: 4px;
+}
+
+.discount-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: linear-gradient(45deg,#ff0000,#b30000);
+  color: #fff;
+  padding: 3px 7px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+.category-card {
+  background: #fff;
+  padding: 14px;
+  border-radius: 14px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.09);
+  text-align: center;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.category-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 5px 14px rgba(0,0,0,0.16);
+}
+.cat-img {
+  width: 100%;
+  height: 125px;
+  object-fit: cover;
+  border-radius: 12px;
+  margin-bottom: 8px;
+}
+.category-card h3 {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 8px 0 2px;
+  color: #0a3d62;
+}
+.category-card p {
+  font-size: 13px;
+  color: #666;
+}
+
+#discountDaysBar {
+  padding: 8px 12px;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+#discountDaysBar button {
+  padding: 8px 15px;
+  border-radius: 25px;
+  background: #f1f5f9;
+  color: #0a3d62;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: .25s;
+  font-size: 14px;
+}
+#discountDaysBar button:hover {
+  background: #dbeafe;
+}
+#discountDaysBar button.active {
+  background: #2563eb;
+  color: white;
+  box-shadow: 0 2px 8px rgba(0,0,0,.14);
+}
+
+</style>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "LV12 Shop",
+  "url": "https://lv12shop.shop",
+  "logo": "https://lv12shop.shop/lv12.png",
+  "sameAs": [
+    "https://www.facebook.com/",
+    "https://www.instagram.com/"
+  ]
+}
+</script>
 
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<style>
-  :root {
-    --lv-blue-500: #2563eb;
-    --lv-blue-600: #1d4ed8;
-    --lv-blue-700: #1e40af;
-    --lv-gray-50: #f9fafb;
-    --lv-gray-100: #f1f5f9;
-    --lv-gray-800: #1e293b;
-  }
 
-  body {
-    font-family: 'Cairo', sans-serif;
-    scroll-behavior: smooth;
-    background: var(--lv-gray-50);
-    color: var(--lv-gray-800);
-    line-height: 1.7;
-    overflow-x: hidden;
-  }
-
-  .btn-main {
-    background: linear-gradient(90deg, var(--lv-blue-500), var(--lv-blue-600));
-    color: white;
-    transition: all 0.25s ease;
-    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2);
-  }
-  .btn-main:hover {
-    opacity: 0.95;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 14px rgba(37, 99, 235, 0.25);
-  }
-
-  .btn-outline {
-    border: 1.5px solid var(--lv-blue-500);
-    color: var(--lv-blue-600);
-    background: #fff;
-    transition: all 0.25s ease;
-  }
-  .btn-outline:hover {
-    background: var(--lv-blue-500);
-    color: white;
-  }
-
-  .card-hover {
-    transition: all 0.25s ease;
-    background: #fff;
-    border-radius: 1rem;
-    overflow: hidden;
-  }
-  .card-hover:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.06);
-  }
-
-  header {
-    backdrop-filter: blur(10px);
-    background: rgba(255, 255, 255, 0.85);
-  }
-
-  #searchInput {
-    transition: all 0.3s ease;
-  }
-  #searchInput:focus {
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
-    border-color: var(--lv-blue-500);
-  }
-
-  #categoriesNavWrap button {
-    white-space: nowrap;
-    font-size: 0.9rem;
-    padding: 0.4rem 1rem;
-    border-radius: 9999px;
-    background: #fff;
-    border: 1px solid var(--lv-gray-100);
-    transition: all 0.25s ease;
-  }
-  #categoriesNavWrap button:hover {
-    background: var(--lv-blue-500);
-    color: #fff;
-  }
-  #categoriesNavWrap .cat-btn.bg-blue-600 {
-    background: var(--lv-blue-600);
-    color: #fff;
-  }
-
-  section {
-    border-radius: 1.5rem;
-  }
-
-  footer {
-    font-size: 0.9rem;
-  }
-  footer a:hover {
-    text-decoration: underline;
-  }
-
-  @media (max-width: 640px) {
-    header .max-w-7xl {
-      flex-direction: column;
-      align-items: stretch;
-      gap: 0.8rem;
-    }
-    header a img {
-      width: 2.5rem;
-      height: 2.5rem;
-    }
-
-    #searchInput {
-      width: 100%;
-      font-size: 0.9rem;
-      padding: 0.5rem 1rem;
-    }
-
-    .btn-main, .btn-outline {
-      width: 100%;
-      text-align: center;
-      padding: 0.75rem;
-      font-size: 1rem;
-      border-radius: 0.75rem;
-    }
-
-    h1, h2, h3 {
-      font-size: 1.25rem;
-      line-height: 1.4;
-    }
-
-    section {
-      padding: 1.5rem 1rem;
-    }
-
-    .grid {
-      gap: 1rem;
-    }
-
-    .card-hover {
-      border-radius: 1rem;
-      padding: 0.5rem;
-    }
-
-    #categoriesNavWrap {
-      padding: 0.5rem 0.25rem;
-      overflow-x: auto;
-    }
-
-    #categoriesNavWrap button {
-      font-size: 0.8rem;
-      padding: 0.3rem 0.9rem;
-    }
-
-    footer .grid {
-      grid-template-columns: 1fr !important;
-      gap: 2rem;
-      text-align: center;
-    }
-  }
-
-  @media (min-width: 641px) and (max-width: 1024px) {
-    .btn-main, .btn-outline {
-      font-size: 0.9rem;
-      padding: 0.7rem 1.4rem;
-    }
-    h1, h2, h3 { font-size: 1.5rem; }
-  }
-</style>
 
 </head>
-
 <body class="antialiased">
 
   <header class="bg-white shadow-sm sticky top-0 z-50 border-b border-gray-100">
@@ -233,86 +201,94 @@
           🛍️ السلة
           <span id="cartBadge" class="absolute -left-2 -top-2 bg-red-600 text-white text-xs font-semibold px-2 py-0.5 rounded-full hidden">0</span>
         </a>
+
+        <a href="wallet.html" id="walletBtn" class="btn-outline px-4 py-2 rounded-md flex items-center gap-2 hidden">
+          💰 <span id="walletAmount">0 ج.م</span>
+        </a>
+
         <a href="my-orders.html" class="btn-outline px-4 py-2 rounded-md flex items-center gap-2">📦 طلباتي</a>
-       <div id="userArea"></div> 
+
+        <div id="userArea"></div>
       </div>
     </div>
 
-    <nav class="bg-blue-50 border-t border-gray-200">
-      <div class="max-w-7xl mx-auto px-4 py-2 flex overflow-x-auto gap-2" id="categoriesNavWrap">
-        <button data-cat="" class="cat-btn px-4 py-1.5 rounded-full bg-blue-600 text-white font-medium">الكل</button>
-        <div id="categoriesNav" class="flex gap-2"></div>
-      </div>
-    </nav>
   </header>
-<div id="locationTabs" class="bg-white border-b border-gray-200 flex justify-center gap-3 py-2">
-  <button data-filter="all" class="loc-tab bg-blue-600 text-white px-4 py-1 rounded-full text-sm font-semibold">كل المنتجات</button>
-  <button data-filter="local" class="loc-tab bg-gray-100 hover:bg-blue-100 px-4 py-1 rounded-full text-sm">منتجات من محافظتي</button>
-  <button data-filter="other" class="loc-tab bg-gray-100 hover:bg-blue-100 px-4 py-1 rounded-full text-sm">منتجات من محافظات أخرى</button>
-</div>
-
- <section class="bg-gradient-to-l from-blue-100 to-blue-50 py-16">
-  <div class="max-w-7xl mx-auto px-4">
-    <div class="grid md:grid-cols-2 gap-10 items-center">
-      <div>
-        <h2 class="text-4xl font-extrabold text-blue-900 mb-4 leading-snug">
-          اكتشف <span class="text-blue-600">المنتجات الأكثر مشاهدة</span>
-        </h2>
-        <p class="text-gray-700 mb-6 text-lg">هذه المنتجات نالت اهتمام المتسوقين، جرّبها الآن!</p>
-        <div class="flex flex-wrap gap-4">
-          <a href="#products" class="btn-main px-5 py-3 rounded-md text-sm font-semibold">ابدأ التسوق الآن</a>
-          <a href="about.html" class="btn-outline px-5 py-3 rounded-md text-sm font-semibold">من نحن</a>
-        </div>
-      </div>
-      <div>
-        <div id="featuredProducts" class="grid grid-cols-2 gap-4"></div>
-      </div>
-    </div>
-  </div>
-</section>
 
 
-  <main id="products" class="max-w-7xl mx-auto px-4 py-16">
-    <div class="grid lg:grid-cols-4 gap-8">
-      
-      <aside class="lg:col-span-1 bg-white rounded-2xl p-6 shadow-md space-y-5 h-fit">
-        <h3 class="font-bold text-blue-700 text-lg border-b pb-2">🔍 الفلاتر</h3>
+  <div id="discountDaysBar" class="flex gap-2 overflow-x-auto whitespace-nowrap px-3 py-2 bg-white shadow-sm sticky top-[70px] z-40"></div>
+
+
+  <section class="bg-gradient-to-l from-blue-100 to-blue-50 py-16">
+    <div class="max-w-7xl mx-auto px-4">
+      <div class="grid md:grid-cols-2 gap-10 items-center">
         <div>
-          <label class="block text-sm font-medium mb-1">الفئة</label>
-          <select id="categoryFilter" class="w-full border p-2 rounded">
-            <option value="">كل الفئات</option>
-          </select>
-        </div>
+          <h2 class="text-4xl font-extrabold text-blue-900 mb-4 leading-snug">
+            اكتشف <span class="text-blue-600">المنتجات الأكثر مشاهدة</span>
+          </h2>
+          <p class="text-gray-700 mb-6 text-lg">هذه المنتجات نالت اهتمام المتسوقين، جرّبها الآن!</p>
 
-        <div>
-          <label class="block text-sm font-medium mb-1">المخزون</label>
-          <select id="stockFilter" class="w-full border p-2 rounded">
-            <option value="">الكل</option>
-            <option value="in">متوفر</option>
-            <option value="out">منفذ</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium mb-1">نطاق السعر</label>
-          <div class="flex gap-2">
-            <input id="priceMin" type="number" placeholder="من" class="border p-2 rounded w-1/2" />
-            <input id="priceMax" type="number" placeholder="إلى" class="border p-2 rounded w-1/2" />
+          <div class="flex flex-wrap gap-4">
+            <a href="#products" class="btn-main px-5 py-3 rounded-md text-sm font-semibold">ابدأ التسوق الآن</a>
+            <a href="about.html" class="btn-outline px-5 py-3 rounded-md text-sm font-semibold">من نحن</a>
           </div>
         </div>
 
-        <button id="applyFilters" class="btn-main w-full py-2 rounded mt-3">تطبيق</button>
-        <button id="resetFilters" class="bg-gray-200 hover:bg-gray-300 w-full py-2 rounded">إعادة تعيين</button>
-      </aside>
-
-      <section class="lg:col-span-3">
-        <div id="topInfo" class="text-gray-600 mb-4 text-sm">🛒 تصفح أفضل المنتجات</div>
-        <div id="loading" class="text-center text-gray-500 py-16">⏳ جاري تحميل المنتجات...</div>
-        <div id="productsGrid" class="hidden grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-6"></div>
-        <div id="noResults" class="hidden text-center text-gray-500 py-10">لم يتم العثور على نتائج 🔎</div>
-      </section>
+        <div>
+          <div id="featuredProducts" class="grid grid-cols-2 gap-4"></div>
+        </div>
+      </div>
     </div>
-  </main>
+  </section>
+
+<main id="products" class="max-w-7xl mx-auto px-4 py-10">
+<section class="my-4">
+  <h2 class="text-lg font-bold mb-2 text-blue-700">الفئات</h2>
+  <div id="categoriesBar" class="flex gap-3 overflow-x-auto snap-x pb-3"></div>
+</section>
+
+<section id="categoriesContainer" class="my-6 space-y-6"></section>
+
+<section id="products">
+  <div id="productGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
+</section>
+
+<section id="deals" class="p-4 bg-red-50 rounded-xl mt-4">
+  <div class="flex justify-between items-center mb-3">
+    <h2 class="text-xl font-bold">🔥 عروض اليوم</h2>
+    <a href="discount-day.html" class="text-sm text-blue-500">عرض الكل</a>
+  </div>
+  <div id="dealsCarousel" class="flex gap-3 overflow-x-auto snap-x snap-mandatory"></div>
+</section>
+
+
+
+  <section id="under100Wrapper" class="mt-10 hidden">
+    <h2 class="text-xl font-bold text-blue-800 mb-3">💰 منتجات أقل من 100 ج.م</h2>
+    <div id="under100" class="products-day-container"></div>
+  </section>
+
+  <section id="under200Wrapper" class="mt-10 hidden">
+    <h2 class="text-xl font-bold text-blue-800 mb-3">💰 منتجات أقل من 200 ج.م</h2>
+    <div id="under200" class="products-day-container"></div>
+  </section>
+
+  <section id="discountDaysWrapper" class="mt-10 hidden">
+    <h2 class="text-xl font-bold text-red-700 mb-3">📅 عروض حسب الأيام</h2>
+    <div id="discountDaysBar" class="flex gap-2 overflow-x-auto py-2"></div>
+    <div id="discountDayProducts" class="products-day-container mt-4"></div>
+  </section>
+
+  <section id="categoriesBrowse" class="mt-12">
+    <h2 class="text-xl font-bold text-blue-900 mb-4">🏷️ تصفح حسب الفئة</h2>
+    <div id="categoriesGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
+  </section>
+
+  <section class="mt-12">
+    <div id="productsGrid" class="hidden grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6"></div>
+    <div id="noResults" class="hidden text-center text-gray-500 py-10">لم يتم العثور على نتائج 🔎</div>
+  </section>
+
+</main>
 
   <footer class="bg-blue-950 text-gray-100 mt-16">
     <div class="max-w-7xl mx-auto px-4 py-12 grid grid-cols-1 md:grid-cols-4 gap-10">
@@ -332,12 +308,13 @@
       </div>
       <div>
         <h4 class="font-semibold mb-3 text-white">تواصل معنا</h4>
-         <a href="mailto:shoplv12shop@gmail.com" class="inline-block bg-blue-50 hover:bg-blue-100 text-blue-700 px-4 py-2 rounded-lg text-sm font-medium transition">
-      📧shoplv12shop@gmail.com
-    </a>
- <a href="tel:01094965067" class="block text-blue-700 text-lg font-bold hover:underline">
-     📞 01094965067
-    </a>      </div>
+        <a href="mailto:shoplv12shop@gmail.com" class="inline-block bg-blue-50 hover:bg-blue-100 text-blue-700 px-4 py-2 rounded-lg text-sm font-medium transition">
+          📧 shoplv12shop@gmail.com
+        </a>
+        <a href="tel:01094965067" class="block text-blue-700 text-lg font-bold hover:underline mt-2">
+          📞 01094965067
+        </a>
+      </div>
       <div>
         <h4 class="font-semibold mb-3 text-white">تابعنا</h4>
         <div class="flex gap-3">
@@ -350,7 +327,6 @@
       © <span id="yearFooter"></span> LV12 — جميع الحقوق محفوظة.
     </div>
   </footer>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
   const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zemh6ZnlzaXRwcHhzc3BscWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA4OTcsImV4cCI6MjA3MzgwNjg5N30.5KvK4bhqkZ_GpIfED4qecIMfeubAJYwSFJslULwOp-w";
 
@@ -607,6 +583,48 @@ async function setupPushNotifications() {
 
 setupPushNotifications();
 
+function injectProductSchema(p) {
+  const schema = {
+    "@context": "https://schema.org/",
+    "@type": "Product",
+    "name": p.name,
+    "image": p.image,
+    "description": p.description || "منتج متوفر في متجر LV12.",
+    "sku": p.id,
+    "brand": { "@type": "Brand", "name": "LV12" },
+    "offers": {
+      "@type": "Offer",
+      "priceCurrency": "EGP",
+      "price": p.discount_price && p.discount_price < p.price ? p.discount_price : p.price,
+      "availability": p.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      "url": window.location.href
+    }
+  };
+
+  const script = document.createElement("script");
+  script.type = "application/ld+json";
+  script.innerHTML = JSON.stringify(schema, null, 2);
+  document.head.appendChild(script);
+}
+function injectShopSchema(products) {
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "name": "LV12 Shop Products",
+    "url": "https://lv12shop.shop/shop.html",
+    "itemListElement": products.map((p, index) => ({
+      "@type": "ListItem",
+      "position": index + 1,
+      "url": `https://lv12shop.shop/product.html?id=${p.id}`
+    }))
+  };
+
+  const script = document.createElement("script");
+  script.type = "application/ld+json";
+  script.innerHTML = JSON.stringify(schema, null, 2);
+  document.head.appendChild(script);
+}
+
 
 async function logVisit(pageType, productId = null) {
   try {
@@ -664,19 +682,30 @@ function showToast(msg, ok = true, time = 2500) {
   setTimeout(() => toast.remove(), time);
 }
 
+let currentUser = null;
+
 async function checkAuth() {
   try {
     const { data } = await supabase.auth.getSession();
     const user = data?.session?.user || null;
 
     if (user) {
+      currentUser = user; 
+
       const name = user.user_metadata?.full_name || user.email.split("@")[0];
-      const avatar = user.user_metadata?.avatar_url || `https://ui-avatars.com/api/?background=2563eb&color=fff&name=${encodeURIComponent(name)}`;
+      const avatar = user.user_metadata?.avatar_url ||
+        `https://ui-avatars.com/api/?background=2563eb&color=fff&name=${encodeURIComponent(name)}`;
 
       userArea.innerHTML = `
-        <div class="flex items-center gap-2 bg-white px-2 py-1 rounded-lg shadow-sm">
+        <div class="flex items-center gap-3 bg-white px-2 py-1 rounded-lg shadow-sm">
+
+          <a href="wallet.html" id="walletBtn" class="bg-yellow-400 hover:bg-yellow-500 text-black text-xs px-2 py-1 rounded hidden">
+            💰 <span id="walletAmount">0 ج.م</span>
+          </a>
+
           <img src="${avatar}" alt="avatar" class="w-8 h-8 rounded-full border border-gray-200">
           <span class="text-gray-700 text-sm font-medium">${escapeHtml(name)}</span>
+
           <button id="logoutBtn" class="text-red-500 hover:underline text-xs">تسجيل خروج</button>
         </div>
       `;
@@ -686,44 +715,30 @@ async function checkAuth() {
         showToast("تم تسجيل الخروج بنجاح");
         location.reload();
       };
+
+      await loadWallet(); 
+
     } else {
       userArea.innerHTML = `
         <a href="shop-login.html" class="text-blue-700 font-medium hover:underline text-sm">تسجيل الدخول</a>
       `;
     }
+
   } catch (err) {
     console.error("Auth error:", err);
   }
 }
-async function loadProducts() {
-  const cache = localStorage.getItem(CACHE_KEY);
-  if (cache) {
-    try {
-      const { data, ts } = JSON.parse(cache);
-      if (data && Date.now() - ts < 6 * 60 * 60 * 1000) {
-        allProducts = data.slice(0, PAGE_SIZE);
-        renderCategories();
-        renderFiltered();
-        console.log("⚡ تم التحميل من الكاش");
-        fetchProducts(true);
-        return;
-      }
-    } catch (e) {
-      console.warn("⚠️ خطأ في قراءة الكاش:", e);
-    }
+function getPriceHTML(product) {
+  if (product.discount_price && product.discount_price < product.price) {
+    return `
+      <div class="text-red-600 font-bold text-lg">${product.discount_price} ج.م</div>
+      <div class="text-gray-400 line-through text-sm">${product.price} ج.م</div>
+      <span class="bg-red-500 text-white text-xs px-2 py-1 rounded ml-1">خصم 🔥</span>
+    `;
   }
-
-  await fetchProducts(true);
+  return `<div class="text-blue-700 font-bold text-lg">${product.price} ج.م</div>`;
 }
 
-window.addEventListener("scroll", async () => {
-  if (isLoadingMore || allLoaded) return;
-  const scrollBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 400;
-  if (scrollBottom) {
-    console.log("⬇️ تحميل المزيد من المنتجات...");
-    await fetchProducts(false);
-  }
-});
 
 async function loadTopViewedProducts() {
   try {
@@ -795,172 +810,75 @@ let currentPage = 0;
 let isLoadingMore = false;
 let allLoaded = false;
 
-async function fetchProducts(initial = false) {
-  if (isLoadingMore || allLoaded) return;
-  isLoadingMore = true;
-  if (initial) showLoading(true);
-
-  try {
-    const start = currentPage * PAGE_SIZE;
-    const end = start + PAGE_SIZE - 1;
-
-    console.log(`📦 تحميل من ${start} إلى ${end}`);
-
-    const { data, error, count } = await supabase
-      .from("products")
-      .select(`
-        id, name, description, price, stock, category, created_at,
-        visible_to_all, available_cities, delivery_by_city,
-        product_images!product_images_product_id_fkey(image_url, is_primary, ordering)
-      `, { count: 'exact' })
-      .order("created_at", { ascending: false })
-      .range(start, end);
-
-    if (error) throw error;
-
-    const newProducts = (data || []).map((p) => {
-      const imgs = (p.product_images || []).sort((a, b) => (a.ordering || 0) - (b.ordering || 0));
-      const main = imgs.find((i) => i.is_primary) || imgs[0];
-
-      const deliveryData = (() => {
-        try {
-          if (!p.delivery_by_city) return {};
-          if (typeof p.delivery_by_city === "object") return p.delivery_by_city;
-          if (typeof p.delivery_by_city === "string") {
-            let parsed = JSON.parse(p.delivery_by_city);
-            if (typeof parsed === "string") parsed = JSON.parse(parsed);
-            return parsed;
-          }
-        } catch {
-          return {};
-        }
-        return {};
-      })();
-
-      const availableCities = Array.isArray(p.available_cities)
-        ? p.available_cities
-        : typeof p.available_cities === "string"
-          ? p.available_cities.replace(/[{}"]/g, "").split(",").map(c => c.trim())
-          : Object.keys(deliveryData || {});
-
-      return {
-        id: p.id,
-        name: p.name,
-        description: p.description || "",
-        price: Number(p.price) || 0,
-        stock: Number(p.stock) || 0,
-        category: p.category || "غير مصنف",
-        visible_to_all: p.visible_to_all ?? true,
-        available_cities: availableCities,
-        delivery_by_city: deliveryData,
-        image: (main && main.image_url) || `${SUPABASE_URL}/storage/v1/object/public/products/no-image.png`,
-      };
-    });
-
-    if (initial) {
-      allProducts = newProducts;
-    } else {
-      allProducts = [...allProducts, ...newProducts];
-    }
-
-    if (initial) {
-      localStorage.setItem(CACHE_KEY, JSON.stringify({ data: allProducts, ts: Date.now() }));
-    }
-
-    renderFiltered();
-    currentPage++;
-
-    if (!newProducts.length || (count && allProducts.length >= count)) {
-      allLoaded = true;
-      console.log("✅ كل المنتجات تم تحميلها");
-    }
-
-  } catch (e) {
-    console.error("❌ خطأ أثناء تحميل المنتجات:", e);
-  } finally {
-    if (initial) showLoading(false);
-    isLoadingMore = false;
-  }
-}
 function renderProducts(list) {
   productsGrid.innerHTML = "";
 
   if (!list.length) {
-    showLoading(false);
     noResultsEl.classList.remove("hidden");
-    productsGrid.classList.add("hidden");
     return;
   }
 
   noResultsEl.classList.add("hidden");
-  productsGrid.classList.remove("hidden");
 
+  productsGrid.innerHTML = list.map((p, i) => {
+    const finalPrice = p.discount_price && p.discount_price < p.price ? p.discount_price : p.price;
 
-  if (userCountry === "Egypt" && userCity) {
-    list = list.sort((a, b) => {
-      const aLocal = Array.isArray(a.available_cities) && a.available_cities.includes(userCity);
-      const bLocal = Array.isArray(b.available_cities) && b.available_cities.includes(userCity);
-      return aLocal === bLocal ? 0 : aLocal ? -1 : 1;
-    });
-  }
-
-  productsGrid.innerHTML = list.map(p => {
-
-    const mainCity = Array.isArray(p.available_cities) && p.available_cities.length > 0
-      ? p.available_cities[0]
-      : (Object.keys(p.delivery_by_city || {})[0] || "غير محددة");
-
-    const deliveryData = safeParseJSON(p.delivery_by_city);
-    let deliveryText = "";
-
-    if (userCountry === "Egypt") {
-      if (userCity && deliveryData && deliveryData[userCity]) {
-        deliveryText = `التوصيل لمحافظتك (${userCity}): ${deliveryData[userCity]}`;
-      } else {
-        deliveryText = `التوصيل لمحافظتك (${userCity || "غير محددة"}): خلال 1–3 أيام`;
-      }
-    } else {
-      deliveryText = "❌ غير متوفر في بلدك";
-    }
-
-
-    const canBuy = userCountry === "Egypt";
-
-  
     return `
-      <div class="flex flex-col sm:flex-row bg-white rounded-xl shadow-sm hover:shadow-md transition-all overflow-hidden cursor-pointer"
-           onclick="window.location='product.html?id=${p.id}'">
+      <div class="product-card" onclick="location.href='product.html?id=${p.id}'">
+        ${p.discount_price ? `<span class="discount-badge">خصم 🔥</span>` : ""}
 
-        <img src="${p.image}" class="w-full sm:w-48 h-48 object-cover sm:rounded-l-xl rounded-t-xl" alt="${escapeHtml(p.name)}">
+        <img src="${p.image}" alt="${escapeHtml(p.name)}">
 
-        <div class="flex-1 p-4 flex flex-col justify-between">
-          <div>
-            <h3 class="font-bold text-base text-blue-700 mb-1">${escapeHtml(p.name)}</h3>
-            <p class="text-xs text-gray-500 mb-2">${escapeHtml(p.description.slice(0, 80))}</p>
-            <p class="text-xs text-gray-600">🏙️ من محافظة: <span class="font-medium">${escapeHtml(mainCity)}</span></p>
-            <p class="text-xs text-green-700 mt-1">🚚 ${escapeHtml(deliveryText)}</p>
-          </div>
+        <h3>${escapeHtml(p.name)}</h3>
 
-          <div class="flex justify-between items-center mt-3">
-            <span class="text-blue-700 font-semibold">${formatPrice(p.price)}</span>
-            ${
-              canBuy
-                ? `<button onclick="addToCart(${p.id});event.stopPropagation();"
-                    class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 rounded">
-                    🛒 أضف للسلة
-                  </button>`
-                : `<span class="text-red-500 text-xs font-medium">❌ غير متاح للشراء</span>`
-            }
-          </div>
+        <div class="price">
+          <span class="price-new">${finalPrice} ج.م</span>
+          ${p.discount_price ? `<span class="price-old">${p.price} ج.م</span>` : ""}
         </div>
+
+        ${p.discount_end ? `<div class="countdown" id="cd-${i}"></div>` : ""}
       </div>
     `;
   }).join("");
 
-  showLoading(false);
+  list.forEach((p, i) => {
+    if (!p.discount_end) return;
+    const end = p.discount_end.getTime();
+    setInterval(() => {
+      const diff = end - Date.now();
+      if (diff <= 0) return document.getElementById(`cd-${i}`).innerHTML = "🔥 انتهى العرض";
+      let h = Math.floor(diff / (1000*60*60));
+      let m = Math.floor((diff % (1000*60*60)) / (1000*60));
+      let s = Math.floor((diff % (1000*60)) / 1000);
+      document.getElementById(`cd-${i}`).innerHTML = `⏳ باقي ${h} ساعة ${m} دقيقة ${s} ثانية`;
+    }, 1000);
+  });
+}6
+
+
+
+async function loadWallet() {
+  if (!currentUser) return;
+
+  const { data } = await supabase
+    .from("wallet")
+    .select("balance")
+    .eq("user_id", currentUser.id)
+    .single();
+
+  const walletBtn = document.getElementById("walletBtn");
+  const walletAmount = document.getElementById("walletAmount");
+
+  if (!data) {
+    await supabase.from("wallet").insert({ user_id: currentUser.id, balance: 0 });
+    walletBtn.classList.remove("hidden");
+    walletAmount.textContent = "0 ج.م";
+    return;
+  }
+
+  walletBtn.classList.remove("hidden");
+  walletAmount.textContent = `${data.balance} ج.م`;
 }
-
-
 
 async function refreshInBackground() {
   try {
@@ -969,32 +887,430 @@ async function refreshInBackground() {
   } catch {}
 }
 
-function renderCategories() {
-  const cats = [...new Set(allProducts.map(p => p.category).filter(Boolean))];
+function renderDiscountDaysBar() {
+  const bar = document.getElementById("discountDaysBar");
+  if (!bar) return;
 
-  categoryFilter.innerHTML = `
-    <option value="">كل الفئات</option>
-    ${cats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("")}
-  `;
+  const days = ["السبت","الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة"];
+  const withDiscount = {};
 
-  categoriesNav.innerHTML = cats.map(c => `
-    <button
-      class="cat-btn px-3 py-1.5 rounded-full bg-gray-100 hover:bg-blue-100 text-sm transition-all"
-      data-cat="${escapeHtml(c)}"
-      onclick="selectCategory('${escapeHtml(c)}', this)"
-    >
-      ${escapeHtml(c)}
+  allProducts.forEach(p => {
+    if (p.discountActive && p.discount_start) {
+      const d = new Date(p.discount_start).getDay();
+      const name = days[d];
+      if (!withDiscount[name]) withDiscount[name] = 0;
+      withDiscount[name]++;
+    }
+  });
+
+  bar.innerHTML = Object.keys(withDiscount).map(d => `
+    <button onclick="openDiscountDay('${d}')">${d} (${withDiscount[d]})</button>
+  `).join("");
+}
+
+function openDiscountDayFromShop(day) {
+  localStorage.setItem("selectedDiscountDay", day);
+  location.href = "discount-day.html";
+}
+
+async function loadProducts(limit = 60) {
+  try {
+    showLoadingSkeleton();
+
+    const CACHE_KEY = "LV12_PRODUCTS_CACHE";
+    const CACHE_DURATION = 3 * 60 * 60 * 1000; // 3 ساعات
+    const cached = localStorage.getItem(CACHE_KEY);
+
+    // 🧠 تحميل من الكاش أولًا لتسريع التجربة
+    if (cached) {
+      const { data, ts } = JSON.parse(cached);
+      if (data && Date.now() - ts < CACHE_DURATION) {
+        console.log("⚡ تم تحميل المنتجات من الكاش");
+        window.allProducts = data;
+        renderAllSections(data);
+        hideLoadingSkeleton();
+        // تحديث في الخلفية بدون تأخير المستخدم
+        fetchProductsFromSupabase(limit, true);
+        return;
+      }
+    }
+
+    // 🔥 تحميل من Supabase مباشرة عند أول مرة
+    await fetchProductsFromSupabase(limit, false);
+
+  } catch (err) {
+    console.error("❌ خطأ أثناء تحميل المنتجات:", err.message);
+    hideLoadingSkeleton();
+  }
+}
+async function fetchProductsFromSupabase(limit = 60, background = false) {
+  try {
+    const { data, error } = await supabase
+      .from("products")
+      .select(`
+        id, name, price, discount_price, discount_start, discount_end,
+        category, stock, views,
+        product_images(image_url, is_primary, ordering)
+      `)
+      .limit(limit);
+
+    if (error) throw error;
+
+    const now = new Date();
+
+    // 🎨 تجهيز وتحسين بيانات المنتجات
+    const processed = data.map(p => {
+      const imgs = (p.product_images || []).sort((a, b) => (a.ordering || 0) - (b.ordering || 0));
+      const mainImg =
+        imgs.find(i => i.is_primary)?.image_url ||
+        imgs[0]?.image_url ||
+        "/lv12.png";
+
+      const discountActive =
+        p.discount_price &&
+        p.discount_start &&
+        p.discount_end &&
+        new Date(p.discount_start) <= now &&
+        new Date(p.discount_end) >= now;
+
+      return {
+        ...p,
+        mainImg,
+        discountActive
+      };
+    });
+
+    // 🧱 حفظ في الذاكرة والكاش
+    window.allProducts = processed;
+    localStorage.setItem("LV12_PRODUCTS_CACHE", JSON.stringify({ data: processed, ts: Date.now() }));
+
+    if (!background) {
+      renderAllSections(processed);
+      hideLoadingSkeleton();
+    }
+
+  } catch (err) {
+    console.error("⚠️ خطأ في تحميل المنتجات:", err.message);
+  }
+}function renderAllSections(products) {
+  if (!Array.isArray(products) || !products.length) {
+    document.getElementById("productsGrid").innerHTML =
+      `<p class="text-center text-gray-500 py-4">لا توجد منتجات حاليًا</p>`;
+    return;
+  }
+
+  renderCategoriesBar(products);
+  renderCategorySections(products);
+  renderDealsOfDay(products);
+  renderRecommended(products);
+  renderProductsGrid(products);
+  hideLoadingSkeleton();
+}
+
+
+function renderProducts(products) {
+  const categorySection = document.getElementById("categoryGrid");
+  const dealsSection = document.getElementById("dealsCarousel");
+  const allProductsSection = document.getElementById("productGrid");
+
+  const categoriesMap = new Map();
+  const deals = [];
+
+  // تجميع الفئات والعروض
+  products.forEach((p) => {
+    if (p.category && !categoriesMap.has(p.category)) {
+      categoriesMap.set(p.category, p);
+    }
+    if (p.discount && p.discount > 0) {
+      deals.push(p);
+    }
+  });
+
+  renderCategories(categoriesMap);
+  renderDealsOfDay(deals);
+
+  // عرض جميع المنتجات العادية
+  const productCards = products
+    .map(
+      (p) => `
+      <div class="border rounded-xl p-3 bg-white shadow-sm hover:shadow-md transition">
+        <img src="${p.image}" alt="${p.name}" loading="lazy" class="rounded-lg w-full h-40 object-cover"/>
+        <h3 class="font-semibold mt-2 text-sm">${p.name}</h3>
+        <div class="flex items-center gap-1 mt-1">
+          ${
+            p.discount > 0
+              ? `<span class="line-through text-gray-400 text-sm">${p.price}ج</span>`
+              : ""
+          }
+          <span class="text-blue-600 font-bold">
+            ${
+              p.discount > 0
+                ? (p.price - (p.price * p.discount) / 100).toFixed(0)
+                : p.price
+            } ج
+          </span>
+        </div>
+      </div>`
+    )
+    .join("");
+
+  allProductsSection.innerHTML = productCards;
+}
+
+// 🟨 إنشاء قسم الفئات (كل فئة بصورة أول منتج فيها)
+function renderCategories(categoriesMap) {
+  const container = document.getElementById("categoryGrid");
+  container.innerHTML = "";
+
+  categoriesMap.forEach((product, category) => {
+    container.innerHTML += `
+      <div
+        class="cursor-pointer text-center bg-white p-3 rounded-xl shadow-sm hover:shadow-md transition"
+        onclick="openCategory('${encodeURIComponent(category)}')"
+      >
+        <img src="${product.image}" class="rounded-xl w-full h-32 object-cover"/>
+        <h4 class="mt-2 font-semibold text-sm">${category}</h4>
+      </div>
+    `;
+  });
+}
+function renderDealsOfDay(products) {
+  const container = document.getElementById("dealsCarousel");
+  if (!container) return;
+
+  const today = new Date();
+  const deals = products.filter(
+    p => p.discountActive && new Date(p.discount_end) >= today
+  );
+
+  if (!deals.length) {
+    container.innerHTML = `<p class="text-gray-500 text-sm">لا توجد عروض اليوم</p>`;
+    return;
+  }
+
+  container.innerHTML = deals
+    .map(
+      p => `
+      <div class="min-w-[150px] bg-white p-2 rounded-lg shadow hover:scale-105 transition cursor-pointer"
+           onclick="openProduct('${p.id}')">
+        <img src="${p.mainImg}" class="rounded-lg w-full h-32 object-cover">
+        <p class="mt-1 text-sm font-medium truncate">${p.name}</p>
+        <p class="text-red-500 font-bold">${p.discount_price} ج.م</p>
+      </div>`
+    )
+    .join("");
+}
+function renderRecommended(products) {
+  const container = document.getElementById("recommendedGrid");
+  if (!container) return;
+
+  const topViewed = [...products]
+    .filter(p => p.views > 0)
+    .sort((a, b) => b.views - a.views)
+    .slice(0, 8);
+
+  if (!topViewed.length) {
+    container.innerHTML = "";
+    return;
+  }
+
+  container.innerHTML = topViewed
+    .map(
+      p => `
+      <div class="border rounded-xl p-2 bg-white shadow-sm hover:shadow-md cursor-pointer"
+           onclick="openProduct('${p.id}')">
+        <img src="${p.mainImg}" class="rounded-lg w-full h-32 object-cover">
+        <p class="font-semibold text-sm mt-1 truncate">${p.name}</p>
+      </div>`
+    )
+    .join("");
+}
+async function renderRecommended() {
+  try {
+    const { data, error } = await supabase
+      .from("products")
+      .select("*")
+      .order("views", { ascending: false })
+      .limit(8);
+
+    if (error) throw error;
+
+    const container = document.getElementById("recommendedGrid");
+    container.innerHTML = data
+      .map(
+        (p) => `
+        <div class="border rounded-xl p-2 bg-white shadow-sm hover:shadow-md cursor-pointer"
+             onclick="openProduct('${p.id}')">
+          <img src="${p.image}" class="rounded-lg w-full h-32 object-cover"/>
+          <p class="font-semibold text-sm mt-1 truncate">${p.name}</p>
+        </div>
+      `
+      )
+      .join("");
+  } catch (err) {
+    console.error("⚠️ خطأ أثناء تحميل المنتجات المقترحة:", err.message);
+  }
+}
+function openCategory(cat) {
+  localStorage.setItem("selectedCategory", cat);
+  window.location.href = "category.html";
+}
+
+// 🔗 انتقال للمنتج
+function openProduct(id) {
+  window.location.href = `product.html?id=${id}`;
+}
+// ⏳ عرض هيكل مؤقت أثناء التحميل
+function showLoadingSkeleton() {
+  const grid = document.getElementById("productGrid");
+  grid.innerHTML = `<div class="text-center text-gray-400 w-full py-6">جارٍ تحميل المنتجات...</div>`;
+}
+
+function hideLoadingSkeleton() {
+  const grid = document.getElementById("productGrid");
+  if (grid && grid.innerText.includes("جارٍ تحميل")) {
+    grid.innerHTML = ""; // امسح الرسالة بعد تحميل المنتجات
+  }
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+  await loadProducts();
+  await renderRecommended();
+});
+
+window.addEventListener("scroll", () => {
+  if (isLoadingMore || allLoaded) return;
+  const nearBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 300;
+  if (nearBottom) fetchProducts(false);
+});
+
+function renderProductsGrid(products) {
+  const grid = document.getElementById("productsGrid");
+  grid.innerHTML = products
+    .map(
+      p => `
+    <div class="bg-white rounded-xl p-3 shadow-sm hover:shadow-md transition cursor-pointer"
+         onclick="openProduct('${p.id}')">
+      ${p.discountActive ? `<span class="discount-badge">خصم 🔥</span>` : ""}
+      <img src="${p.mainImg}" alt="${p.name}" class="rounded-lg w-full h-44 object-cover">
+      <h3 class="font-semibold text-sm mt-2 truncate">${p.name}</h3>
+      <div class="mt-1">
+        ${
+          p.discountActive
+            ? `<span class="text-red-600 font-bold">${p.discount_price} ج.م</span>
+               <span class="text-gray-400 line-through text-sm">${p.price} ج.م</span>`
+            : `<span class="text-blue-700 font-bold">${p.price} ج.م</span>`
+        }
+      </div>
+    </div>`
+    )
+    .join("");
+}
+
+
+function renderTodayOffers() {
+  const now = new Date();
+  const today = allProducts.filter(p =>
+    p.discount_price &&
+    p.discount_start &&
+    p.discount_end &&
+    new Date(p.discount_start) <= now &&
+    new Date(p.discount_end) >= now
+  );
+
+  const wrap = document.getElementById("todayOffers");
+  if (!today.length) return wrap.innerHTML = "";
+
+  wrap.innerHTML = today.map(renderSmallCardHorizontal).join("");
+}
+
+
+function renderUnder100() {
+  const list = allProducts.filter(p =>
+    (p.discount_price ?? p.price) <= 100
+  );
+
+  const wrap = document.getElementById("under100");
+  if (!list.length) return wrap.innerHTML = "";
+
+  wrap.innerHTML = list.map(renderSmallCardHorizontal).join("");
+}
+
+
+function renderUnder100() {
+  const list = allProducts.filter(p =>
+    (p.discount_price ?? p.price) <= 100
+  );
+
+  const wrap = document.getElementById("under100");
+  if (!list.length) return wrap.innerHTML = "";
+
+  wrap.innerHTML = list.map(renderSmallCardHorizontal).join("");
+}
+
+
+function renderUnder200() {
+  const list = allProducts.filter(p =>
+    (p.discount_price ?? p.price) > 100 &&
+    (p.discount_price ?? p.price) <= 200
+  );
+
+  const wrap = document.getElementById("under200");
+  if (!list.length) return wrap.innerHTML = "";
+
+  wrap.innerHTML = list.map(renderSmallCardHorizontal).join("");
+}
+
+function renderDiscountDaysBar() {
+  const days = {
+    0: "الأحد",
+    1: "الاثنين",
+    2: "الثلاثاء",
+    3: "الأربعاء",
+    4: "الخميس",
+    5: "الجمعة",
+    6: "السبت"
+  };
+
+  const groups = {};
+
+  allProducts.forEach(p => {
+    if (!p.discount_start) return;
+    const d = new Date(p.discount_start).getDay();
+    const dayName = days[d];
+    groups[dayName] = groups[dayName] || [];
+    groups[dayName].push(p);
+  });
+
+  const bar = document.getElementById("discountDaysSection");
+  if (!bar) return;
+
+  bar.innerHTML = Object.keys(groups).map(day => `
+    <button class="discount-day-btn bg-red-600 text-white px-3 py-1 rounded-full text-sm"
+            onclick="openDiscountDay('${day}')">
+      ${day} (${groups[day].length})
     </button>
   `).join("");
 
-  const allBtn = document.createElement("button");
-  allBtn.textContent = "الكل";
-  allBtn.className = "cat-btn px-3 py-1.5 rounded-full bg-blue-600 text-white text-sm font-medium";
-  allBtn.dataset.cat = "";
-  allBtn.onclick = () => selectCategory("", allBtn);
-  categoriesNav.prepend(allBtn);
+  window.openDiscountDay = function(day) {
+    const list = groups[day];
+    document.getElementById("discountDayProducts").innerHTML = list.map(renderSmallCardHorizontal).join("");
+  };
+
+  const firstDay = Object.keys(groups)[0];
+  if (firstDay) openDiscountDay(firstDay);
 }
 
+function renderSmallCard(p) {
+  return `
+  <div class="product-card" onclick="location.href='product.html?id=${p.id}'">
+    <img src="${p.mainImg}">
+    <h3>${p.name}</h3>
+    <div>
+      ${p.discount_price ? `<span class="price-new">${p.discount_price} ج.م</span><span class="price-old">${p.price} ج.م</span>` : `<span class="price-new">${p.price} ج.م</span>`}
+    </div>
+  </div>`;
+}
 
 function selectCategory(cat, btn = null) {
   document.querySelectorAll("#categoriesNav .cat-btn").forEach(b => {
@@ -1013,100 +1329,65 @@ function selectCategory(cat, btn = null) {
     top: document.getElementById("products").offsetTop - 80,
     behavior: "smooth"
   });
-}
 
-function renderFiltered() {
-  const search = searchInput.value.trim().toLowerCase();
-  const cat = categoryFilter.value;
-  const stock = stockFilter.value;
-  const minP = parseFloat(priceMin.value) || 0;
-  const maxP = parseFloat(priceMax.value) || Infinity;
 
-  let list = allProducts.filter(p =>
-    (!search || p.name.toLowerCase().includes(search)) &&
-    (!cat || p.category === cat) &&
-    (!stock || (stock === "in" ? p.stock > 0 : p.stock <= 0)) &&
-    (p.price >= minP && p.price <= maxP)
-  );
+  function renderFiltered() {
+  const q = searchInput.value.trim().toLowerCase();
 
-  if (userCountry === "Egypt" && userCity) {
-    list = list.sort((a, b) => {
-      const aLocal = a.available_cities?.includes(userCity);
-      const bLocal = b.available_cities?.includes(userCity);
-      return aLocal === bLocal ? 0 : aLocal ? -1 : 1;
-    });
-  }
+  const list = q ? smartSearch(q, allProducts) : allProducts;
 
   renderProducts(list);
 }
-function renderProducts(list) {
-  productsGrid.innerHTML = "";
-  if (!list.length) {
-    showLoading(false);
-    noResultsEl.classList.remove("hidden");
-    noResultsEl.textContent = "لا توجد منتجات حالياً.";
-    productsGrid.classList.add("hidden");
+
+  const script = document.createElement("script");
+  script.type = "application/ld+json";
+  script.innerHTML = JSON.stringify(schema, null, 2);
+  document.head.appendChild(script);
+}
+
+function renderGroupedByDay(list) {
+  const groups = groupByDiscountDay(list);
+  productsGrid.innerHTML = ""; 
+
+  const dayNames = Object.keys(groups);
+
+  if (!dayNames.length) {
+    productsGrid.innerHTML = `<p style="text-align:center;margin-top:20px;">لا توجد عروض حالياً.</p>`;
     return;
   }
 
-  noResultsEl.classList.add("hidden");
-  productsGrid.classList.remove("hidden");
+  let html = "";
 
-  productsGrid.innerHTML = list.map(p => {
-    const cityList = Array.isArray(p.available_cities)
-      ? p.available_cities.join(", ")
-      : "غير محددة";
-const mainCity = Array.isArray(p.available_cities) && p.available_cities.length > 0
-  ? p.available_cities[0]
-  : (Object.keys(p.delivery_by_city || {})[0] || "غير محددة");
-const fromCityText = `من محافظة: <span class="font-medium">${escapeHtml(mainCity)}</span>`;
+  dayNames.forEach(day => {
+    html += `
+      <div style="margin-bottom:25px;">
+        <h2 style="font-size:18px;font-weight:bold;margin-bottom:10px;color:#c30000;cursor:pointer"
+            onclick="this.nextElementSibling.classList.toggle('hidden')">
+          عروض يوم ${day} 🔽
+        </h2>
 
-
-    let deliveryText = "خلال 1-3 أيام";
-    if (userCountry === "Egypt" && p.delivery_by_city) {
-      const d = typeof p.delivery_by_city === "object" ? p.delivery_by_city : safeParseJSON(p.delivery_by_city);
-      if (userCity && d[userCity]) {
-        deliveryText = `${userCity}: ${d[userCity]} دقيقة`;
-      } else {
-        deliveryText = "خلال 1-3 أيام";
-      }
-    } else if (userCountry !== "Egypt") {
-      deliveryText = "غير متوفر في بلدك";
-    }
-
-    const canBuy = userCountry === "Egypt";
-
-    return `
-      <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition-all p-2 cursor-pointer"
-           onclick="window.location='product.html?id=${p.id}'">
-        <img src="${p.image}" class="w-full h-48 object-cover rounded-lg mb-2" alt="${escapeHtml(p.name)}">
-        <h3 class="font-bold text-sm text-blue-700 mb-1">${escapeHtml(p.name)}</h3>
-        <p class="text-xs text-gray-500 mb-2">${escapeHtml(p.description.slice(0, 60))}</p>
-
-        <p class="text-xs text-gray-600 mt-1">🏙️ ${fromCityText}</p>
-
-        <p class="text-xs text-green-700 mt-1">
-          🚚 <span class="font-medium">${escapeHtml(deliveryText)}</span>
-        </p>
-
-        <div class="flex justify-between items-center mt-2">
-          <span class="text-blue-700 font-semibold">${formatPrice(p.price)}</span>
-          ${
-            canBuy
-              ? `<button onclick="addToCart(${p.id});event.stopPropagation();"
-                  class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 rounded">
-                  🛒
-                </button>`
-              : `<span class="text-red-500 text-xs font-medium">❌ غير متاح للشراء</span>`
-          }
+        <div class="products-day-container">
+          ${groups[day].map(p => `
+            <div class="product-card" onclick="location.href='product.html?id=${p.id}'">
+              ${p.discount_price && p.discount_price < p.price ? `<span class="discount-badge">خصم 🔥</span>` : ""}
+              <img src="${p.image}">
+              <h3>${escapeHtml(p.name)}</h3>
+              <span class="price-new">${p.discount_price ?? p.price} ج.م</span>
+              ${p.discount_price ? `<span class="price-old">${p.price} ج.م</span>` : ""}
+            </div>
+          `).join("")}
         </div>
       </div>
     `;
-  }).join("");
+  });
 
-  showLoading(false);
+  productsGrid.innerHTML = html;
 }
 
+document.getElementById("discountBtn").onclick = () => {
+  filtered = allProducts.filter(p => p.discount_price && p.discount_price < p.price);
+  renderFiltered();
+};
 
 function safeParseJSON(raw) {
   if (!raw) return {};
@@ -1118,6 +1399,308 @@ function safeParseJSON(raw) {
   } catch {
     return {};
   }
+}
+function groupByDiscountDay(products) {
+  const days = {
+    0: "السبت",
+    1: "الأحد",
+    2: "الاثنين",
+    3: "الثلاثاء",
+    4: "الأربعاء",
+    5: "الخميس",
+    6: "الجمعة"
+  };
+
+  const groups = {};
+
+  products.forEach(p => {
+    if (!p.discount_start) return; 
+
+    const dayIndex = new Date(p.discount_start).getDay();
+    const dayName = days[dayIndex];
+
+    if (!groups[dayName]) groups[dayName] = [];
+    groups[dayName].push(p);
+  });
+
+  return groups;
+}
+// 🟦 عرض كل منتجات فئة محددة
+async function renderCategoryPage() {
+  const params = new URLSearchParams(window.location.search);
+  const category = params.get("name");
+  const container = document.getElementById("categoryProducts");
+
+  if (!category) {
+    container.innerHTML = `<p class="text-gray-500">لم يتم تحديد الفئة</p>`;
+    return;
+  }
+
+  document.getElementById("categoryTitle").textContent = category;
+
+  const { data: products, error } = await supabase
+    .from("products")
+    .select("*")
+    .eq("category", category);
+
+  if (error) {
+    console.error("خطأ:", error.message);
+    container.innerHTML = `<p class="text-red-500">حدث خطأ في تحميل الفئة</p>`;
+    return;
+  }
+
+  if (!products.length) {
+    container.innerHTML = `<p class="text-gray-500">لا توجد منتجات في هذه الفئة</p>`;
+    return;
+  }
+
+  container.innerHTML = products
+    .map(
+      (p) => `
+      <div class="border rounded-xl p-3 shadow-sm bg-white hover:shadow-md transition">
+        <img src="${p.image}" class="rounded-lg w-full h-40 object-cover"/>
+        <h3 class="font-semibold mt-2">${p.name}</h3>
+        <p class="text-blue-600 font-bold">${p.price} جنيه</p>
+      </div>
+    `
+    )
+    .join("");
+}
+// ✅ عرض شريط الفئات في الأعلى
+function renderCategoriesBar(products) {
+  const container = document.getElementById("categoriesBar");
+  if (!container) return;
+
+  const grouped = {};
+  products.forEach(p => {
+    if (!p.category) return;
+    if (!grouped[p.category]) grouped[p.category] = [];
+    grouped[p.category].push(p);
+  });
+
+  container.innerHTML = Object.keys(grouped).map(cat => {
+    const first = grouped[cat][0];
+    const img = first.mainImg || first.image || "/lv12.png";
+    return `
+      <div class="min-w-[140px] bg-white rounded-xl shadow p-2 cursor-pointer snap-center hover:shadow-md transition"
+           onclick="openCategory('${encodeURIComponent(cat)}')">
+        <img src="${img}" class="w-full h-28 object-cover rounded-lg">
+        <p class="text-center text-sm mt-1 font-semibold text-blue-700 truncate">${cat}</p>
+        <p class="text-xs text-gray-500 text-center">${grouped[cat].length} منتج</p>
+      </div>
+    `;
+  }).join("");
+}
+
+
+// ✅ عرض الفئات بالأقسام
+function renderCategorySections(products) {
+  const container = document.getElementById("categoriesContainer");
+  if (!container) return;
+
+  const grouped = {};
+  products.forEach(p => {
+    if (!p.category) return;
+    if (!grouped[p.category]) grouped[p.category] = [];
+    grouped[p.category].push(p);
+  });
+
+  container.innerHTML = Object.keys(grouped).map(cat => {
+    const items = grouped[cat].slice(0, 6);
+    const cards = items.map(p => `
+      <div class="min-w-[150px] bg-white rounded-lg shadow-sm p-2 snap-center cursor-pointer"
+           onclick="openProduct('${p.id}')">
+        <img src="${p.mainImg || p.image}" class="w-full h-28 object-cover rounded-md mb-1">
+        <h4 class="text-sm font-medium truncate">${p.name}</h4>
+        <p class="text-blue-600 font-bold text-xs">${p.discount_price ?? p.price} ج.م</p>
+      </div>
+    `).join("");
+
+    return `
+      <section class="mb-6">
+        <div class="flex justify-between items-center px-2 mb-2">
+          <h2 class="text-lg font-bold text-blue-800">${cat}</h2>
+          <a href="category.html?name=${encodeURIComponent(cat)}"
+             class="text-blue-600 text-sm font-medium hover:underline">عرض الكل →</a>
+        </div>
+        <div class="flex gap-3 overflow-x-auto snap-x pb-3">${cards}</div>
+      </section>
+    `;
+  }).join("");
+}
+
+
+
+
+function getDiscountDays(products) {
+  const days = ["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
+  const result = {};
+
+  products.forEach(p => {
+    if (!p.discount_start) return;
+    const d = new Date(p.discount_start).getDay();
+    const dayName = days[d];
+    if (!result[dayName]) result[dayName] = [];
+    result[dayName].push(p);
+  });
+
+  return result;
+}
+
+function renderCategoriesBottom() {
+  const box = document.getElementById("categoriesBottom");
+  if (!box) return;
+
+  const groups = {};
+
+  allProducts.forEach(p => {
+    if (!groups[p.category]) groups[p.category] = [];
+    groups[p.category].push(p);
+  });
+
+  box.innerHTML = Object.keys(groups).map(cat => {
+    const first = groups[cat][0];
+
+    return `
+      <div class="bg-white rounded-xl border shadow-sm p-2 cursor-pointer hover:shadow-md transition"
+           onclick="openCategoryHorizontal('${cat}')">
+
+        <img src="${first.mainImg}" class="w-full h-36 object-cover rounded-md mb-2">
+
+        <h3 class="text-center text-blue-700 font-bold text-sm">${escapeHtml(cat)}</h3>
+        <p class="text-center text-gray-500 text-xs">${groups[cat].length} منتج</p>
+
+      </div>
+    `;
+  }).join("");
+}
+
+
+window.showCategoryProducts = function(cat) {
+  const list = allProducts.filter(p => p.category === cat);
+
+  productsGrid.classList.add("hidden");
+  noResultsEl.classList.add("hidden");
+
+  document.getElementById("discountDayProducts").innerHTML = "";
+  
+  document.getElementById("products").scrollIntoView({ behavior: "smooth" });
+
+  document.getElementById("productsGrid").outerHTML = `
+    <div id="productsGrid" class="flex gap-3 overflow-x-auto pb-4 snap-x">
+      ${list.map(p => `
+        <div class="product-card min-w-[170px] snap-center" onclick="location.href='product.html?id=${p.id}'">
+          <img src="${p.mainImg}">
+          <h3>${p.name}</h3>
+          <span class="price-new">${p.discount_price ?? p.price} ج.م</span>
+        </div>
+      `).join("")}
+    </div>
+  `;
+};
+
+
+
+function openDiscountDay(day) {
+  const groups = getDiscountDays(allProducts);
+  renderProducts(groups[day] || []);
+  window.scrollTo({ top: productsGrid.offsetTop - 50, behavior: "smooth" });
+}
+window.openCategoryHorizontal = function(cat) {
+  const list = allProducts.filter(p => p.category === cat);
+
+  document.getElementById("productsGrid").classList.add("hidden");
+  document.getElementById("noResults").classList.add("hidden");
+
+  document.getElementById("products").scrollIntoView({ behavior: "smooth" });
+
+  document.getElementById("discountDayProducts").innerHTML = "";
+
+  document.getElementById("productsGrid").outerHTML = `
+    <div id="productsGrid" class="flex gap-3 overflow-x-auto pb-4 snap-x scroll-smooth">
+      ${list.map(p => `
+        <div class="min-w-[160px] bg-white rounded-lg shadow p-2 snap-center cursor-pointer"
+             onclick="location.href='product.html?id=${p.id}'">
+
+          <img src="${p.mainImg}" class="w-full h-32 object-cover rounded-md mb-1">
+
+          <h3 class="text-sm font-semibold text-blue-800 truncate">${p.name}</h3>
+
+          <div class="text-sm font-bold text-red-600">${p.discount_price ?? p.price} ج.م</div>
+        </div>
+      `).join("")}
+    </div>
+  `;
+};
+
+async function fetchProducts(initialLoad = false) {
+  try {
+    const { data, error } = await supabase.from("products").select(`
+      id, name, price, discount_price, discount_start, discount_end, category, stock,
+      product_images!product_images_product_id_fkey(image_url, is_primary, ordering)
+    `);
+
+    if (error) throw error;
+
+    allProducts = data.map(p => {
+      const imgs = (p.product_images || []).sort((a,b)=> (a.ordering||0)-(b.ordering||0));
+      const main = imgs.find(i=>i.is_primary)?.image_url || imgs[0]?.image_url || "/lv12.png";
+
+      const now = new Date();
+      const discountActive = p.discount_price && p.discount_start && p.discount_end &&
+        new Date(p.discount_start) <= now && new Date(p.discount_end) >= now;
+
+      return {
+        ...p,
+        mainImg: main,
+        discountActive
+      };
+    });
+
+    localStorage.setItem("LV12_PRODUCTS_CACHE", JSON.stringify({ data: allProducts, ts: Date.now() }));
+
+    renderProductsGrid(allProducts);
+    renderCategoriesBottom();
+    renderDiscountDaysBar();
+    renderCategories();
+
+    renderTodayOffers();
+    renderUnder100();
+    renderUnder200();
+
+  } catch (err) {
+    console.error("❌ خطأ تحميل:", err);
+  }
+}
+
+
+function renderCategoriesWithImages() {
+  const groups = {};
+
+  allProducts.forEach(p => {
+    if (!groups[p.category]) groups[p.category] = [];
+    groups[p.category].push(p);
+  });
+
+  categoriesNav.innerHTML = Object.keys(groups).map(cat => {
+    const first = groups[cat][0];
+    return `
+      <div class="category-card" onclick="openCategory('${cat}')">
+        <img src="${first.image}" class="cat-img">
+        <h3>${escapeHtml(cat)}</h3>
+        <p>${groups[cat].length} منتج</p>
+      </div>
+    `;
+  }).join("");
+}
+function openCategory(cat) {
+  const list = allProducts.filter(p => p.category === cat);
+  renderProducts(list);
+
+  window.scrollTo({
+    top: document.getElementById("products").offsetTop - 80,
+    behavior: "smooth"
+  });
 }
 
 
@@ -1279,15 +1862,13 @@ resetFiltersBtn.addEventListener("click", () => {
   clearSearch.classList.add("hidden");
   renderFiltered();
 });
-
-
 (async function init() {
   document.getElementById("yearFooter").textContent = new Date().getFullYear();
   updateCartUI();
   await checkAuth();
   await detectUserLocation();
-
-  await loadProducts();
+  await loadProducts(); // هتستدعي renderAllSections تلقائيًا
+  hideLoadingSkeleton();
 })();
 
 

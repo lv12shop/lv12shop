@@ -9,6 +9,19 @@
   <meta name="keywords" content="LV12, سلة المشتريات, متجر, تسوق اونلاين, عروض, منتجات, الكترونيات, خصومات, شحن مجاني, شراء اونلاين">
   <meta name="robots" content="index, follow">
   <meta name="author" content="LV12 Shop">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "LV12 Shop",
+  "url": "https://lv12shop.shop",
+  "logo": "https://lv12shop.shop/lv12.png",
+  "sameAs": [
+    "https://www.facebook.com/",
+    "https://www.instagram.com/"
+  ]
+}
+</script>
 
   <meta property="og:title" content="🛒 سلة المشتريات | متجر LV12">
   <meta property="og:description" content="تسوق بسهولة! تحقق من المنتجات في سلة المشتريات الخاصة بك قبل إتمام الطلب.">
@@ -57,6 +70,7 @@
           <div class="text-xs small-muted">تسوق بثقة وسرعة</div>
         </div>
       </div>
+<span id="walletBalance" class="text-green-600 font-bold"></span>
 
       <div class="flex items-center gap-4">
         <div id="userArea" class="text-sm small-muted"></div>
@@ -64,6 +78,7 @@
       </div>
     </div>
   </header>
+
 
   <main class="flex-1 max-w-6xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
     <section class="lg:col-span-2 card p-6">
@@ -114,6 +129,9 @@
           <label class="flex items-center gap-2">
             <input type="radio" name="pay" value="vodafone" /> <span>📱 فودافون كاش</span>
           </label>
+          <label class="flex items-center gap-2">
+  <input type="radio" name="pay" value="wallet" /> <span>💰 الدفع من الرصيد (رصيدي)</span>
+</label>
         </div>
       </div>
 
@@ -333,6 +351,46 @@ async function fetchProductImage(productId) {
     return;
   }
 })();
+async function loadPaymentProfile() {
+  if (!currentUser) return;
+  const { data, error } = await supabase
+    .from("payment_profiles")
+    .select("*")
+    .eq("user_id", currentUser.id)
+    .single();
+
+  if (!error && data) {
+    custName.value = data.full_name;
+    custPhone.value = data.phone;
+    custAddress.value = data.address;
+
+    if (data.pay_method === "vodafone") {
+      document.querySelector('input[value="vodafone"]').checked = true;
+      vodafoneArea.classList.remove("hidden");
+      vodafoneNumber.value = data.pay_ref || "";
+    }
+  }
+}
+async function loadWallet() {
+  if (!currentUser) return;
+
+  const { data, error } = await supabase
+    .from("wallet")
+    .select("balance")
+    .eq("user_id", currentUser.id)
+    .single();
+
+  if (error) {
+    console.warn("⚠️ لم يتم العثور على محفظة للمستخدم بعد");
+    return;
+  }
+
+  if (data) {
+    document.getElementById("walletBalance").textContent =
+      `رصيدي: ${data.balance} ج.م`;
+  }
+}
+
 
 async function checkAuth() {
   const { data } = await supabase.auth.getSession();
@@ -346,6 +404,51 @@ async function checkAuth() {
     userArea.innerHTML = `<a href="shop-login.html" class="text-blue-600 underline">تسجيل الدخول</a>`;
   }
 }
+async function loadWallet() {
+  if (!currentUser) {
+    document.getElementById("walletBalance").textContent = "";
+    return;
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from("wallet")
+      .select("balance")
+      .eq("user_id", currentUser.id)
+      .single();
+
+    if (error && error.code === "PGRST116") {
+    }
+
+    let balance = 0;
+    if (data && typeof data.balance !== "undefined" && data.balance !== null) {
+      balance = Number(data.balance);
+    } else {
+      await supabase.from("wallet").upsert({ user_id: currentUser.id, balance: 0 }, { onConflict: "user_id" });
+      balance = 0;
+    }
+
+    document.getElementById("walletBalance").textContent = `رصيدي: ${Number(balance).toFixed(2)} ج.م`;
+    return balance;
+  } catch (err) {
+    console.error("loadWallet error:", err);
+    document.getElementById("walletBalance").textContent = "";
+    return 0;
+  }
+}
+
+async function pushWalletHistory(user_id, amount, type, note = "") {
+  try {
+    await supabase.from("wallet_history").insert({
+      user_id,
+      amount,
+      type,
+      note
+    });
+  } catch (err) {
+    console.warn("تعذر تسجيل حركة المحفظة:", err);
+  }
+}
 
 checkoutBtn.addEventListener("click", async () => {
   if (!custName.value.trim() || !custPhone.value.trim() || !custAddress.value.trim()) {
@@ -356,8 +459,14 @@ checkoutBtn.addEventListener("click", async () => {
     showToast("السلة فارغة", false);
     return;
   }
+  if (!currentUser) {
+    showToast("يرجى تسجيل الدخول أولاً", false);
+    setTimeout(() => (window.location.href = "shop-login.html"), 800);
+    return;
+  }
 
-  const payMethod = document.querySelector('input[name="pay"]:checked')?.value || "cash";
+  const selectedPay = document.querySelector('input[name="pay"]:checked')?.value || "cash";
+  const payMethod = selectedPay; 
   const payRef = vodafoneNumber.value.trim() || null;
 
   const deliveryISO = (() => {
@@ -371,61 +480,201 @@ checkoutBtn.addEventListener("click", async () => {
     }
   })();
 
+  const totals = calcTotals(); 
+  const grand = Number(totals.grand || 0);
+
+  const { data: walletData, error: walletErr } = await supabase
+    .from("wallet")
+    .select("balance")
+    .eq("user_id", currentUser.id)
+    .single();
+
+  let walletBalance = 0;
+  if (!walletErr && walletData && typeof walletData.balance !== "undefined" && walletData.balance !== null) {
+    walletBalance = Number(walletData.balance);
+  } else {
+    await supabase.from("wallet").upsert({ user_id: currentUser.id, balance: 0 }, { onConflict: "user_id" });
+    walletBalance = 0;
+  }
+
+  if (selectedPay === "wallet") {
+    if (walletBalance < grand) {
+      showToast("❌ الرصيد غير كافٍ لإتمام الطلب باستخدام المحفظة.", false);
+      return; 
+    }
+    const newBal = +(walletBalance - grand).toFixed(2);
+    const { error: updErr } = await supabase.from("wallet").update({ balance: newBal, updated_at: new Date().toISOString() }).eq("user_id", currentUser.id);
+    if (updErr) {
+      console.error("failed update wallet:", updErr);
+      showToast("❌ خطأ أثناء خصم الرصيد", false);
+      return;
+    }
+    await pushWalletHistory(currentUser.id, -grand, "deduct", `خصم مقابل طلب (كامل) رقم — تم الدفع من المحفظة`);
+    try {
+      await supabase.from("payment_profiles").upsert({
+        user_id: currentUser.id,
+        full_name: custName.value.trim(),
+        phone: custPhone.value.trim(),
+        address: custAddress.value.trim(),
+        pay_method: "wallet",
+        pay_ref: null
+      }, { onConflict: "user_id" });
+    } catch (e) { console.warn("upsert payment_profiles error", e); }
+
+    const orders = cart.map((p) => ({
+      user_id: currentUser.id,
+      name: custName.value.trim(),
+      phone: custPhone.value.trim(),
+      address: custAddress.value.trim(),
+      product_id: p.id,
+      quantity: p.quantity || 1,
+      price: p.price,
+      total_price: p.price * (p.quantity || 1),
+      status: "pending",
+      payment_method: "wallet",
+      payment_ref: null,
+      delivery_date: deliveryISO,
+      created_at: new Date().toISOString(),
+    }));
+
+    try {
+      const { error: insErr } = await supabase.from("orders").insert(orders);
+      if (insErr) {
+        console.error("orders insert error:", insErr);
+        showToast("❌ فشل حفظ الطلبات بعد خصم المحفظة", false);
+        return;
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("❌ خطأ في حفظ الطلبات", false);
+      return;
+    }
+
+    await loadWallet(); 
+    localStorage.removeItem("cart");
+    cart = [];
+    renderCart();
+    showToast("✅ تم الدفع من الرصيد وإتمام الطلب بنجاح");
+    setTimeout(() => (window.location.href = "my-orders.html"), 1200);
+    return;
+  }
+
+  let remainingToPay = grand;
+  let walletDeducted = 0;
+
+  if (walletBalance > 0) {
+    walletDeducted = Math.min(walletBalance, grand);
+    remainingToPay = +(grand - walletDeducted).toFixed(2);
+
+    const newBal2 = +(walletBalance - walletDeducted).toFixed(2);
+    const { error: updErr2 } = await supabase.from("wallet").update({ balance: newBal2, updated_at: new Date().toISOString() }).eq("user_id", currentUser.id);
+    if (updErr2) {
+      console.error("failed update wallet:", updErr2);
+      showToast("❌ خطأ أثناء خصم الرصيد", false);
+      return;
+    }
+    await pushWalletHistory(currentUser.id, -walletDeducted, "deduct", `خصم جزئي مقابل طلب — جزء مدفوع من المحفظة`);
+    await loadWallet(); 
+  }
+
+
+  if (selectedPay === "vodafone" && !payRef) {
+  }
+
+  try {
+    await supabase.from("payment_profiles").upsert({
+      user_id: currentUser.id,
+      full_name: custName.value.trim(),
+      phone: custPhone.value.trim(),
+      address: custAddress.value.trim(),
+      pay_method: selectedPay,
+      pay_ref: payRef
+    }, { onConflict: "user_id" });
+  } catch (e) {
+    console.warn("upsert payment_profiles error", e);
+  }
+
   const orders = cart.map((p) => ({
-    user_id: currentUser?.id || null,
-    customer_name: custName.value.trim(),
-    customer_phone: custPhone.value.trim(),
-    customer_address: custAddress.value.trim(),
+    user_id: currentUser.id,
+    name: custName.value.trim(),
+    phone: custPhone.value.trim(),
+    address: custAddress.value.trim(),
     product_id: p.id,
     quantity: p.quantity || 1,
     price: p.price,
+    total_price: p.price * (p.quantity || 1),
     status: "pending",
-    payment_method: payMethod,
+    payment_method: walletDeducted > 0 ? "mixed" : selectedPay,
     payment_ref: payRef,
+    wallet_paid: walletDeducted > 0 ? walletDeducted : 0,
+    remaining_to_pay: walletDeducted > 0 ? remainingToPay : grand,
     delivery_date: deliveryISO,
     created_at: new Date().toISOString(),
   }));
 
   try {
-    const { error } = await supabase.from("orders").insert(orders);
-    if (error) {
-      console.error(error);
-      showToast("حدث خطأ أثناء حفظ الطلب", false);
+    const { error: insErr } = await supabase.from("orders").insert(orders);
+    if (insErr) {
+      console.error("orders insert error:", insErr);
+      showToast("❌ فشل حفظ الطلبات", false);
+      if (walletDeducted > 0) {
+        await supabase.from("wallet").update({ balance: (walletBalance).toFixed(2) }).eq("user_id", currentUser.id);
+        await pushWalletHistory(currentUser.id, walletDeducted, "add", "استرجاع رصيد بعد فشل حفظ الطلب");
+        await loadWallet();
+      }
       return;
     }
   } catch (err) {
     console.error(err);
-    showToast("خطأ في الاتصال بقاعدة البيانات", false);
+    showToast("❌ خطأ في حفظ الطلبات", false);
+    if (walletDeducted > 0) {
+      await supabase.from("wallet").update({ balance: (walletBalance).toFixed(2) }).eq("user_id", currentUser.id);
+      await pushWalletHistory(currentUser.id, walletDeducted, "add", "استرجاع رصيد بعد خطأ غير متوقع");
+      await loadWallet();
+    }
     return;
   }
 
-  const totals = calcTotals();
   let msg = `طلب جديد من متجر LV12%0A`;
   msg += `الاسم: ${custName.value}%0Aالهاتف: ${custPhone.value}%0Aالعنوان: ${custAddress.value}%0A`;
-  msg += `طريقة الدفع: ${payMethod === "vodafone" ? "فودافون كاش" : "عند الاستلام"}%0A`;
-  if (payMethod === "vodafone") msg += `رقم التحويل/المرجع: ${payRef}%0A`;
+  if (walletDeducted > 0) {
+    msg += `تم خصم من المحفظة: ${formatEGP(walletDeducted)}%0Aالمتبقي للدفع: ${formatEGP(remainingToPay)} بواسطة ${selectedPay}%0A`;
+  } else {
+    msg += `طريقة الدفع: ${selectedPay === "vodafone" ? "فودافون كاش" : (selectedPay === "cod" ? "عند الاستلام" : selectedPay)}%0A`;
+  }
+  if (payRef) msg += `مرجع الدفع: ${payRef}%0A`;
   msg += `--- تفاصيل الطلب --- %0A`;
   cart.forEach((ci, i) => {
     msg += `${i + 1}) ${ci.name} × ${ci.quantity} — ${formatEGP(ci.price)}%0A`;
   });
-  msg += `---%0Aالإجمالي: ${formatEGP(totals.grand)}%0Aمدة التوصيل المتوقعة: خلال 3 أيام.%0A`;
-  msg += `يرجى إرسال صورة إيصال الدفع (إن وُجد).`;
+  msg += `---%0Aالإجمالي: ${formatEGP(grand)}%0A`;
 
-  const whatsappNumber = "01094965067"; 
+  const whatsappNumber = "01094965067";
+  if (remainingToPay === 0) {
+    localStorage.removeItem("cart");
+    cart = [];
+    renderCart();
+    showToast("✅ تم الدفع من الرصيد وإتمام الطلب بنجاح");
+    setTimeout(() => (window.location.href = "my-orders.html"), 1200);
+    return;
+  }
+
   window.open(`https://wa.me/${whatsappNumber}?text=${msg}`, "_blank");
 
   localStorage.removeItem("cart");
   cart = [];
   renderCart();
-  showToast("✅ تم إرسال الطلب بنجاح، سيتم تحويلك إلى الطلبات");
-  setTimeout(() => (window.location.href = "my-orders.html"), 2000);
+  showToast("✅ تم تسجيل الطلب بنجاح — يرجى إتمام المتبقي حسب الوسيلة المختارة");
+  setTimeout(() => (window.location.href = "my-orders.html"), 1200);
 });
-
 
 (async function init() {
   await checkAuth();
+  await loadPaymentProfile();
+  await loadWallet(); 
   renderCart();
 })();
+
 
 
 function escapeHtml(s = "") {

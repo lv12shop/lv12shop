@@ -117,6 +117,15 @@
         <label class="block font-medium text-gray-700 mt-3">📸 رفع صور المنتج</label>
         <input id="product-images" type="file" accept="image/*" multiple
           class="w-full border p-2 rounded bg-gray-50 focus:ring-2 focus:ring-blue-400">
+          <label class="block font-medium text-gray-700">سعر بعد الخصم (اختياري)</label>
+<input id="discount-price" type="number" min="0" class="border p-2 rounded w-full">
+
+<label class="block font-medium text-gray-700 mt-2">تاريخ بداية الخصم</label>
+<input id="discount-start" type="date" class="border p-2 rounded w-full">
+
+<label class="block font-medium text-gray-700 mt-2">تاريخ نهاية الخصم</label>
+<input id="discount-end" type="date" class="border p-2 rounded w-full">
+
         <div id="images-preview" class="flex flex-wrap gap-2 mt-2"></div>
 
         <div class="mt-4">
@@ -354,57 +363,7 @@ async function loadCategories() {
   }
 }
 
-async function loadProducts() {
-  try {
-    const { data, error } = await supabase
-      .from("products")
-      .select(`
-        id,name,description,price,stock,category,visible_to_all,available_cities,delivery_by_city,
-        product_images!product_images_product_id_fkey (image_url,is_primary,ordering)
-      `)
-      .order("id", { ascending: false });
 
-    if (error) throw error;
-
-    allProducts = (data || []).map(p => {
-      const imgs = (p.product_images || []).slice().sort((a,b) => (a.ordering||0) - (b.ordering||0));
-      const mainImg = imgs.find(i=>i.is_primary)?.image_url || imgs[0]?.image_url || "https://placehold.co/300x200?text=No+Image";
-      const delivery = safeParseJSON(p.delivery_by_city) || null;
-      let availableCities = [];
-      if (Array.isArray(p.available_cities)) availableCities = p.available_cities;
-      else if (typeof p.available_cities === "string") {
-        availableCities = p.available_cities.replace(/^[{\s]+|[}\s]+$/g, "").split(",").map(s => s.trim()).filter(Boolean);
-      }
-
-      return { ...p, mainImg, delivery_by_city: delivery, available_cities: availableCities };
-    });
-
-    productsCountEl.textContent = allProducts.length;
-    renderProductsGrid(allProducts);
-  } catch (err) {
-    console.error("❌ خطأ أثناء تحميل المنتجات:", err);
-    showToast("⚠️ فشل تحميل المنتجات", false);
-  }
-}
-
-function renderProductsGrid(items) {
-  productsGrid.innerHTML = items.map(p => `
-    <div class="border rounded-xl p-3 shadow-sm fade-in relative">
-      <img src="${escapeHtml(p.mainImg)}" class="w-full h-40 object-cover rounded-lg mb-2" alt="صورة المنتج" />
-      <h4 class="font-semibold text-blue-700">${escapeHtml(p.name)}</h4>
-      <p class="text-sm text-gray-600 line-clamp-2">${escapeHtml(p.description || '')}</p>
-      <div class="mt-2 flex justify-between items-center text-sm">
-        <span class="font-bold text-green-700">${escapeHtml(String(p.price))} ج.م</span>
-        <span class="text-gray-500">📦 ${escapeHtml(String(p.stock))} قطعة</span>
-      </div>
-      <div class="text-xs text-gray-600 mt-1">${p.visible_to_all ? "🌍 للجميع" : "🇪🇬 داخل مصر فقط"}</div>
-      <div class="mt-3 flex gap-2">
-        <button onclick="openEditForm(${p.id})" class="flex-1 bg-yellow-400 text-white rounded py-1">✏️ تعديل</button>
-        <button onclick="confirmDelete(${p.id})" class="flex-1 bg-red-500 text-white rounded py-1">🗑️ حذف</button>
-      </div>
-    </div>
-  `).join("");
-}
 
 const governorates = [
   "القاهرة","الجيزة","الاسكندرية","الدقهلية","البحر الأحمر","البحيرة","الفيوم","الغربية",
@@ -445,6 +404,11 @@ productForm.addEventListener("submit", async (e) => {
     const category = newCategoryInput.value.trim() || categorySelect.value || null;
     const visibleToAll = document.getElementById("visible-to-all")?.checked || false;
 
+    // ✅ خصم
+    const discount_price = parseFloat(document.getElementById("discount-price")?.value) || null;
+    const discount_start = document.getElementById("discount-start")?.value || null;
+    const discount_end = document.getElementById("discount-end")?.value || null;
+
     // 🏙️ المحافظات المختارة
     let availableCities = [];
     if (document.getElementById("city-all")?.checked) {
@@ -453,24 +417,20 @@ productForm.addEventListener("submit", async (e) => {
       availableCities = Array.from(document.querySelectorAll(".city-option:checked")).map(el => el.value);
     }
 
-    // 🚚 وقت التوصيل — يمكن يكون رقم بسيط
+    // 🚚 وقت التوصيل
     let deliveryByCity = null;
     const deliveryRaw = document.getElementById("delivery-by-city")?.value?.trim();
 
     if (deliveryRaw) {
-      // لو المستخدم كتب رقم فقط
       if (/^\d+$/.test(deliveryRaw)) {
         const mins = `${deliveryRaw} دقيقة`;
         deliveryByCity = {};
-        // لو اختار "الجميع"
         if (availableCities.includes("الجميع")) {
           governorates.forEach(city => { deliveryByCity[city] = mins; });
         } else {
           availableCities.forEach(city => { deliveryByCity[city] = mins; });
         }
-      } 
-      // أو كتب JSON بالطريقة القديمة
-      else {
+      } else {
         const parsed = safeParseJSON(deliveryRaw);
         if (parsed && typeof parsed === "object") deliveryByCity = parsed;
         else {
@@ -482,7 +442,6 @@ productForm.addEventListener("submit", async (e) => {
       }
     }
 
-    // 🧾 البيانات المرسلة
     const payload = {
       name,
       description: desc,
@@ -492,10 +451,13 @@ productForm.addEventListener("submit", async (e) => {
       visible_to_all: visibleToAll,
       available_cities: Array.isArray(availableCities) && availableCities.length ? availableCities : null,
       delivery_by_city: deliveryByCity,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
+
+      discount_price: discount_price,
+      discount_start: discount_start,
+      discount_end: discount_end
     };
 
-    // 🛠️ تحديث أو إضافة
     if (id) {
       const { error: updErr } = await supabase.from("products").update(payload).eq("id", id);
       if (updErr) throw updErr;
@@ -508,7 +470,7 @@ productForm.addEventListener("submit", async (e) => {
       showToast("✅ تم تعديل المنتج بنجاح");
     } 
     else {
-      delete payload.id; // ✅ منع خطأ المفتاح المكرر
+      delete payload.id;
 
       const { data: newProd, error: insertErr } = await supabase
         .from("products")
@@ -551,7 +513,9 @@ async function openEditForm(id) {
     stockInput.value = data.stock ?? "";
     categorySelect.value = data.category || "";
     document.getElementById("visible-to-all").checked = data.visible_to_all ?? true;
-
+document.getElementById("discount-price").value = data.discount_price ?? "";
+document.getElementById("discount-start").value = data.discount_start ? data.discount_start.split("T")[0] : "";
+document.getElementById("discount-end").value = data.discount_end ? data.discount_end.split("T")[0] : "";
     document.querySelectorAll(".city-option").forEach(cb => cb.checked = false);
     const all = document.getElementById("city-all");
     if (all) all.checked = false;

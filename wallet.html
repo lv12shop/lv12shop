@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>محفظتي - متجر LV12</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "LV12 Shop",
+  "url": "https://lv12shop.shop",
+  "logo": "https://lv12shop.shop/lv12.png",
+  "sameAs": [
+    "https://www.facebook.com/",
+    "https://www.instagram.com/"
+  ]
+}
+</script>
+
+  <style>
+    body { font-family: 'Cairo', sans-serif; }
+    .shadow-smooth { box-shadow: 0 3px 10px rgba(0,0,0,0.08); }
+  </style>
+</head>
+
+<body class="bg-gray-100 min-h-screen">
+
+<header class="bg-white shadow p-4 flex justify-between items-center">
+  <h1 class="text-xl font-bold text-blue-700">💰 محفظتي</h1>
+  <a href="index.html" class="text-blue-600 underline text-sm">العودة للمتجر</a>
+</header>
+
+<main class="max-w-3xl mx-auto mt-6 p-4">
+
+  <div class="bg-white p-5 rounded-xl shadow-smooth text-center">
+    <h2 class="text-lg font-semibold text-gray-600">رصيدك الحالي</h2>
+    <div id="walletBalance" class="text-4xl font-extrabold text-green-600 my-3">-- ج.م</div>
+
+    <button id="addBalanceBtn"
+      class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg mt-2 text-sm">
+      ➕ إضافة رصيد
+    </button>
+  </div>
+
+  <h3 class="mt-8 mb-3 text-gray-700 font-bold text-lg">📜 سجل العمليات</h3>
+  <div id="transactions" class="bg-white rounded-xl shadow-smooth divide-y"></div>
+
+</main>
+
+<script>
+const supabase = window.supabase.createClient(
+  "https://nszhzfysitppxssplqfb.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zemh6ZnlzaXRwcHhzc3BscWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA4OTcsImV4cCI6MjA3MzgwNjg5N30.5KvK4bhqkZ_GpIfED4qecIMfeubAJYwSFJslULwOp-w"
+);
+
+let currentUser = null;
+
+async function checkAuth() {
+  const { data } = await supabase.auth.getSession();
+  currentUser = data?.session?.user;
+  if (!currentUser) window.location.href = "shop-login.html";
+}
+
+async function loadWallet() {
+  const { data, error } = await supabase
+    .from("wallet")
+    .select("balance")
+    .eq("user_id", currentUser.id)
+    .single();
+
+  document.getElementById("walletBalance").textContent =
+    data ? `${data.balance} ج.م` : "0 ج.م";
+}
+
+async function loadTransactions() {
+  const { data } = await supabase
+    .from("wallet_transactions")
+    .select("*")
+    .eq("user_id", currentUser.id)
+    .order("created_at", { ascending: false });
+
+  const box = document.getElementById("transactions");
+  box.innerHTML = data.length
+    ? data.map(t => `
+      <div class="p-3 flex justify-between">
+        <span>${t.note || t.type}</span>
+        <span class="${t.amount > 0 ? "text-green-600" : "text-red-600"} font-bold">
+          ${t.amount} ج.م
+        </span>
+      </div>
+    `).join("")
+    : `<div class="p-4 text-center text-gray-500">لا يوجد عمليات بعد</div>`;
+}
+
+document.getElementById("addBalanceBtn").onclick = () => {
+  alert("🚧 سيتم ربط إضافة الرصيد بوسائل دفع لاحقًا");
+};
+
+(async function init() {
+  await checkAuth();
+  await loadWallet();
+  await loadTransactions();
+})();
+</script>
+
+</body>
+</html>
