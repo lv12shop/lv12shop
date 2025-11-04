@@ -498,6 +498,64 @@ productForm.addEventListener("submit", async (e) => {
     saveBtn.textContent = "💾 حفظ المنتج";
   }
 });
+// ✅ تحميل المنتجات من قاعدة البيانات Supabase
+async function loadProducts() {
+  try {
+    const { data, error } = await supabase
+      .from("products")
+      .select(`
+        id, name, price, stock, category, discount_price, discount_start, discount_end,
+        product_images (image_url)
+      `)
+      .order("id", { ascending: false });
+
+    if (error) throw error;
+
+    allProducts = data || [];
+    productsCountEl.textContent = allProducts.length;
+
+    renderProductsGrid(allProducts);
+  } catch (err) {
+    console.error("⚠️ loadProducts error:", err);
+    showToast("⚠️ فشل تحميل المنتجات", false);
+  }
+}
+
+// ✅ عرض المنتجات في الشبكة
+function renderProductsGrid(list) {
+  if (!list || list.length === 0) {
+    productsGrid.innerHTML = `<div class="col-span-full text-gray-500 text-center p-4">لا توجد منتجات بعد</div>`;
+    return;
+  }
+
+  productsGrid.innerHTML = list
+    .map((p) => {
+      const img =
+        p.product_images && p.product_images.length
+          ? p.product_images[0].image_url
+          : "https://via.placeholder.com/150?text=No+Image";
+      const discount =
+        p.discount_price && p.discount_start && p.discount_end
+          ? `<div class="text-red-600 font-semibold mt-1">خصم: ${p.discount_price} ج.م</div>`
+          : "";
+
+      return `
+        <div class="border rounded-xl p-3 shadow-sm hover:shadow-md transition fade-in relative bg-white">
+          <img src="${img}" class="w-full h-40 object-cover rounded-lg mb-2" alt="${p.name}">
+          <h4 class="font-bold text-blue-800 text-sm truncate">${escapeHtml(p.name)}</h4>
+          <div class="text-gray-600 text-sm">السعر: ${p.price} ج.م</div>
+          ${discount}
+          <div class="text-gray-500 text-xs mt-1">المخزون: ${p.stock}</div>
+          <div class="text-gray-500 text-xs">القسم: ${p.category || "-"}</div>
+          <div class="flex justify-between items-center mt-2">
+            <button onclick="openEditForm(${p.id})" class="bg-yellow-500 text-white px-2 py-1 rounded text-xs">✏️ تعديل</button>
+            <button onclick="confirmDelete(${p.id})" class="bg-red-500 text-white px-2 py-1 rounded text-xs">🗑️ حذف</button>
+          </div>
+        </div>
+      `;
+    })
+    .join("");
+}
 
 
 

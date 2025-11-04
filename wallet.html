@@ -1,108 +1,520 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <title>محفظتي - متجر LV12</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <title>💰 محفظتي - LV12 (محدث)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  "name": "LV12 Shop",
-  "url": "https://lv12shop.shop",
-  "logo": "https://lv12shop.shop/lv12.png",
-  "sameAs": [
-    "https://www.facebook.com/",
-    "https://www.instagram.com/"
-  ]
-}
-</script>
-
   <style>
-    body { font-family: 'Cairo', sans-serif; }
-    .shadow-smooth { box-shadow: 0 3px 10px rgba(0,0,0,0.08); }
+    body { font-family: "Cairo", sans-serif; background:#f8fafc; }
+    .active-tab { background:#2563eb; color:white; }
+    .pill { padding:.2rem .5rem; border-radius:.4rem; background:#eef2ff; color:#1e3a8a; font-weight:600; font-size:.85rem; }
+    .small-muted { color:#6b7280; }
   </style>
 </head>
 
-<body class="bg-gray-100 min-h-screen">
-
+<body class="min-h-screen">
 <header class="bg-white shadow p-4 flex justify-between items-center">
   <h1 class="text-xl font-bold text-blue-700">💰 محفظتي</h1>
-  <a href="index.html" class="text-blue-600 underline text-sm">العودة للمتجر</a>
+  <a href="shop.html" class="text-blue-600 underline text-sm">العودة للمتجر</a>
 </header>
 
-<main class="max-w-3xl mx-auto mt-6 p-4">
-
-  <div class="bg-white p-5 rounded-xl shadow-smooth text-center">
+<main class="max-w-4xl mx-auto p-4 mt-4">
+  <div class="bg-white rounded-xl shadow p-4 mb-4 text-center">
     <h2 class="text-lg font-semibold text-gray-600">رصيدك الحالي</h2>
     <div id="walletBalance" class="text-4xl font-extrabold text-green-600 my-3">-- ج.م</div>
-
-    <button id="addBalanceBtn"
-      class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg mt-2 text-sm">
-      ➕ إضافة رصيد
-    </button>
+    <div id="walletOwner" class="text-sm small-muted"></div>
   </div>
 
-  <h3 class="mt-8 mb-3 text-gray-700 font-bold text-lg">📜 سجل العمليات</h3>
-  <div id="transactions" class="bg-white rounded-xl shadow-smooth divide-y"></div>
+  <div class="flex flex-wrap justify-around gap-2 mb-4">
+    <button class="tab px-4 py-2 rounded-lg bg-gray-200" data-tab="balance">💵 الرصيد</button>
+    <button class="tab px-4 py-2 rounded-lg bg-gray-200" data-tab="tasks">🎯 المهام اليومية</button>
+    <button class="tab px-4 py-2 rounded-lg bg-gray-200" data-tab="referrals">🤝 الدعوات</button>
+    <button class="tab px-4 py-2 rounded-lg bg-gray-200" data-tab="withdraw">💳 سحب رصيد</button>
+    <button class="tab px-4 py-2 rounded-lg bg-gray-200" data-tab="topup">⬆️ شحن رصيد</button>
+  </div>
 
+  <section id="balance" class="tab-content bg-white p-4 rounded-xl shadow">
+    <h3 class="font-bold mb-2">📜 سجل العمليات</h3>
+    <div id="transactions"></div>
+  </section>
+
+  <section id="tasks" class="tab-content hidden bg-white p-4 rounded-xl shadow">
+    <h3 class="font-bold mb-3">🎯 المهام اليومية</h3>
+    <div id="tasksList" class="space-y-3"></div>
+  </section>
+
+  <section id="referrals" class="tab-content hidden bg-white p-4 rounded-xl shadow">
+    <h3 class="font-bold mb-3">🤝 كود الدعوة الخاص بك</h3>
+    <p class="text-sm small-muted mb-2">شارك الرابط التالي مع أصدقائك؛ سيتم احتساب الدعوات خلال 24 ساعة للمكافآت.</p>
+    <div id="inviteCode" class="bg-gray-100 p-3 rounded mt-2 font-mono text-blue-700"></div>
+
+    <div class="mt-4">
+      <div class="flex items-center justify-between mb-2">
+        <div>عدد الدعوات خلال 24 ساعة</div>
+        <div id="inviteCount" class="font-bold">--</div>
+      </div>
+      <div class="w-full bg-gray-200 rounded h-3 overflow-hidden mb-2">
+        <div id="inviteProgress" style="height:100%; width:0%; background:linear-gradient(90deg,#34d399,#06b6d4)"></div>
+      </div>
+      <div class="flex gap-2">
+        <button id="claimReferralBtn" class="bg-green-600 text-white px-3 py-1 rounded" disabled>🎁 المطالبة بالمكافأة</button>
+        <button id="copyInviteBtn" class="bg-gray-200 px-3 py-1 rounded">نسخ الرابط</button>
+      </div>
+      <div id="referralNote" class="text-xs small-muted mt-2"></div>
+    </div>
+  </section>
+
+  <section id="withdraw" class="tab-content hidden bg-white p-4 rounded-xl shadow">
+    <h3 class="font-bold mb-3">💳 طلب سحب رصيد</h3>
+    <p class="text-gray-600 text-sm mb-2">يُطلب رقم فودافون كاش مرة واحدة فقط؛ سيُستخدم في السحوبات المستقبلية أيضاً.</p>
+    <label class="text-sm">رقم فودافون كاش</label>
+    <input id="withdrawPhone" placeholder="مثال: 010XXXXXXXX" class="border p-2 w-full rounded mb-2" />
+    <label class="text-sm">المبلغ</label>
+    <input id="withdrawAmount" type="number" placeholder="المبلغ" class="border p-2 w-full rounded mb-2" />
+    <label class="text-sm">المحافظة</label>
+    <input id="withdrawGovernorate" placeholder="المحافظة" class="border p-2 w-full rounded mb-2" />
+    <div class="flex gap-2">
+      <button id="withdrawBtn" class="bg-green-600 text-white px-4 py-2 rounded">📤 إرسال الطلب</button>
+      <button id="prefillWalletBtn" class="bg-gray-200 px-4 py-2 rounded">استخدام رقم المحفظة المحفوظ</button>
+    </div>
+    <div id="withdrawStatus" class="text-sm small-muted mt-2"></div>
+  </section>
+
+  <section id="topup" class="tab-content hidden bg-white p-4 rounded-xl shadow">
+    <h3 class="font-bold mb-3">💵 شحن رصيد للشراء</h3>
+    <p class="text-sm small-muted mb-2">أرسل طلب شحن للأدمن عبر واتساب — سيصل إليك رقم التحويل وملاحظات المتابعة.</p>
+    <label class="text-sm">المبلغ المراد شحنه (ج.م)</label>
+    <input id="topupAmount" type="number" placeholder="مثال: 50" class="border p-2 w-full rounded mb-2" />
+    <label class="text-sm">رقم المحفظة (فودافون كاش)</label>
+<input id="topupWallet" placeholder="أدخل رقم المحفظة الخاصة بك" class="border p-2 w-full rounded mb-2" />
+
+    <div class="flex gap-2">
+      <button id="topupBtn" class="bg-blue-600 text-white px-4 py-2 rounded">💳 إرسال طلب الشحن (واتساب)</button>
+      <button id="autoTopupStoreBtn" class="bg-gray-200 px-4 py-2 rounded">حفظ رقم المحفظة لو اتاحت شحن تلقائي</button>
+    </div>
+    <div id="topupStatus" class="text-sm small-muted mt-2"></div>
+  </section>
 </main>
 
+<div id="toast" style="position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:60;display:none;padding:10px 14px;border-radius:10px;color:#fff;"></div>
+
 <script>
-const supabase = window.supabase.createClient(
-  "https://nszhzfysitppxssplqfb.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zemh6ZnlzaXRwcHhzc3BscWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA4OTcsImV4cCI6MjA3MzgwNjg5N30.5KvK4bhqkZ_GpIfED4qecIMfeubAJYwSFJslULwOp-w"
-);
 
+const SUPABASE_URL = "https://nszhzfysitppxssplqfb.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zemh6ZnlzaXRwcHhzc3BscWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA4OTcsImV4cCI6MjA3MzgwNjg5N30.5KvK4bhqkZ_GpIfED4qecIMfeubAJYwSFJslULwOp-w";
+
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let currentUser = null;
+let taskInterval = null;
 
-async function checkAuth() {
+function toast(msg, ok=true){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.style.background = ok ? '#16a34a' : '#dc2626';
+  el.style.display = 'block';
+  setTimeout(()=> el.style.display='none', 3000);
+}
+
+document.querySelectorAll('.tab').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active-tab'));
+    btn.classList.add('active-tab');
+    document.querySelectorAll('.tab-content').forEach(s=>s.classList.add('hidden'));
+    const id = btn.dataset.tab;
+    document.getElementById(id).classList.remove('hidden');
+  });
+});
+
+async function checkAuth(){
   const { data } = await supabase.auth.getSession();
   currentUser = data?.session?.user;
-  if (!currentUser) window.location.href = "shop-login.html";
+  if(!currentUser){
+    window.location.href = 'shop-login.html';
+    return false;
+  }
+  const display = currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0];
+  document.getElementById('walletOwner').textContent = `👤 ${display}`;
+  return true;
 }
 
-async function loadWallet() {
-  const { data, error } = await supabase
-    .from("wallet")
-    .select("balance")
-    .eq("user_id", currentUser.id)
-    .single();
-
-  document.getElementById("walletBalance").textContent =
-    data ? `${data.balance} ج.م` : "0 ج.م";
+async function loadWallet(){
+  try{
+    const { data } = await supabase
+      .from('wallet')
+      .select('balance')
+      .eq('user_id', currentUser.id)
+      .maybeSingle();
+    const bal = data?.balance ?? 0;
+    document.getElementById('walletBalance').textContent = `${Number(bal).toFixed(2)} ج.م`;
+  }catch(err){
+    console.error('loadWallet', err);
+    document.getElementById('walletBalance').textContent = '-- ج.م';
+  }
 }
 
-async function loadTransactions() {
-  const { data } = await supabase
-    .from("wallet_transactions")
-    .select("*")
-    .eq("user_id", currentUser.id)
-    .order("created_at", { ascending: false });
-
-  const box = document.getElementById("transactions");
-  box.innerHTML = data.length
-    ? data.map(t => `
-      <div class="p-3 flex justify-between">
-        <span>${t.note || t.type}</span>
-        <span class="${t.amount > 0 ? "text-green-600" : "text-red-600"} font-bold">
-          ${t.amount} ج.م
-        </span>
+async function loadTransactions(){
+  try{
+    const { data } = await supabase
+      .from('wallet_history')
+      .select('*')
+      .eq('user_id', currentUser.id)
+      .order('created_at', { ascending: false })
+      .limit(100);
+    const container = document.getElementById('transactions');
+    container.innerHTML = data?.length ? data.map(t=>`
+      <div class="p-2 flex justify-between border-b">
+        <div>
+          <div class="font-medium">${t.note || t.type}</div>
+          <div class="text-xs small-muted">${new Date(t.created_at).toLocaleString()}</div>
+        </div>
+        <div class="${t.amount>0 ? 'text-green-600' : 'text-red-600'} font-bold">
+          ${Number(t.amount).toFixed(2)} ج.م
+        </div>
       </div>
-    `).join("")
-    : `<div class="p-4 text-center text-gray-500">لا يوجد عمليات بعد</div>`;
+    `).join('') : `<div class="text-gray-500 text-center p-4">لا يوجد عمليات بعد</div>`;
+  }catch(err){ console.error('loadTransactions', err); }
+}
+async function loadInviteCodeAndProgress() {
+  try {
+    // 1️⃣ الحصول على كود الدعوة الثابت من قاعدة البيانات أو توليده لأول مرة
+    let inviteCode = null;
+    const { data: existingProfile } = await supabase
+      .from("user_profiles")
+      .select("invite_code")
+      .eq("user_id", currentUser.id)
+      .maybeSingle();
+
+    if (existingProfile?.invite_code) {
+      inviteCode = existingProfile.invite_code;
+    } else {
+      // توليد كود دعوة ثابت جديد (أول مرة فقط)
+      inviteCode = (currentUser.id || "").slice(0, 6).toUpperCase();
+      await supabase
+        .from("user_profiles")
+        .upsert({ user_id: currentUser.id, invite_code: inviteCode }, { onConflict: "user_id" });
+    }
+
+    // 2️⃣ إعداد الرابط الكامل للدعوة
+    const link = `https://lv12shop.shop/shop-signup.html?ref=${inviteCode}`;
+    document.getElementById("inviteCode").innerHTML = `
+      <div class="font-bold text-blue-700 text-lg">${inviteCode}</div>
+      <a href="${link}" target="_blank" class="text-blue-500 text-sm underline">${link}</a>
+    `;
+
+    // 3️⃣ حساب عدد الدعوات المسجلة لهذا المستخدم
+    const { data: invitedUsers } = await supabase
+      .from("referrals")
+      .select("id")
+      .eq("inviter_id", currentUser.id);
+
+    const totalInvites = invitedUsers?.length || 0;
+    document.getElementById("inviteCount").textContent = totalInvites;
+
+    // 4️⃣ زر نسخ الرابط
+    document.getElementById("copyInviteBtn").onclick = () => {
+      navigator.clipboard.writeText(link);
+      toast("📋 تم نسخ رابط الدعوة بنجاح!");
+    };
+
+    // 5️⃣ ملاحظات إضافية
+    document.getElementById("referralNote").textContent = `قمت بدعوة ${totalInvites} صديق${totalInvites !== 1 ? "ـًا" : ""} حتى الآن. المكافأة ستضاف بعد موافقة الأدمن.`;
+
+  } catch (err) {
+    console.error("loadInviteCodeAndProgress", err);
+    toast("⚠️ فشل تحميل بيانات الدعوة", false);
+  }
 }
 
-document.getElementById("addBalanceBtn").onclick = () => {
-  alert("🚧 سيتم ربط إضافة الرصيد بوسائل دفع لاحقًا");
-};
 
-(async function init() {
-  await checkAuth();
+async function claimReferralBonus(){
+  try{
+    const since = new Date(Date.now() - 24*3600*1000).toISOString();
+    const { data } = await supabase
+      .from('referrals')
+      .select('*')
+      .eq('inviter_id', currentUser.id)
+      .gte('created_at', since);
+    const count = data?.length ?? 0;
+    const goal = 10;
+    if(count < goal) return alert('لم تصل للحد المطلوب بعد');
+    const { data: c } = await supabase.from('referral_claims').select('*').eq('inviter_id', currentUser.id).gte('created_at', since).maybeSingle();
+    if(c) return alert('تم المطالبة بالفعل لهذه الفترة');
+
+    const reward = 5 * Math.floor(count / goal); 
+    const { data: w } = await supabase.from('wallet').select('balance').eq('user_id', currentUser.id).maybeSingle();
+    const newBal = (w?.balance || 0) + reward;
+    await supabase.from('wallet').upsert({ user_id: currentUser.id, balance: newBal }, { onConflict: 'user_id' });
+    await supabase.from('wallet_history').insert({ user_id: currentUser.id, amount: reward, type: 'referral_bonus', note: `مكافأة ${count} دعوات` });
+    await supabase.from('referral_claims').insert({ inviter_id: currentUser.id, invited_count: count, reward, created_at: new Date().toISOString() });
+    toast('✅ تمت إضافة مكافأة الدعوات إلى رصيدك');
+    await loadWallet();
+    await loadTransactions();
+    await loadInviteCodeAndProgress();
+  }catch(err){ console.error('claimReferralBonus', err); toast('فشل أثناء المطالبة', false); }
+}
+
+async function loadDailyTasks(){
+  try{
+    const { data } = await supabase.from('daily_tasks').select('*').order('id',{ascending:true});
+    const container = document.getElementById('tasksList');
+    if(!data || !data.length){
+      container.innerHTML = `<p class="text-gray-500 text-center">لا توجد مهام متاحة حالياً</p>`;
+      return;
+    }
+    container.innerHTML = data.map(t=>{
+      const completedKey = `task_${t.id}_completed_at`;
+      const doneAt = localStorage.getItem(completedKey);
+      let doneHtml = '';
+      if(doneAt){
+        const doneDate = new Date(doneAt);
+        const expiresHours = t.expires_in_hours || 24;
+        const nextAvailable = new Date(doneDate.getTime() + expiresHours*3600*1000);
+        const now = new Date();
+        if(now >= nextAvailable){
+          doneHtml = `<div class="text-sm text-green-700">🔁 متاحة الآن مرة أخرى</div>`;
+        } else {
+          const diff = Math.max(0, Math.floor((nextAvailable - now)/1000));
+          const hh = Math.floor(diff/3600), mm = Math.floor((diff%3600)/60);
+          doneHtml = `<div class="text-sm text-gray-500">✅ أنهيت المهمة — متاحة مرة أخرى بعد ${hh}س ${mm}د</div>`;
+        }
+      }
+      return `
+        <div class="border p-3 rounded flex justify-between items-center">
+          <div>
+            <div class="font-bold text-gray-700">${t.title}</div>
+            <div class="text-sm text-gray-500">${t.description || ''}</div>
+            <div class="text-sm text-green-700">💰 المكافأة: ${t.reward} ج.م — ⏱️ ${t.duration_minutes} دقيقة</div>
+            ${doneHtml}
+          </div>
+          <div>
+            <button id="taskBtn-${t.id}" 
+              class="bg-blue-600 text-white px-3 py-1 rounded" 
+              ${localStorage.getItem(`task_${t.id}_completed_at`) ? 'disabled' : ''} 
+              onclick="startTask(${t.id}, '${escapeJs(t.title)}', ${t.duration_minutes})">
+              ▶️ ابدأ
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+    restoreActiveTask();
+  }catch(err){ console.error('loadDailyTasks', err); }
+}
+
+function escapeJs(s=''){ return s.replace(/'/g, "\\'").replace(/\n/g,' '); }
+
+function startTask(taskId, title, minutes){
+  const completedKey = `task_${taskId}_completed_at`;
+  const doneAt = localStorage.getItem(completedKey);
+  if(doneAt){
+    const tData = JSON.parse(localStorage.getItem(`task_meta_${taskId}`) || '{}');
+    const expiresHours = tData.expires_in_hours || 24;
+    const nextAvailable = new Date(new Date(doneAt).getTime() + expiresHours*3600*1000);
+    if(new Date() < nextAvailable) return alert('المهمة تم إنجازها مؤخراً — انتظر حتى تنتهي فترة الانتظار');
+  }
+  if(localStorage.getItem('activeTaskId')) return alert('لديك مهمة جارية بالفعل');
+  const duration = minutes * 60; 
+  const startTime = Date.now();
+  localStorage.setItem('activeTaskId', String(taskId));
+  localStorage.setItem('taskStartTime', String(startTime));
+  localStorage.setItem('taskDuration', String(duration));
+  window.open('shop.html', '_blank');
+  startCountdown(taskId, duration, startTime);
+}
+
+function startCountdown(taskId, totalSeconds, startTime){
+  const btn = document.getElementById(`taskBtn-${taskId}`);
+  if(btn){ btn.disabled = true; btn.classList.add('opacity-80'); }
+  if(window.__taskInterval) clearInterval(window.__taskInterval);
+  window.__taskInterval = setInterval(()=>{
+    const elapsed = Math.floor((Date.now() - startTime)/1000);
+    const remaining = totalSeconds - elapsed;
+    if(remaining <= 0){
+      clearInterval(window.__taskInterval);
+      finalizeTaskCompletion(taskId, startTime, startTime + totalSeconds*1000);
+      if(btn){ btn.textContent = '✅ تم الإرسال للمراجعة'; btn.classList.remove('bg-blue-600'); btn.classList.add('bg-green-600'); }
+      localStorage.removeItem('activeTaskId');
+      localStorage.removeItem('taskStartTime');
+      localStorage.removeItem('taskDuration');
+      localStorage.setItem(`task_${taskId}_completed_at`, new Date().toISOString());
+      loadDailyTasks(); 
+    } else {
+      const m = Math.floor(remaining/60), s = remaining%60;
+      if(btn) btn.textContent = `⏱️ ${m}:${String(s).padStart(2,'0')}`;
+    }
+  }, 1000);
+}
+
+function restoreActiveTask(){
+  const activeId = localStorage.getItem('activeTaskId');
+  const st = Number(localStorage.getItem('taskStartTime'));
+  const dur = Number(localStorage.getItem('taskDuration'));
+  if(activeId && st && dur){
+    const remaining = dur - Math.floor((Date.now() - st)/1000);
+    if(remaining > 0) startCountdown(activeId, dur, st);
+    else {
+      finalizeTaskCompletion(activeId, st, st + dur*1000);
+      localStorage.removeItem('activeTaskId'); localStorage.removeItem('taskStartTime'); localStorage.removeItem('taskDuration');
+    }
+  }
+}
+
+async function finalizeTaskCompletion(taskId, startedAtMs, completedAtMs) {
+  try {
+    const record = {
+      user_id: currentUser.id,
+      task_id: taskId,
+      status: "pending",
+      started_at: new Date(startedAtMs).toISOString(),
+      completed_at: new Date(completedAtMs).toISOString(),
+      created_at: new Date().toISOString(),
+    };
+    await supabase.from("user_tasks").insert(record);
+    toast("✅ تم إرسال المهمة للمراجعة");
+  } catch (err) {
+    console.error("finalizeTaskCompletion", err);
+    toast("فشل إرسال المهمة", false);
+  }
+}
+
+document.getElementById("withdrawBtn").addEventListener("click", async () => {
+  const phone = document.getElementById("withdrawPhone").value.trim();
+  const amount = Number(document.getElementById("withdrawAmount").value);
+  const governorate = document.getElementById("withdrawGovernorate").value.trim();
+
+  if (!phone || !amount || amount <= 0)
+    return alert("❌ أدخل بيانات صحيحة للسحب");
+
+  let ip = "غير معروف";
+  try {
+    const r = await fetch("https://api.ipify.org?format=json");
+    const j = await r.json();
+    ip = j.ip || ip;
+  } catch (e) {
+    console.warn("ip fetch failed", e);
+  }
+
+  try {
+    const { data: w } = await supabase
+      .from("wallet")
+      .select("balance")
+      .eq("user_id", currentUser.id)
+      .maybeSingle();
+
+    const balance = w?.balance || 0;
+    if (balance < amount)
+      return toast("❌ الرصيد غير كافٍ لطلب السحب", false);
+
+    const { data: profile } = await supabase
+      .from("user_profiles")
+      .select("*")
+      .eq("user_id", currentUser.id)
+      .maybeSingle();
+
+    if (!profile) {
+      await supabase
+        .from("user_profiles")
+        .insert({ user_id: currentUser.id, wallet_number: phone });
+    } else if (!profile.wallet_number) {
+      await supabase
+        .from("user_profiles")
+        .update({ wallet_number: phone })
+        .eq("user_id", currentUser.id);
+    }
+
+    await supabase.from("withdraw_requests").insert({
+      user_id: currentUser.id,
+      amount,
+      wallet_number: phone,
+      governorate,
+      ip_address: ip,
+      status: "pending",
+      created_at: new Date().toISOString(),
+    });
+
+    const newBal = balance - amount;
+    await supabase
+      .from("wallet")
+      .upsert({ user_id: currentUser.id, balance: newBal }, { onConflict: "user_id" });
+
+    await supabase.from("wallet_history").insert({
+      user_id: currentUser.id,
+      amount: -amount,
+      type: "withdraw_hold",
+      note: "خصم مؤقت لطلب سحب قيد المراجعة",
+    });
+
+    toast("✅ تم إرسال طلب السحب للمراجعة");
+    document.getElementById("withdrawStatus").textContent =
+      "تم إرسال الطلب للمراجعة — سيتم إعلامك بعد المراجعة.";
+    document.getElementById("withdrawPhone").value = phone;
+    document.getElementById("withdrawPhone").disabled = true;
+
+    await loadWallet();
+    await loadTransactions();
+  } catch (err) {
+    console.error("withdraw error", err);
+    toast("⚠️ فشل إرسال طلب السحب", false);
+  }
+});
+
+document.getElementById("prefillWalletBtn").addEventListener("click", async () => {
+  try {
+    const { data } = await supabase
+      .from("user_profiles")
+      .select("wallet_number")
+      .eq("user_id", currentUser.id)
+      .maybeSingle();
+
+    if (data?.wallet_number) {
+      document.getElementById("withdrawPhone").value = data.wallet_number;
+      document.getElementById("withdrawPhone").disabled = true;
+      toast("تم تعبئة رقم المحفظة المحفوظ ✅");
+    } else {
+      toast("❌ لا يوجد رقم محفظة محفوظ — أدخله مرة واحدة ثم احفظ", false);
+    }
+  } catch (err) {
+    console.error(err);
+    toast("⚠️ فشل جلب بيانات المحفظة", false);
+  }
+});
+
+document.getElementById("topupBtn").addEventListener("click", async () => {
+  const amount = Number(document.getElementById("topupAmount").value);
+  const walletInput = prompt("📱 أدخل رقم محفظتك (فودافون كاش):")?.trim();
+
+  if (!amount || amount <= 0) return alert("❌ أدخل مبلغ صالح");
+  if (!walletInput) return alert("⚠️ أدخل رقم المحفظة لإتمام الطلب");
+
+  try {
+    const name = currentUser.user_metadata?.full_name || currentUser.email || currentUser.id;
+    const msg = `🧾 طلب شحن رصيد جديد\n👤 المستخدم: ${name}\n📱 رقم المحفظة: ${walletInput}\n💰 المبلغ: ${amount} ج.م\n📅 الوقت: ${new Date().toLocaleString()}`;
+
+    const whatsapp = "201094965067"; 
+    window.open(`https://wa.me/${whatsapp}?text=${encodeURIComponent(msg)}`, "_blank");
+    toast("✅ تم فتح واتساب لإرسال طلب الشحن");
+  } catch (err) {
+    console.error("topup error", err);
+    toast("⚠️ فشل إرسال طلب الشحن", false);
+  }
+});
+
+(async function init(){
+  const ok = await checkAuth();
+  if(!ok) return;
   await loadWallet();
   await loadTransactions();
+  await loadInviteCodeAndProgress();
+  await loadDailyTasks();
+  try{
+    const { data } = await supabase.from('user_profiles').select('wallet_number').eq('user_id', currentUser.id).maybeSingle();
+    if(data?.wallet_number){
+      document.getElementById('withdrawPhone').value = data.wallet_number;
+      document.getElementById('withdrawPhone').disabled = true;
+    }
+  }catch(e){ console.warn('prefill profile failed', e); }
 })();
 </script>
 

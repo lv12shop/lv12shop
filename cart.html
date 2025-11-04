@@ -449,152 +449,82 @@ async function pushWalletHistory(user_id, amount, type, note = "") {
     console.warn("تعذر تسجيل حركة المحفظة:", err);
   }
 }
-
 checkoutBtn.addEventListener("click", async () => {
   if (!custName.value.trim() || !custPhone.value.trim() || !custAddress.value.trim()) {
-    showToast("يرجى تعبئة جميع الحقول المطلوبة", false);
+    showToast("❌ يرجى تعبئة جميع الحقول المطلوبة", false);
     return;
   }
+
   if (!cart.length) {
-    showToast("السلة فارغة", false);
+    showToast("🛒 السلة فارغة", false);
     return;
   }
+
   if (!currentUser) {
-    showToast("يرجى تسجيل الدخول أولاً", false);
+    showToast("🔐 يرجى تسجيل الدخول أولاً", false);
     setTimeout(() => (window.location.href = "shop-login.html"), 800);
     return;
   }
 
-  const selectedPay = document.querySelector('input[name="pay"]:checked')?.value || "cash";
-  const payMethod = selectedPay; 
+  const selectedPay = document.querySelector('input[name="pay"]:checked')?.value || "cod";
   const payRef = vodafoneNumber.value.trim() || null;
 
-  const deliveryISO = (() => {
-    if (deliveryDate.value) {
-      const dt = deliveryDate.value + (deliveryTime.value ? `T${deliveryTime.value}` : "T12:00");
-      return new Date(dt).toISOString();
-    } else {
-      const d = new Date();
-      d.setDate(d.getDate() + 3);
-      return d.toISOString();
-    }
-  })();
+  const deliveryISO = deliveryDate.value
+    ? new Date(`${deliveryDate.value}T${deliveryTime.value || "12:00"}`).toISOString()
+    : new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString();
 
-  const totals = calcTotals(); 
+  const totals = calcTotals();
   const grand = Number(totals.grand || 0);
 
-  const { data: walletData, error: walletErr } = await supabase
+  // 🪙 جلب رصيد المحفظة
+  const { data: walletData } = await supabase
     .from("wallet")
     .select("balance")
     .eq("user_id", currentUser.id)
     .single();
 
-  let walletBalance = 0;
-  if (!walletErr && walletData && typeof walletData.balance !== "undefined" && walletData.balance !== null) {
-    walletBalance = Number(walletData.balance);
-  } else {
-    await supabase.from("wallet").upsert({ user_id: currentUser.id, balance: 0 }, { onConflict: "user_id" });
-    walletBalance = 0;
-  }
+  let walletBalance = walletData?.balance ? Number(walletData.balance) : 0;
+  let walletDeducted = 0;
+  let remainingToPay = grand;
 
+  // 🧮 في حالة الدفع من المحفظة فقط
   if (selectedPay === "wallet") {
     if (walletBalance < grand) {
-      showToast("❌ الرصيد غير كافٍ لإتمام الطلب باستخدام المحفظة.", false);
-      return; 
-    }
-    const newBal = +(walletBalance - grand).toFixed(2);
-    const { error: updErr } = await supabase.from("wallet").update({ balance: newBal, updated_at: new Date().toISOString() }).eq("user_id", currentUser.id);
-    if (updErr) {
-      console.error("failed update wallet:", updErr);
-      showToast("❌ خطأ أثناء خصم الرصيد", false);
-      return;
-    }
-    await pushWalletHistory(currentUser.id, -grand, "deduct", `خصم مقابل طلب (كامل) رقم — تم الدفع من المحفظة`);
-    try {
-      await supabase.from("payment_profiles").upsert({
-        user_id: currentUser.id,
-        full_name: custName.value.trim(),
-        phone: custPhone.value.trim(),
-        address: custAddress.value.trim(),
-        pay_method: "wallet",
-        pay_ref: null
-      }, { onConflict: "user_id" });
-    } catch (e) { console.warn("upsert payment_profiles error", e); }
-
-    const orders = cart.map((p) => ({
-      user_id: currentUser.id,
-      name: custName.value.trim(),
-      phone: custPhone.value.trim(),
-      address: custAddress.value.trim(),
-      product_id: p.id,
-      quantity: p.quantity || 1,
-      price: p.price,
-      total_price: p.price * (p.quantity || 1),
-      status: "pending",
-      payment_method: "wallet",
-      payment_ref: null,
-      delivery_date: deliveryISO,
-      created_at: new Date().toISOString(),
-    }));
-
-    try {
-      const { error: insErr } = await supabase.from("orders").insert(orders);
-      if (insErr) {
-        console.error("orders insert error:", insErr);
-        showToast("❌ فشل حفظ الطلبات بعد خصم المحفظة", false);
-        return;
-      }
-    } catch (err) {
-      console.error(err);
-      showToast("❌ خطأ في حفظ الطلبات", false);
+      showToast("❌ الرصيد غير كافٍ في المحفظة", false);
       return;
     }
 
-    await loadWallet(); 
-    localStorage.removeItem("cart");
-    cart = [];
-    renderCart();
-    showToast("✅ تم الدفع من الرصيد وإتمام الطلب بنجاح");
-    setTimeout(() => (window.location.href = "my-orders.html"), 1200);
-    return;
+    walletDeducted = grand;
+    remainingToPay = 0;
   }
 
-  let remainingToPay = grand;
-  let walletDeducted = 0;
-
-  if (walletBalance > 0) {
+  // 🧮 في حالة الدفع المختلط (محفظة + كاش / فودافون)
+  else if (walletBalance > 0) {
     walletDeducted = Math.min(walletBalance, grand);
     remainingToPay = +(grand - walletDeducted).toFixed(2);
-
-    const newBal2 = +(walletBalance - walletDeducted).toFixed(2);
-    const { error: updErr2 } = await supabase.from("wallet").update({ balance: newBal2, updated_at: new Date().toISOString() }).eq("user_id", currentUser.id);
-    if (updErr2) {
-      console.error("failed update wallet:", updErr2);
-      showToast("❌ خطأ أثناء خصم الرصيد", false);
-      return;
-    }
-    await pushWalletHistory(currentUser.id, -walletDeducted, "deduct", `خصم جزئي مقابل طلب — جزء مدفوع من المحفظة`);
-    await loadWallet(); 
   }
 
-
-  if (selectedPay === "vodafone" && !payRef) {
+  const newBalance = +(walletBalance - walletDeducted).toFixed(2);
+  if (walletDeducted > 0) {
+    await supabase.from("wallet").update({ balance: newBalance }).eq("user_id", currentUser.id);
+    const { data: insertedHistory } = await supabase
+      .from("wallet_history")
+      .insert({
+        user_id: currentUser.id,
+        amount: -walletDeducted,
+        type: "order_payment",
+        note: `خصم مقابل شراء منتجات`,
+        details: `تم خصم ${walletDeducted} ج.م لشراء منتجات بقيمة ${grand} ج.م`,
+      })
+      .select()
+      .single();
   }
 
-  try {
-    await supabase.from("payment_profiles").upsert({
-      user_id: currentUser.id,
-      full_name: custName.value.trim(),
-      phone: custPhone.value.trim(),
-      address: custAddress.value.trim(),
-      pay_method: selectedPay,
-      pay_ref: payRef
-    }, { onConflict: "user_id" });
-  } catch (e) {
-    console.warn("upsert payment_profiles error", e);
-  }
+  const finalPaymentMethod = walletDeducted > 0
+    ? (remainingToPay > 0 ? "mixed" : "wallet")
+    : selectedPay;
 
-  const orders = cart.map((p) => ({
+  const orders = cart.map(p => ({
     user_id: currentUser.id,
     name: custName.value.trim(),
     phone: custPhone.value.trim(),
@@ -604,69 +534,59 @@ checkoutBtn.addEventListener("click", async () => {
     price: p.price,
     total_price: p.price * (p.quantity || 1),
     status: "pending",
-    payment_method: walletDeducted > 0 ? "mixed" : selectedPay,
+    payment_method: finalPaymentMethod,
     payment_ref: payRef,
-    wallet_paid: walletDeducted > 0 ? walletDeducted : 0,
-    remaining_to_pay: walletDeducted > 0 ? remainingToPay : grand,
+    wallet_paid: walletDeducted,
+    remaining_to_pay: remainingToPay,
     delivery_date: deliveryISO,
     created_at: new Date().toISOString(),
   }));
 
-  try {
-    const { error: insErr } = await supabase.from("orders").insert(orders);
-    if (insErr) {
-      console.error("orders insert error:", insErr);
-      showToast("❌ فشل حفظ الطلبات", false);
-      if (walletDeducted > 0) {
-        await supabase.from("wallet").update({ balance: (walletBalance).toFixed(2) }).eq("user_id", currentUser.id);
-        await pushWalletHistory(currentUser.id, walletDeducted, "add", "استرجاع رصيد بعد فشل حفظ الطلب");
-        await loadWallet();
-      }
-      return;
+  const { data: insertedOrders } = await supabase.from("orders").insert(orders).select();
+
+  // 🧾 توثيق في سجل الأدمن (علشان تتابع من صفحة الإدارة)
+  if (insertedOrders?.length) {
+    for (const order of insertedOrders) {
+      await supabase.from("wallet_admin_log").insert({
+        user_id: currentUser.id,
+        order_id: order.id,
+        action: "خصم من المحفظة",
+        amount: -walletDeducted,
+        note: `خصم ${walletDeducted} ج.م من المستخدم ${currentUser.email}`,
+      });
     }
-  } catch (err) {
-    console.error(err);
-    showToast("❌ خطأ في حفظ الطلبات", false);
-    if (walletDeducted > 0) {
-      await supabase.from("wallet").update({ balance: (walletBalance).toFixed(2) }).eq("user_id", currentUser.id);
-      await pushWalletHistory(currentUser.id, walletDeducted, "add", "استرجاع رصيد بعد خطأ غير متوقع");
-      await loadWallet();
-    }
-    return;
   }
 
-  let msg = `طلب جديد من متجر LV12%0A`;
-  msg += `الاسم: ${custName.value}%0Aالهاتف: ${custPhone.value}%0Aالعنوان: ${custAddress.value}%0A`;
-  if (walletDeducted > 0) {
-    msg += `تم خصم من المحفظة: ${formatEGP(walletDeducted)}%0Aالمتبقي للدفع: ${formatEGP(remainingToPay)} بواسطة ${selectedPay}%0A`;
-  } else {
-    msg += `طريقة الدفع: ${selectedPay === "vodafone" ? "فودافون كاش" : (selectedPay === "cod" ? "عند الاستلام" : selectedPay)}%0A`;
-  }
-  if (payRef) msg += `مرجع الدفع: ${payRef}%0A`;
-  msg += `--- تفاصيل الطلب --- %0A`;
-  cart.forEach((ci, i) => {
-    msg += `${i + 1}) ${ci.name} × ${ci.quantity} — ${formatEGP(ci.price)}%0A`;
+  // 💬 إرسال واتساب مع كود الدولة +20
+  const phoneWithCode = `20${"01094965067".replace(/^0/, "")}`;
+  let msg = `🛍️ طلب جديد من متجر LV12%0A`;
+  msg += `👤 الاسم: ${custName.value}%0A📞 الهاتف: ${custPhone.value}%0A🏠 العنوان: ${custAddress.value}%0A`;
+  msg += `💰 طريقة الدفع: ${
+    finalPaymentMethod === "mixed"
+      ? `جزء من المحفظة (${formatEGP(walletDeducted)}), والباقي ${selectedPay}`
+      : selectedPay === "cod"
+      ? "كاش عند الاستلام"
+      : selectedPay === "vodafone"
+      ? "فودافون كاش"
+      : "غير محدد"
+  }%0A`;
+  if (payRef) msg += `📄 مرجع الدفع: ${payRef}%0A`;
+  msg += `------------------%0A`;
+  cart.forEach((c, i) => {
+    msg += `${i + 1}) ${c.name} × ${c.quantity} = ${formatEGP(c.price * c.quantity)}%0A`;
   });
-  msg += `---%0Aالإجمالي: ${formatEGP(grand)}%0A`;
+  msg += `------------------%0Aالإجمالي: ${formatEGP(grand)}%0A`;
 
-  const whatsappNumber = "01094965067";
-  if (remainingToPay === 0) {
-    localStorage.removeItem("cart");
-    cart = [];
-    renderCart();
-    showToast("✅ تم الدفع من الرصيد وإتمام الطلب بنجاح");
-    setTimeout(() => (window.location.href = "my-orders.html"), 1200);
-    return;
-  }
+  window.open(`https://wa.me/${phoneWithCode}?text=${msg}`, "_blank");
 
-  window.open(`https://wa.me/${whatsappNumber}?text=${msg}`, "_blank");
-
+  // 🧹 تنظيف السلة
   localStorage.removeItem("cart");
   cart = [];
   renderCart();
-  showToast("✅ تم تسجيل الطلب بنجاح — يرجى إتمام المتبقي حسب الوسيلة المختارة");
+  showToast("✅ تم تسجيل الطلب بنجاح");
   setTimeout(() => (window.location.href = "my-orders.html"), 1200);
 });
+
 
 (async function init() {
   await checkAuth();

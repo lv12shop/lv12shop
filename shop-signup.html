@@ -3,130 +3,149 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  "name": "LV12 Shop",
-  "url": "https://lv12shop.shop",
-  "logo": "https://lv12shop.shop/lv12.png",
-  "sameAs": [
-    "https://www.facebook.com/",
-    "https://www.instagram.com/"
-  ]
-}
-</script>
 
-  <title>إنشاء حساب جديد | متجر LV12</title>
-  <meta name="description" content="✍️ أنشئ حسابك الآن في متجر LV12 واستمتع بتجربة تسوق مميزة، خصومات حصرية، وتتبع طلباتك بسهولة وأمان.">
+  <title>✨ إنشاء حساب جديد | متجر LV12</title>
+  <meta name="description" content="أنشئ حسابك الآن في متجر LV12 واستمتع بالمكافآت، العروض الحصرية، وبرنامج دعوة الأصدقاء!">
+  <link rel="icon" href="/lv12.ico" type="image/x-icon" />
+  <link rel="apple-touch-icon" href="/lv12-192.png" />
+  <meta name="theme-color" content="#2563eb" />
 
-  <meta property="og:title" content="إنشاء حساب جديد | متجر LV12" />
-  <meta property="og:description" content="انضم إلى متجر LV12 وتمتع بعروض وخصومات حصرية. تسوق بسهولة وأمان في جميع المحافظات المصرية." />
-  <meta property="og:image" content="https://www.lv12shop.shop/lv12.jpg" />
-  <meta property="og:url" content="https://www.lv12shop.shop/shop-signup.html" />
+  <meta property="og:title" content="إنشاء حساب جديد | LV12" />
+  <meta property="og:description" content="تسجّل الآن في متجر LV12 واحصل على مميزات خاصة ودعوة أصدقائك لربح المكافآت!" />
+  <meta property="og:image" content="https://lv12shop.shop/lv12.jpg" />
+  <meta property="og:url" content="https://lv12shop.shop/shop-signup.html" />
   <meta property="og:type" content="website" />
   <meta property="og:locale" content="ar_AR" />
 
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="إنشاء حساب جديد | متجر LV12" />
-  <meta name="twitter:description" content="🛍️ متجر LV12 يقدم تجربة تسوق ذكية وسريعة — أنشئ حسابك الآن وتمتع بالمميزات الكاملة!" />
-  <meta name="twitter:image" content="https://www.lv12shop.shop/lv12.jpg" />
-
-  <link rel="icon" href="/lv12.ico" type="image/x-icon" />
-  <link rel="apple-touch-icon" href="/lv12-192.png" />
-  <link rel="manifest" href="/manifest.json" />
-  <meta name="theme-color" content="#2563eb" />
+  <meta name="twitter:title" content="متجر LV12 | إنشاء حساب جديد" />
+  <meta name="twitter:description" content="🛍️ متجر LV12 يقدم لك خصومات ومكافآت عند التسجيل والدعوة!" />
+  <meta name="twitter:image" content="https://lv12shop.shop/lv12.jpg" />
 
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
-  <script async custom-element="amp-auto-ads"
-          src="https://cdn.ampproject.org/v0/amp-auto-ads-0.1.js"></script>
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7770714931220768"
-          crossorigin="anonymous"></script>
+  <style>
+    body { font-family: 'Cairo', sans-serif; background: #f1f5f9; }
+    .field { border: 1px solid #e5e7eb; padding: .75rem; border-radius: .5rem; width: 100%; }
+  </style>
 </head>
 
-<body class="bg-gray-100 flex items-center justify-center h-screen">
-<amp-auto-ads type="adsense"
-        data-ad-client="ca-pub-7770714931220768">
-</amp-auto-ads>
+<body class="flex items-center justify-center h-screen">
   <div class="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md">
     <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">✨ إنشاء حساب جديد</h2>
 
     <form id="signup-form" class="space-y-4">
-      <input type="text" id="full_name" placeholder="الاسم الكامل" class="w-full border p-3 rounded" required>
-      <input type="text" id="phone" placeholder="رقم الهاتف" class="w-full border p-3 rounded" required>
-      <input type="email" id="email" placeholder="البريد الإلكتروني" class="w-full border p-3 rounded" required>
-      <input type="password" id="password" placeholder="كلمة المرور" class="w-full border p-3 rounded" required>
+      <input type="text" id="full_name" placeholder="الاسم الكامل" class="field" required>
+      <input type="text" id="phone" placeholder="رقم الهاتف" class="field" required>
+      <input type="email" id="email" placeholder="البريد الإلكتروني" class="field" required>
+      <input type="password" id="password" placeholder="كلمة المرور" class="field" required>
+    <input type="text" id="referral_code" placeholder="كود الدعوة (اختياري)" class="w-full border p-3 rounded">
 
-      <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded hover:bg-blue-700">تسجيل</button>
+
+      <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded hover:bg-blue-700 transition">تسجيل</button>
     </form>
 
-    <p class="text-center text-sm mt-4">عندك حساب بالفعل؟
-   <a href="shop-login.html" class="text-blue-600 hover:underline">سجّل دخول</a>
-
+    <p class="text-center text-sm mt-4">
+      عندك حساب بالفعل؟
+      <a href="shop-login.html" class="text-blue-600 hover:underline">سجّل دخول</a>
     </p>
 
     <p id="message" class="text-center mt-4 text-sm"></p>
   </div>
-<script>
-  const supabase = window.supabase.createClient(
-    "https://nszhzfysitppxssplqfb.supabase.co",
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zemh6ZnlzaXRwcHhzc3BscWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA4OTcsImV4cCI6MjA3MzgwNjg5N30.5KvK4bhqkZ_GpIfED4qecIMfeubAJYwSFJslULwOp-w"
-  );
 
-  const form = document.getElementById("signup-form");
-  const message = document.getElementById("message");
+  <script>
+    const supabase = window.supabase.createClient(
+      "https://nszhzfysitppxssplqfb.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zemh6ZnlzaXRwcHhzc3BscWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA4OTcsImV4cCI6MjA3MzgwNjg5N30.5KvK4bhqkZ_GpIfED4qecIMfeubAJYwSFJslULwOp-w"
+    );
 
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
+    const form = document.getElementById("signup-form");
+    const message = document.getElementById("message");
 
-    const full_name = document.getElementById("full_name").value.trim();
-    const phone = document.getElementById("phone").value.trim();
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value.trim();
-
-    if (!full_name || !email || !password) {
-      message.textContent = "❌ الرجاء إدخال كل البيانات المطلوبة";
-      message.className = "text-center mt-4 text-sm text-red-600";
-      return;
+    // استخراج كود الدعوة من الرابط (مثلاً ?ref=ABC123)
+    const urlParams = new URLSearchParams(window.location.search);
+    const refCode = urlParams.get("ref");
+    if (refCode) {
+      document.getElementById("referral_code").value = refCode.toUpperCase();
     }
 
-    if (password.length < 6) {
-      message.textContent = "⚠️ كلمة المرور يجب أن تكون على الأقل 6 أحرف";
-      message.className = "text-center mt-4 text-sm text-yellow-600";
-      return;
-    }
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
 
-    message.textContent = "⏳ جاري إنشاء الحساب...";
-    message.className = "text-center mt-4 text-sm text-gray-600";
+      const full_name = document.getElementById("full_name").value.trim();
+      const phone = document.getElementById("phone").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const referral_code = document.getElementById("referral_code").value.trim();
 
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { full_name, phone },
-      },
+      if (!full_name || !email || !password) {
+        showMsg("❌ الرجاء إدخال كل البيانات المطلوبة", "red");
+        return;
+      }
+
+      if (password.length < 6) {
+        showMsg("⚠️ كلمة المرور يجب أن تكون على الأقل 6 أحرف", "yellow");
+        return;
+      }
+
+      showMsg("⏳ جاري إنشاء الحساب...", "gray");
+
+      // إنشاء الحساب في Supabase
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { full_name, phone } },
+      });
+
+      if (error) {
+        showMsg("❌ فشل إنشاء الحساب: " + error.message, "red");
+        return;
+      }
+
+      const newUserId = data.user.id;
+
+      // حفظ الملف الشخصي في جدول user_profiles
+      await supabase.from("user_profiles").upsert({
+        user_id: newUserId,
+        full_name,
+        phone,
+        created_at: new Date().toISOString()
+      });
+
+      // إذا فيه كود دعوة
+      if (referral_code) {
+        try {
+          await supabase.from("referrals").insert({
+            inviter_code: referral_code,
+            invited_id: newUserId,
+            status: "pending",
+            created_at: new Date().toISOString()
+          });
+          console.log("✅ تمت إضافة الدعوة للمراجعة");
+        } catch (e) {
+          console.error("❌ فشل حفظ الدعوة:", e);
+        }
+      }
+
+      showMsg("✅ تم إنشاء الحساب بنجاح! سيتم تحويلك لتسجيل الدخول...", "green");
+
+      setTimeout(() => {
+        window.location.href = "shop-login.html";
+      }, 1800);
     });
 
-    if (error) {
-      message.textContent = "❌ فشل إنشاء الحساب: " + error.message;
-      message.className = "text-center mt-4 text-sm text-red-600";
-      return;
+    function showMsg(text, color = "gray") {
+      const colors = {
+        red: "text-red-600",
+        yellow: "text-yellow-600",
+        green: "text-green-600",
+        gray: "text-gray-600"
+      };
+      message.className = `text-center mt-4 text-sm ${colors[color] || "text-gray-600"}`;
+      message.textContent = text;
     }
-
-    message.textContent =
-      "✅ تم التسجيل بنجاح! تحقق من بريدك الإلكتروني لتفعيل الحساب (إن كان مطلوبًا)";
-    message.className = "text-center mt-4 text-sm text-green-600";
-
-    setTimeout(() => {
-      window.location.href = "shop-login.html";
-    }, 2000);
-  });
-</script>
-
+  </script>
 </body>
 </html>
-
-

@@ -286,68 +286,86 @@ async function loadOrders() {
 
   loadingBar.classList.add('hidden');
 }
-
 function renderOrders() {
   ordersBody.innerHTML = '';
 
   if (!orders.length) {
-    ordersBody.innerHTML = `<tr><td colspan="12" class="p-4 text-center text-gray-500">🚫 لا توجد طلبات</td></tr>`;
+    ordersBody.innerHTML = `
+      <tr>
+        <td colspan="12" class="p-4 text-center text-gray-500">
+          🚫 لا توجد طلبات حالياً
+        </td>
+      </tr>`;
     return;
   }
 
-  orders.forEach(o => {
+  const formatPrice = (num) => Number(num || 0).toLocaleString('ar-EG') + ' ج.م';
+
+  const statusMap = {
+    pending: ['bg-yellow-100 text-yellow-800', '🕒 معلقة'],
+    shipped: ['bg-blue-100 text-blue-800', '🚚 قيد التوصيل'],
+    delivered: ['bg-green-100 text-green-800', '✅ تم التسليم'],
+    return_requested: ['bg-orange-100 text-orange-800', '🔁 طلب استرجاع'],
+    replaced: ['bg-purple-100 text-purple-800', '🔄 استبدال'],
+    refunded: ['bg-emerald-100 text-emerald-800', '💵 استرجاع نقدي'],
+    cancelled: ['bg-red-100 text-red-800', '❌ ملغاة']
+  };
+
+  const paymentIcons = {
+    cod: ['bg-gray-200 text-gray-800', '💵 كاش عند الاستلام'],
+    cash: ['bg-gray-200 text-gray-800', '💵 كاش عند الاستلام'],
+    vodafone: ['bg-red-100 text-red-800', '📱 فودافون كاش'],
+    wallet: ['bg-emerald-100 text-emerald-800', '💰 من المحفظة'],
+    mixed: ['bg-yellow-100 text-yellow-800', '🧩 مختلط'],
+    online: ['bg-blue-200 text-blue-800', '💳 أونلاين']
+  };
+
+  const rows = orders.map(o => {
     const prod = o.products || {};
     const price = prod.price || 0;
-    const total = price * o.quantity;
-    const prodImg = prod.image ? `<img src="${prod.image}" class="w-12 h-12 rounded object-cover" />` : '';
+    const total = price * (o.quantity || 1);
 
-    const statusMap = {
-      pending: ['bg-yellow-100 text-yellow-800', '🕒 معلقة'],
-      shipped: ['bg-blue-100 text-blue-800', '🚚 قيد التوصيل'],
-      delivered: ['bg-green-100 text-green-800', '✅ تم التسليم'],
-      return_requested: ['bg-orange-100 text-orange-800', '🔁 طلب استرجاع'],
-      replaced: ['bg-purple-100 text-purple-800', '🔄 استبدال'],
-      refunded: ['bg-emerald-100 text-emerald-800', '💵 استرجاع نقدي'],
-      cancelled: ['bg-red-100 text-red-800', '❌ ملغاة']
-    };
+    const prodImg = prod.image
+      ? `<img src="${prod.image}" alt="${prod.name}" class="w-12 h-12 rounded border object-cover" />`
+      : `<div class="w-12 h-12 rounded bg-gray-100 flex items-center justify-center text-xs text-gray-500">بدون</div>`;
 
     const [bg, label] = statusMap[o.status] || ['bg-gray-100 text-gray-800', 'غير معروف'];
     const statusHTML = `<span class="pill ${bg}">${label}</span>`;
 
-    const paymentHTML = o.payment_method === "cash"
-      ? `<span class="pill bg-gray-200 text-gray-800">💵 كاش</span>`
-      : `<span class="pill bg-blue-200 text-blue-800">💳 أونلاين</span>`;
+    const pay = o.payment_method?.toLowerCase() || 'cod';
+    const [pbg, ptxt] = paymentIcons[pay] || ['bg-gray-100 text-gray-700', '💵 غير محدد'];
+    const paymentHTML = `<span class="pill ${pbg}">${ptxt}</span>`;
 
     let actions = `
-      <button onclick="viewDetails(${o.id})" class="bg-gray-600 text-white text-xs px-2 py-1 rounded">🔍 تفاصيل</button>
-      <button onclick="downloadPDF(${o.id})" class="bg-indigo-600 text-white text-xs px-2 py-1 rounded">📄 فاتورة</button>
-      <button onclick="editDelivery(${o.id}, '${o.delivery_date || ''}', '${o.delivery_time || ''}')" class="bg-orange-500 text-white text-xs px-2 py-1 rounded">⏰ تعديل موعد</button>
+      <button onclick="viewDetails(${o.id})" class="bg-gray-600 hover:bg-gray-700 text-white text-xs px-2 py-1 rounded">🔍 تفاصيل</button>
+      <button onclick="downloadPDF(${o.id})" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-2 py-1 rounded">📄 فاتورة</button>
+      <button onclick="editDelivery(${o.id}, '${o.delivery_date || ''}', '${o.delivery_time || ''}')" class="bg-orange-500 hover:bg-orange-600 text-white text-xs px-2 py-1 rounded">⏰ تعديل موعد</button>
     `;
 
     if (o.status === 'pending') {
       actions += `
-        <button onclick="updateStatus(${o.id},${o.product_id},${o.quantity},'shipped')" class="bg-blue-600 text-white text-xs px-2 py-1 rounded">🚚 شحن</button>
-        <button onclick="updateStatus(${o.id},${o.product_id},${o.quantity},'cancelled')" class="bg-red-600 text-white text-xs px-2 py-1 rounded">❌ إلغاء</button>`;
+        <button onclick="updateStatus(${o.id},${o.product_id},${o.quantity},'shipped')" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-2 py-1 rounded">🚚 شحن</button>
+        <button onclick="updateStatus(${o.id},${o.product_id},${o.quantity},'cancelled')" class="bg-red-600 hover:bg-red-700 text-white text-xs px-2 py-1 rounded">❌ إلغاء</button>`;
     } else if (o.status === 'shipped') {
       actions += `
-        <button onclick="updateStatus(${o.id},${o.product_id},${o.quantity},'delivered')" class="bg-green-600 text-white text-xs px-2 py-1 rounded">✅ تسليم</button>`;
+        <button onclick="updateStatus(${o.id},${o.product_id},${o.quantity},'delivered')" class="bg-green-600 hover:bg-green-700 text-white text-xs px-2 py-1 rounded">✅ تسليم</button>`;
     } else if (o.status === 'return_requested') {
       actions += `
-        <button onclick="resolveReturn(${o.id},'replaced')" class="bg-purple-600 text-white text-xs px-2 py-1 rounded">🔁 استبدال</button>
-        <button onclick="resolveReturn(${o.id},'refunded')" class="bg-emerald-600 text-white text-xs px-2 py-1 rounded">💵 استرجاع نقدي</button>
-        <button onclick="resolveReturn(${o.id},'delivered')" class="bg-gray-500 text-white text-xs px-2 py-1 rounded">❌ رفض</button>`;
+        <button onclick="resolveReturn(${o.id},'replaced')" class="bg-purple-600 hover:bg-purple-700 text-white text-xs px-2 py-1 rounded">🔁 استبدال</button>
+        <button onclick="resolveReturn(${o.id},'refunded')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-2 py-1 rounded">💵 استرجاع</button>
+        <button onclick="resolveReturn(${o.id},'delivered')" class="bg-gray-500 hover:bg-gray-600 text-white text-xs px-2 py-1 rounded">❌ رفض</button>`;
     }
 
-    ordersBody.innerHTML += `
-      <tr class="border-b bg-white">
-        <td class="p-3">${o.id}</td>
+    return `
+      <tr class="border-b bg-white hover:bg-gray-50 transition">
+        <td class="p-3 font-semibold text-gray-700">#${o.id}</td>
         <td class="p-3">${o.name || '-'}</td>
         <td class="p-3">${o.phone || '-'}</td>
         <td class="p-3">${o.address || '-'}</td>
-        <td class="p-3 flex gap-2 items-center">${prodImg} ${prod.name || '-'}</td>
-        <td class="p-3">${price} ج.م</td>
+        <td class="p-3 flex gap-2 items-center">${prodImg}<span>${prod.name || '-'}</span></td>
+        <td class="p-3">${formatPrice(price)}</td>
         <td class="p-3">${o.quantity}</td>
-        <td class="p-3 font-bold text-blue-700">${total} ج.م</td>
+        <td class="p-3 font-bold text-blue-700">${formatPrice(total)}</td>
         <td class="p-3">${paymentHTML}</td>
         <td class="p-3">${o.delivery_date || '-'} ${o.delivery_time || ''}</td>
         <td class="p-3">${statusHTML}</td>
@@ -355,7 +373,11 @@ function renderOrders() {
       </tr>`;
   });
 
-  summaryEl.textContent = `عرض ${(page - 1) * pageSize + 1} إلى ${Math.min(page * pageSize, totalCount)} من ${totalCount}`;
+  ordersBody.innerHTML = rows.join('');
+
+  const start = (page - 1) * pageSize + 1;
+  const end = Math.min(page * pageSize, totalCount);
+  summaryEl.textContent = `عرض ${start} إلى ${end} من ${totalCount} طلب`;
   pageInfo.textContent = `صفحة ${page}`;
 }
 

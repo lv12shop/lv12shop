@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>لوحة إدارة المحفظة — LV12 (واجهة الأدمن)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { font-family: 'Cairo', sans-serif; background:#f3f4f6; }
+    .tab-active { background: #2563eb; color: white; }
+    .hidden { display: none; }
+    .card { background: white; border-radius: 12px; box-shadow: 0 6px 18px rgba(15,23,42,0.06); }
+    .pill { padding: .25rem .5rem; border-radius: .5rem; font-weight:600; font-size:.85rem; }
+  </style>
+</head>
+<body class="min-h-screen p-6">
+
+  <!-- Header -->
+  <header class="flex items-center justify-between mb-6">
+    <div class="flex items-center gap-3">
+      <img src="lv12.ico" alt="LV12" class="w-12 h-12 rounded" />
+      <div>
+        <h1 class="text-2xl font-bold text-blue-700">💼 لوحة إدارة المحفظة — LV12</h1>
+        <p class="text-sm text-gray-600">التحكم في المهام، الدعوات، السحب، والمحافظ</p>
+      </div>
+    </div>
+
+    <!-- عرض إيميل الأدمن المتحقق -->
+    <div id="adminArea" class="text-sm text-gray-700"></div>
+  </header>
+
+  <!-- تبويبات رئيسية -->
+  <nav class="mb-4 flex flex-wrap gap-2">
+    <button class="tab btn tab-active px-4 py-2 rounded" data-tab="dashboard">🏠 لوحة التحكم</button>
+    <button class="tab btn px-4 py-2 rounded" data-tab="manageTasks">🎯 إدارة المهام</button>
+    <button class="tab btn px-4 py-2 rounded" data-tab="submittedTasks">📩 المهام المرسلة</button>
+    <button class="tab btn px-4 py-2 rounded" data-tab="wallets">📁 المحافظ</button>
+    <button class="tab btn px-4 py-2 rounded" data-tab="withdraws">💳 طلبات السحب</button>
+    <button class="tab btn px-4 py-2 rounded" data-tab="transactions">📜 العمليات</button>
+    <button class="tab btn px-4 py-2 rounded" data-tab="users">👥 المستخدمين</button>
+    <button class="tab btn px-4 py-2 rounded" data-tab="referrals">🤝 الدعوات</button>
+  </nav>
+
+  <!-- محتوى التبويبات -->
+  <main>
+
+    <!-- ====== Dashboard ====== -->
+    <section id="dashboard" class="tab-content card p-6 mb-6">
+      <h2 class="text-lg font-bold mb-3">📊 ملخص سريع</h2>
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="p-4 card">
+          <div class="text-xs text-gray-500">إجمالي المستخدمين</div>
+          <div id="statUsers" class="text-2xl font-bold mt-2">--</div>
+        </div>
+        <div class="p-4 card">
+          <div class="text-xs text-gray-500">مجموع أرصدة المحفظة</div>
+          <div id="statTotalBalance" class="text-2xl font-bold mt-2">-- ج.م</div>
+        </div>
+        <div class="p-4 card">
+          <div class="text-xs text-gray-500">مهام معلقة</div>
+          <div id="statPendingTasks" class="text-2xl font-bold mt-2">--</div>
+        </div>
+        <div class="p-4 card">
+          <div class="text-xs text-gray-500">طلبات سحب منتظرة</div>
+          <div id="statWithdraws" class="text-2xl font-bold mt-2">--</div>
+        </div>
+      </div>
+      <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div class="card p-4">
+          <h3 class="font-semibold mb-2">📈 آخر الحركات</h3>
+          <div id="dashboardRecentTransactions" class="text-sm text-gray-700"></div>
+        </div>
+        <div class="card p-4">
+          <h3 class="font-semibold mb-2">🕒 نشاط الدعوات خلال 24 ساعة</h3>
+          <div id="dashboardRecentReferrals" class="text-sm text-gray-700"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====== Manage Tasks (Add/Edit Daily Tasks) ====== -->
+    <section id="manageTasks" class="tab-content hidden card p-6 mb-6">
+      <h2 class="text-lg font-bold mb-3">🎯 إدارة المهام اليومية</h2>
+  <div id="tasksListAdmin"></div>
+      <!-- Form لإضافة مهمة -->
+      <form id="taskForm" class="space-y-3">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <label class="text-sm font-medium">عنوان المهمة</label>
+            <input id="taskTitle" type="text" class="w-full border p-2 rounded" placeholder="مثال: مشاهدة المنتجات" required />
+          </div>
+          <div>
+            <label class="text-sm font-medium">المدة (دقائق)</label>
+            <input id="taskDuration" type="number" min="1" class="w-full border p-2 rounded" value="10" required />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div>
+            <label class="text-sm font-medium">المكافأة (ج.م)</label>
+            <input id="taskReward" type="number" min="0" step="0.01" class="w-full border p-2 rounded" value="5" required />
+          </div>
+          <div>
+            <label class="text-sm font-medium">عدد مرات التكرار باليوم</label>
+            <input id="taskRepeat" type="number" min="1" class="w-full border p-2 rounded" value="1" required />
+          </div>
+          <div>
+            <label class="text-sm font-medium">صلاحية المهمة (ساعات)</label>
+            <input id="taskExpiry" type="number" min="1" class="w-full border p-2 rounded" value="24" required />
+          </div>
+        </div>
+
+        <div>
+          <label class="text-sm font-medium">وصف المهمة (اختياري)</label>
+          <textarea id="taskDescription" rows="3" class="w-full border p-2 rounded" placeholder="اشرح المطلوب من المستخدم"></textarea>
+        </div>
+
+        <div class="flex gap-3">
+          <button id="saveTaskBtn" type="button" class="bg-blue-600 text-white px-4 py-2 rounded">💾 حفظ المهمة</button>
+          <button id="resetTaskBtn" type="button" class="bg-gray-200 px-4 py-2 rounded">إعادة تعيين</button>
+        </div>
+      </form>
+
+      <hr class="my-4" />
+
+      <h3 class="font-semibold mb-2">قائمة المهام الحالية</h3>
+      <div id="tasksListAdmin" class="divide-y"></div>
+    </section>
+
+    <!-- ====== Submitted Tasks (Users completed tasks waiting review) ====== -->
+    <section id="submittedTasks" class="tab-content hidden card p-6 mb-6">
+      <h2 class="text-lg font-bold mb-3">📩 المهام المرسلة للمراجعة</h2>
+
+      <div class="mb-3">
+        <label class="text-sm">فلتر الحالة</label>
+        <select id="submittedFilter" class="border p-2 rounded">
+          <option value="pending">معلقة</option>
+          <option value="suspicious">مشتبه بها</option>
+          <option value="completed">مكتملة</option>
+          <option value="approved">تمت الموافقة</option>
+          <option value="rejected">مرفوضة</option>
+        </select>
+      </div>
+
+      <div id="submittedTasksList" class="divide-y"></div>
+    </section>
+
+    <!-- ====== Wallets list and manual add balance ====== -->
+    <section id="wallets" class="tab-content hidden card p-6 mb-6">
+      <h2 class="text-lg font-bold mb-3">📁 المحافظ & إضافة رصيد</h2>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div class="card p-4">
+          <h3 class="font-semibold mb-2">إضافة رصيد يدوي</h3>
+          <label class="text-sm">اختر مستخدم (UUID أو الايميل)</label>
+          <input id="manualUser" type="text" class="w-full border p-2 rounded mb-2" placeholder="user_id أو email" />
+          <label class="text-sm">المبلغ (ج.م)</label>
+          <input id="manualAmount" type="number" step="0.01" class="w-full border p-2 rounded mb-3" />
+          <label class="text-sm">ملاحظة (اختياري)</label>
+          <input id="manualNote" type="text" class="w-full border p-2 rounded mb-3" placeholder="مثال: مكافأة ترويج" />
+          <div class="flex gap-2">
+            <button id="addBalanceBtnAdmin" class="bg-green-600 text-white px-4 py-2 rounded">➕ إضافة الرصيد</button>
+            <button id="openBulkBtn" class="bg-gray-200 px-4 py-2 rounded">رفع دفعة</button>
+          </div>
+        </div>
+
+        <div class="lg:col-span-2 card p-4">
+          <h3 class="font-semibold mb-2">قائمة المحافظ</h3>
+          <div class="mb-3">
+            <input id="walletSearch" type="text" class="border p-2 rounded w-full" placeholder="بحث باسم المستخدم أو uuid..." />
+          </div>
+          <div id="walletsListAdmin" class="divide-y text-sm"></div>
+        </div>
+      </div>
+      <div class="card p-4 mt-6 bg-red-50 border border-red-300">
+  <h3 class="font-semibold mb-2 text-red-600">➖ خصم مبلغ من محفظة</h3>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+    <div>
+      <label class="text-sm font-medium">اختر محفظة</label>
+      <select id="deductUserSelect" class="border p-2 rounded w-full">
+        <option value="">-- اختر محفظة --</option>
+      </select>
+    </div>
+    <div>
+      <label class="text-sm font-medium">المبلغ المراد خصمه (ج.م)</label>
+      <input id="deductAmount" type="number" step="0.01" class="border p-2 rounded w-full" placeholder="0.00" />
+    </div>
+    <div>
+      <label class="text-sm font-medium">السبب / الملاحظة</label>
+      <input id="deductNote" type="text" class="border p-2 rounded w-full" placeholder="مثال: خصم مخالفة" />
+    </div>
+  </div>
+  <button id="deductBtn" class="mt-3 bg-red-600 text-white px-4 py-2 rounded">💸 تنفيذ الخصم</button>
+</div>
+
+    </section>
+
+    <!-- ====== Withdraw requests ====== -->
+    <section id="withdraws" class="tab-content hidden card p-6 mb-6">
+      <h2 class="text-lg font-bold mb-3">💳 طلبات السحب</h2>
+      <div id="withdrawsListAdmin" class="divide-y"></div>
+    </section>
+
+    <!-- ====== Transactions ====== -->
+    <section id="transactions" class="tab-content hidden card p-6 mb-6">
+      <h2 class="text-lg font-bold mb-3">📜 سجل الحركات (wallet_history)</h2>
+      <div class="mb-3 flex gap-2">
+        <input id="txnSearch" type="text" class="border p-2 rounded w-1/3" placeholder="بحث بالمستخدم أو الملاحظة" />
+        <select id="txnTypeFilter" class="border p-2 rounded">
+          <option value="">الكل</option>
+          <option value="add">إضافة</option>
+          <option value="deduct">خصم</option>
+          <option value="reward">مكافأة</option>
+          <option value="withdraw">سحب</option>
+        </select>
+        <button id="txnRefresh" class="bg-blue-600 text-white px-3 py-2 rounded">تحديث</button>
+      </div>
+      <div id="transactionsListAdmin" class="divide-y text-sm"></div>
+    </section>
+
+    <!-- ====== Users ====== -->
+    <section id="users" class="tab-content hidden card p-6 mb-6">
+      <h2 class="text-lg font-bold mb-3">👥 المستخدمين</h2>
+      <div class="mb-3 flex gap-2">
+        <input id="userSearch" type="text" class="border p-2 rounded w-1/3" placeholder="ابحث بإيميل أو uuid" />
+        <button id="userRefresh" class="bg-blue-600 text-white px-3 py-2 rounded">تحديث</button>
+      </div>
+      <div id="usersListAdmin" class="divide-y text-sm"></div>
+    </section>
+
+    <!-- ====== Referrals ====== -->
+    <section id="referrals" class="tab-content hidden card p-6 mb-6">
+      <h2 class="text-lg font-bold mb-3">🤝 الإحالات (Referrals)</h2>
+      <div class="mb-3">
+        <label>مكافأة الدعوة الافتراضية (ج.م)</label>
+        <input id="defaultReferralReward" type="number" step="0.01" value="5" class="border p-2 rounded w-32" />
+        <button id="saveDefaultReferral" class="bg-blue-600 text-white px-3 py-2 rounded ml-2">حفظ</button>
+      </div>
+      <div id="referralsListAdmin" class="divide-y text-sm"></div>
+    </section>
+
+  </main>
+
+  <!-- Modal بسيط (مثال) -->
+  <div id="confirmModal" class="hidden fixed inset-0 bg-black/40 items-center justify-center z-50">
+    <div class="bg-white p-4 rounded w-full max-w-md">
+      <h3 class="font-bold mb-2">تأكيد</h3>
+      <div id="confirmText" class="mb-4 text-sm text-gray-700"></div>
+      <div class="flex justify-end gap-2">
+        <button id="confirmNo" class="px-3 py-2 rounded bg-gray-200">إلغاء</button>
+        <button id="confirmYes" class="px-3 py-2 rounded bg-red-600 text-white">نعم متأكد</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.querySelectorAll('.tab').forEach(btn=>{
+      btn.addEventListener('click', ()=> {
+        document.querySelectorAll('.tab').forEach(b => b.classList.remove('tab-active'));
+        btn.classList.add('tab-active');
+        document.querySelectorAll('.tab-content').forEach(s => s.classList.add('hidden'));
+        const id = btn.dataset.tab;
+        document.getElementById(id).classList.remove('hidden');
+        window.scrollTo({top:0, behavior:'smooth'});
+      });
+    });
+
+  </script>
+  <script>
+/*
+  الجزء الثاني: منطق لوحة إدارة المحفظة (Admin JS)
+  - تحقق الأدمن
+  - CRUD للمهام اليومية (daily_tasks)
+  - مراجعة مهام المستخدمين (user_tasks) مع تحقق زمن المهمة لمنع الغش
+  - إدارة المحافظ (wallet) و wallet_history
+  - إدارة الدعوات (referrals) وطلبات السحب (withdraw_requests)
+  - عناصر واجهة مرتبطة بعناصر الجزء الأول (IDs)
+*/
+
+const SUPABASE_URL = "https://nszhzfysitppxssplqfb.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zemh6ZnlzaXRwcHhzc3BscWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA4OTcsImV4cCI6MjA3MzgwNjg5N30.5KvK4bhqkZ_GpIfED4qecIMfeubAJYwSFJslULwOp-w";
+const ADMIN_EMAIL = "lv12wlv12@gmail.com";
+
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ---------- utilities ----------
+function el(id){ return document.getElementById(id); }
+function fmtEGP(n){ return (Number(n || 0)).toLocaleString('ar-EG') + ' ج.م'; }
+function shortId(u){ return (u||'').toString().slice(0,8); }
+
+function toast(msg, type='ok'){
+  const d = document.createElement('div');
+  d.className = 'toast';
+  d.style.background = type === 'error' ? '#dc2626' : '#16a34a';
+  d.textContent = msg;
+  document.body.appendChild(d);
+  setTimeout(()=> d.remove(), 3000);
+}
+
+// ---------- admin auth check ----------
+async function checkAdmin(){
+  try{
+    const { data } = await supabase.auth.getSession();
+    const user = data?.session?.user;
+    if(!user || (user.email||'').toLowerCase() !== ADMIN_EMAIL.toLowerCase()){
+      alert('🚫 غير مصرح لك بالدخول');
+      window.location.href = 'shop-login.html';
+      return false;
+    }
+    el('adminArea').textContent = user.email;
+    return true;
+  } catch(err){
+    console.error('auth check err', err);
+    alert('خطأ في التحقق من الجلسة');
+    return false;
+  }
+}
+
+// ---------- INIT / STATS ----------
+async function loadStats(){
+  try{
+    const [{ data: usersCount }, { data: totalBalance }, { data: pendingTasks }, { data: pendingWithdraws }] = await Promise.all([
+      supabase.from('wallet').select('user_id', { count: 'exact' }),
+      supabase.rpc ? supabase.rpc('sum_wallet_balances') : supabase.from('wallet').select('balance'),
+      supabase.from('user_tasks').select('id', { count: 'exact' }).eq('status','pending'),
+      supabase.from('withdraw_requests').select('id', { count: 'exact' }).eq('status','pending')
+    ]);
+
+    // users count
+    const uc = usersCount?.length ?? (usersCount?.count ?? 0);
+    el('statUsers').textContent = uc || 0;
+
+    // total balance (sum)
+    if(totalBalance?.length){
+      const sum = totalBalance.reduce((s,r)=> s + Number(r.balance||0), 0);
+      el('statTotalBalance').textContent = fmtEGP(sum);
+    } else if (totalBalance?.sum) {
+      el('statTotalBalance').textContent = fmtEGP(totalBalance.sum);
+    } else {
+      // fallback: query sum via SQL
+      const { data: sdata } = await supabase.rpc('sum_wallet_balances').catch(()=>({ data: null }));
+      if(sdata && typeof sdata === 'number') el('statTotalBalance').textContent = fmtEGP(sdata);
+      else el('statTotalBalance').textContent = '-- ج.م';
+    }
+
+    const pt = pendingTasks?.count ?? (pendingTasks?.length ?? 0);
+    const pw = pendingWithdraws?.count ?? (pendingWithdraws?.length ?? 0);
+    el('statPendingTasks').textContent = pt || 0;
+    el('statWithdraws').textContent = pw || 0;
+
+  }catch(err){ console.error('loadStats err', err); }
+}
+
+// note: optional RPC creation (run once in SQL if you want):
+// create function sum_wallet_balances() returns numeric as $$ select coalesce(sum(balance),0) from wallet; $$ language sql stable;
+
+//
+// ---------- DAILY TASKS (admin) ----------
+//
+// 🧭 تحميل المهام اليومية (للمراجعة أو التعديل من الأدمن)
+async function loadDailyTasksAdmin(){
+  const { data, error } = await supabase
+    .from('daily_tasks')
+    .select('*')
+    .order('id', { ascending: true });
+
+  if (error) {
+    console.error('loadDailyTasksAdmin', error);
+    return;
+  }
+
+  const container = document.getElementById('tasksListAdmin');
+  if (!container) return;
+
+  container.innerHTML = data?.length
+    ? data.map(t => `
+      <div class="p-3 flex justify-between items-center border-b">
+        <div>
+          <div class="font-semibold">${t.title} <span class="text-xs text-gray-500">(#${t.id})</span></div>
+          <div class="text-sm text-gray-600">${t.description || ''}</div>
+          <div class="text-xs text-gray-500 mt-1">
+            ⏱️ المدة: ${t.duration_minutes} دقيقة · 💰 المكافأة: ${t.reward} ج.م · 🔁 تكرار/يوم: ${t.repeat_per_day || 1}
+          </div>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="editDailyTask(${t.id})" class="px-2 py-1 text-xs bg-yellow-400 rounded">✏️ تعديل</button>
+          <button onclick="deleteDailyTask(${t.id})" class="px-2 py-1 text-xs bg-red-500 text-white rounded">🗑️ حذف</button>
+        </div>
+      </div>`
+    ).join('')
+    : `<div class="p-3 text-gray-500">لا توجد مهام حالياً</div>`;
+}
+
+async function deleteDailyTask(id){
+  if (!confirm("هل أنت متأكد من حذف هذه المهمة؟")) return;
+  const { error } = await supabase.from('daily_tasks').delete().eq('id', id);
+  if (!error){
+    alert("🗑️ تم حذف المهمة");
+    loadDailyTasksAdmin();
+  } else {
+    alert("❌ حدث خطأ أثناء الحذف");
+  }
+}
+
+async function editDailyTask(id){
+  const title = prompt("📝 أدخل العنوان الجديد:");
+  const reward = +prompt("💰 أدخل المكافأة:");
+  if(!title || !reward) return alert("❌ أدخل البيانات كاملة");
+  const { error } = await supabase.from('daily_tasks').update({ title, reward }).eq('id', id);
+  if(!error){
+    alert("✅ تم تحديث المهمة بنجاح");
+    loadDailyTasksAdmin();
+  } else {
+    alert("❌ فشل التحديث");
+  }
+}
+
+async function saveDailyTaskFromForm(){
+  const title = el('taskTitle').value.trim();
+  const duration = parseInt(el('taskDuration').value) || 10;
+  const reward = Number(el('taskReward').value) || 0;
+  const repeat = parseInt(el('taskRepeat').value) || 1;
+  const expiry = parseInt(el('taskExpiry').value) || 24;
+  const desc = el('taskDescription').value.trim();
+
+  if(!title){ toast('ادخل عنوان المهمة', 'error'); return; }
+
+  // insert
+  const { data, error } = await supabase.from('daily_tasks').insert([{
+    title, description: desc, duration_minutes: duration,
+    reward, repeat_per_day: repeat, expires_in_hours: expiry
+  }]).select().single();
+
+  if(error){ console.error('saveDailyTask', error); toast('فشل الحفظ', 'error'); return; }
+  toast('تمت إضافة المهمة ✅');
+  // reset form
+  el('taskForm').reset();
+  el('taskDuration').value = 10;
+  el('taskReward').value = 5;
+  el('taskRepeat').value = 1;
+  el('taskExpiry').value = 24;
+  loadDailyTasksAdmin();
+}
+
+async function editDailyTask(id){
+  // fetch record and populate form for editing; save will perform update if id present
+  const { data, error } = await supabase.from('daily_tasks').select('*').eq('id',id).single();
+  if(error){ console.error('editDailyTask', error); toast('فشل جلب المهمة', 'error'); return; }
+  el('taskTitle').value = data.title || '';
+  el('taskDuration').value = data.duration_minutes || 10;
+  el('taskReward').value = data.reward || 0;
+  el('taskRepeat').value = data.repeat_per_day || 1;
+  el('taskExpiry').value = data.expires_in_hours || 24;
+  el('taskDescription').value = data.description || '';
+
+  // change save button to update mode
+  el('saveTaskBtn').textContent = 'تحديث المهمة';
+  el('saveTaskBtn').dataset.editId = id;
+}
+
+async function deleteDailyTask(id){
+  if(!confirm('هل تريد حذف هذه المهمة؟')) return;
+  const { error } = await supabase.from('daily_tasks').delete().eq('id', id);
+  if(error){ console.error('deleteDailyTask', error); toast('فشل الحذف','error'); return; }
+  toast('تم حذف المهمة');
+  loadDailyTasksAdmin();
+}
+
+async function upsertDailyTaskFromForm(){
+  const editId = el('saveTaskBtn').dataset.editId;
+  if(editId){
+    // update
+    const title = el('taskTitle').value.trim();
+    const duration = parseInt(el('taskDuration').value) || 10;
+    const reward = Number(el('taskReward').value) || 0;
+    const repeat = parseInt(el('taskRepeat').value) || 1;
+    const expiry = parseInt(el('taskExpiry').value) || 24;
+    const desc = el('taskDescription').value.trim();
+
+    const { error } = await supabase.from('daily_tasks').update({
+      title, duration_minutes: duration, reward, repeat_per_day: repeat, expires_in_hours: expiry, description: desc
+    }).eq('id', editId);
+    if(error){ console.error('updateDailyTask', error); toast('فشل التحديث','error'); return; }
+    toast('تم تحديث المهمة');
+    delete el('saveTaskBtn').dataset.editId;
+    el('saveTaskBtn').textContent = '💾 حفظ المهمة';
+    el('taskForm').reset();
+    loadDailyTasksAdmin();
+  } else {
+    await saveDailyTaskFromForm();
+  }
+}
+
+// ---------- user_tasks (submitted) ----------
+async function loadSubmittedTasks(){
+  const filter = el('submittedFilter')?.value || 'pending';
+  // include daily task info
+  const { data, error } = await supabase
+    .from('user_tasks')
+    .select(`*, daily_tasks:daily_tasks(id,title,duration_minutes,reward)`)
+    .order('created_at',{ascending:false})
+    .eq('status', filter);
+  if(error){ console.error('loadSubmittedTasks', error); return; }
+  const cont = el('submittedTasksList');
+  cont.innerHTML = data?.length ? data.map(u=>{
+    const dt = u.daily_tasks || {};
+    const started = u.started_at ? new Date(u.started_at) : null;
+    const completed = u.completed_at ? new Date(u.completed_at) : null;
+    return `
+    <div class="p-3 flex justify-between items-start gap-4">
+      <div>
+        <div class="text-sm font-semibold">#${u.id} — المستخدم: ${shortId(u.user_id)} — المهمة: ${escapeHtml(dt.title||'')}</div>
+        <div class="text-xs text-gray-600">بدأ: ${started? started.toLocaleString() : '-'} · انتهى: ${completed? completed.toLocaleString() : '-'} · حالة: ${u.status}</div>
+        <div class="text-xs text-gray-500 mt-1">إثبات: ${u.proof ? escapeHtml(JSON.stringify(u.proof)) : 'لا يوجد'}</div>
+      </div>
+      <div class="flex flex-col gap-2">
+        <button onclick="adminApproveUserTask(${u.id})" class="px-2 py-1 bg-green-600 text-white rounded text-xs">✅ موافقة</button>
+        <button onclick="adminRejectUserTask(${u.id})" class="px-2 py-1 bg-red-600 text-white rounded text-xs">❌ رفض</button>
+        <button onclick="markSuspicious(${u.id})" class="px-2 py-1 bg-yellow-400 text-black rounded text-xs">🔍 وضع مشتبه</button>
+      </div>
+    </div>`; 
+  }).join('') : `<div class="p-3 text-gray-500">لا مهام مرسلة</div>`;
+}
+
+// admin approves with automated verification
+async function adminApproveUserTask(userTaskId){
+  try{
+    // fetch user_task joined with task
+    const { data: ut } = await supabase.from('user_tasks').select('*, daily_tasks:daily_tasks(duration_minutes, reward)').eq('id', userTaskId).single();
+    if(!ut){ toast('لم يتم العثور على المهمة', 'error'); return; }
+
+    // basic verification
+    const durationNeeded = Number(ut.daily_tasks?.duration_minutes || 0);
+    const started = ut.started_at ? new Date(ut.started_at) : null;
+    const completed = ut.completed_at ? new Date(ut.completed_at) : null;
+
+    if(!completed){
+      // if completed_at missing, mark suspicious and require manual check
+      await supabase.from('user_tasks').update({ status: 'suspicious' }).eq('id', userTaskId);
+      toast('لا يوجد وقت إكمال صالح - تم وضعها كمشتبه فيها', 'error');
+      loadSubmittedTasks();
+      return;
+    }
+
+    const elapsedMinutes = Math.floor((completed - started) / 60000);
+    // require completed minutes >= durationNeeded
+    if(elapsedMinutes < durationNeeded){
+      await supabase.from('user_tasks').update({ status: 'suspicious' }).eq('id', userTaskId);
+      toast(`المدة الفعلية ${elapsedMinutes} دقيقة أقل من المطلوب ${durationNeeded} دقيقة — وضعت كمشتبه`, 'error');
+      loadSubmittedTasks();
+      return;
+    }
+
+    // check repeat per day: ensure user hasn't exceeded repeats today
+    const { data: task } = await supabase.from('daily_tasks').select('repeat_per_day').eq('id', ut.task_id).single();
+    const repPerDay = task?.repeat_per_day || 1;
+
+    const todayStart = new Date(); todayStart.setHours(0,0,0,0);
+    const { data: todayDone } = await supabase.from('user_tasks').select('id').eq('user_id', ut.user_id).eq('task_id', ut.task_id).gte('created_at', todayStart.toISOString());
+    const doneCount = (todayDone || []).length;
+
+    if(doneCount > repPerDay){
+      await supabase.from('user_tasks').update({ status: 'suspicious' }).eq('id', userTaskId);
+      toast('المستخدم تجاوز عدد التكرارات اليومي — وضع كمشتبه', 'error');
+      loadSubmittedTasks();
+      return;
+    }
+
+    // all ok -> approve: update user_tasks, add wallet, add wallet_history
+    await supabase.from('user_tasks').update({ status: 'approved' }).eq('id', userTaskId);
+    const reward = Number(ut.daily_tasks?.reward || 0);
+
+    // upsert wallet
+    const { data: wdata } = await supabase.from('wallet').select('balance').eq('user_id', ut.user_id).single();
+    const newBal = (wdata?.balance || 0) + reward;
+    await supabase.from('wallet').upsert({ user_id: ut.user_id, balance: newBal }, { onConflict: 'user_id' });
+    await supabase.from('wallet_history').insert({ user_id: ut.user_id, amount: reward, type: 'reward', note: `مكافأة مهمة: ${ut.task_id}` });
+
+    toast('تمت الموافقة وتم إضافة المكافأة ✅');
+    loadSubmittedTasks();
+    loadWalletsAdmin();
+    loadTransactionsAdmin();
+  }catch(err){
+    console.error('adminApproveUserTask err', err);
+    toast('فشل عند محاولة الموافقة', 'error');
+  }
+}
+
+async function adminRejectUserTask(userTaskId){
+  if(!confirm('هل أنت متأكد من رفض هذه المهمة؟')) return;
+  await supabase.from('user_tasks').update({ status: 'rejected' }).eq('id', userTaskId);
+  toast('تم رفض المهمة');
+  loadSubmittedTasks();
+}
+
+async function markSuspicious(id){
+  await supabase.from('user_tasks').update({ status: 'suspicious' }).eq('id', id);
+  toast('تم وضع المهمة كمشتبه فيها');
+  loadSubmittedTasks();
+}
+
+// ---------- Wallets admin ----------
+async function loadWalletsAdmin(){
+  const q = el('walletSearch')?.value?.trim();
+  let builder = supabase.from('wallet').select('user_id,balance,updated_at').order('balance', { ascending: false });
+  if(q){
+    // if looks like uuid search user_id, otherwise try to match email via profiles table (if exists)
+    if(q.includes('@')){
+      // try profiles table (if created)
+      const { data: profile } = await supabase.from('profiles').select('id,email').ilike('email', q).maybeSingle();
+      if(profile) builder = supabase.from('wallet').select('user_id,balance,updated_at').eq('user_id', profile.id).order('balance', { ascending:false });
+    } else {
+      builder = supabase.from('wallet').select('user_id,balance,updated_at').ilike('user_id', `%${q}%`);
+    }
+  }
+  const { data, error } = await builder;
+  if(error){ console.error('loadWalletsAdmin', error); return; }
+  const cont = el('walletsListAdmin');
+  cont.innerHTML = data?.length ? data.map(w=>{
+    return `<div class="p-2 flex justify-between items-center">
+      <div>
+        <div class="font-medium">${shortId(w.user_id)}</div>
+        <div class="text-xs text-gray-500">${w.user_id}</div>
+      </div>
+      <div class="text-right">
+        <div class="text-green-700 font-bold">${fmtEGP(w.balance)}</div>
+        <div class="text-xs text-gray-500">${w.updated_at ? new Date(w.updated_at).toLocaleString() : ''}</div>
+      </div>
+    </div>`;
+  }).join('') : `<div class="p-3 text-gray-500">لا يوجد محافظ</div>`;
+}
+
+async function resolveUserIdentifier(identifier){
+  // identifier may be uuid or email. If contains @ try profiles table then auth users (if available)
+  if(!identifier) return null;
+  identifier = identifier.trim();
+  if(identifier.includes('@')){
+    // try profiles table
+    const { data: p } = await supabase.from('profiles').select('id,email').ilike('email', identifier).maybeSingle();
+    if(p) return p.id;
+    // fallback: try auth.users via RPC or view if you have a users table - this may not work on anon key
+    // If not found, return null to indicate admin must provide uuid
+    return null;
+  } else {
+    // assume uuid
+    return identifier.length >= 6 ? identifier : null;
+  }
+}
+async function addBalanceAdmin() {
+  const ident = el('manualUser').value.trim();
+  const amount = Number(el('manualAmount').value) || 0;
+  const note = el('manualNote').value.trim() || 'إضافة رصيد يدوي';
+
+  if (!ident || amount <= 0) {
+    toast('املأ البيانات بشكل صحيح', 'error');
+    return;
+  }
+
+  let userId = null;
+  if (ident.includes('@')) {
+    userId = await resolveUserIdentifier(ident);
+    if (!userId) {
+      toast('لم نتمكن من إيجاد المستخدم حسب الإيميل. أدخل UUID المستخدم مباشرة', 'error');
+      return;
+    }
+  } else {
+    userId = ident;
+  }
+
+  // ✅ الإصلاح هنا
+  const { data: w, error: wErr } = await supabase
+    .from('wallet')
+    .select('balance')
+    .eq('user_id', userId)
+    .single();
+
+  if (wErr && wErr.code !== 'PGRST116') {
+    console.error('wallet fetch error', wErr);
+  }
+
+  const newBal = ((w?.balance) || 0) + amount;
+
+  await supabase
+    .from('wallet')
+    .upsert({ user_id: userId, balance: newBal }, { onConflict: 'user_id' });
+
+  await supabase
+    .from('wallet_history')
+    .insert({ user_id: userId, amount: amount, type: 'add', note });
+
+  toast('تمت إضافة الرصيد للمستخدم ✅');
+  el('manualUser').value = '';
+  el('manualAmount').value = '';
+  el('manualNote').value = '';
+
+  loadWalletsAdmin();
+  loadTransactionsAdmin();
+}
+async function loadWithdraws() {
+  const { data } = await supabase
+    .from("withdraw_requests")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(50);
+
+  document.getElementById("withdrawsList").innerHTML =
+    data?.length
+      ? data.map(w => `
+        <div class="p-2 border-b">
+          <div><b>${w.user_id}</b> — ${w.amount} ج.م</div>
+          <div class="text-sm text-gray-600">📱 ${w.wallet_number} | 🏠 ${w.governorate || "-"} | 🌍 ${w.ip_address || "-"}</div>
+          <div class="flex gap-2 mt-1">
+            <button onclick="approveWithdraw(${w.id}, '${w.user_id}', ${w.amount})" class="bg-green-600 text-white px-2 py-1 rounded text-xs">💸 تم التحويل</button>
+            <button onclick="rejectWithdraw(${w.id})" class="bg-red-600 text-white px-2 py-1 rounded text-xs">رفض</button>
+          </div>
+          ${w.reject_reason ? `<div class="text-xs text-red-600 mt-1">سبب الرفض: ${w.reject_reason}</div>` : ""}
+        </div>`
+      ).join("")
+      : `<div class="text-gray-500">لا طلبات سحب حالياً</div>`;
+}
+
+async function loadWithdrawsAdmin(){
+  const { data, error } = await supabase.from('withdraw_requests').select('*').order('created_at',{ascending:false});
+  if(error){ console.error('loadWithdrawsAdmin', error); return; }
+  const cont = el('withdrawsListAdmin');
+  cont.innerHTML = data?.length ? data.map(w=>{
+    return `<div class="p-3 flex justify-between items-center">
+      <div>
+        <div><b>${shortId(w.user_id)}</b> — ${w.user_id}</div>
+        <div class="text-xs text-gray-500">${w.phone} · ${fmtEGP(w.amount)}</div>
+      </div>
+      <div class="flex gap-2">
+        ${w.status === 'pending' ? `<button onclick="approveWithdrawAdmin(${w.id},'${w.user_id}',${w.amount})" class="px-2 py-1 bg-green-600 text-white rounded text-xs">✅ تحويل</button>
+        <button onclick="rejectWithdrawAdmin(${w.id})" class="px-2 py-1 bg-red-600 text-white rounded text-xs">رفض</button>` : `<span class="text-sm text-gray-500">${w.status}</span>`}
+      </div>
+    </div>`;
+  }).join('') : `<div class="p-3 text-gray-500">لا طلبات سحب</div>`;
+}
+async function approveWithdraw(id, user, amount) {
+  // تحديث حالة السحب
+  await supabase.from("withdraw_requests").update({ status: "approved" }).eq("id", id);
+
+  // خصم الرصيد فعليًا
+  const { data: w } = await supabase.from("wallet").select("balance").eq("user_id", user).single();
+  const newBal = Math.max(0, (w?.balance || 0) - amount);
+
+  await supabase.from("wallet").update({ balance: newBal }).eq("user_id", user);
+
+  // تسجيل العملية في التاريخ
+  await supabase.from("wallet_history").insert({
+    user_id: user,
+    amount: -amount,
+    type: "withdraw",
+    note: "سحب فودافون كاش معتمد من الأدمن"
+  });
+
+  showToast("✅ تم تأكيد السحب وخصم المبلغ");
+  loadWithdraws(); loadWallets(); loadTransactions();
+}
+
+async function rejectWithdraw(id) {
+  const reason = prompt("❌ اكتب سبب رفض السحب:");
+  if (!reason) return;
+
+  // جلب بيانات السحب قبل الرفض
+  const { data: req } = await supabase
+    .from("withdraw_requests")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  // تحديث حالة الطلب مع سبب الرفض
+  await supabase
+    .from("withdraw_requests")
+    .update({ status: "rejected", reject_reason: reason })
+    .eq("id", id);
+
+  // 🔁 إعادة المبلغ للمستخدم
+  const { data: w } = await supabase
+    .from("wallet")
+    .select("balance")
+    .eq("user_id", req.user_id)
+    .single();
+
+  const newBal = (w?.balance || 0) + req.amount;
+
+  await supabase
+    .from("wallet")
+    .update({ balance: newBal })
+    .eq("user_id", req.user_id);
+
+  await supabase.from("wallet_history").insert({
+    user_id: req.user_id,
+    amount: req.amount,
+    type: "refund",
+    note: `إرجاع مبلغ ${req.amount} ج.م بعد رفض طلب السحب (${reason})`
+  });
+
+  showToast("تم رفض السحب وتم إرجاع المبلغ للمستخدم 🚫","red");
+  loadWithdraws(); loadWallets(); loadTransactions();
+}
+function showToast(msg, color="green") {
+  const el = document.createElement("div");
+  el.textContent = msg;
+  el.style.position = "fixed";
+  el.style.bottom = "20px";
+  el.style.right = "20px";
+  el.style.background = color === "red" ? "#dc2626" : "#16a34a";
+  el.style.color = "white";
+  el.style.padding = "10px 15px";
+  el.style.borderRadius = "8px";
+  el.style.zIndex = 9999;
+  el.style.boxShadow = "0 4px 10px rgba(0,0,0,0.2)";
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}
+
+// 🧾 تحميل المحافظ في قائمة الخصم
+async function loadWalletSelectList() {
+  const { data, error } = await supabase
+    .from("wallet")
+    .select("user_id,balance")
+    .order("balance", { ascending: false });
+  if (error) {
+    console.error("loadWalletSelectList", error);
+    return;
+  }
+
+  const select = document.getElementById("deductUserSelect");
+  select.innerHTML = '<option value="">-- اختر محفظة --</option>';
+
+  for (const w of data) {
+    // جلب الاسم من profiles لو متاح
+    let name = shortId(w.user_id);
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("full_name,email")
+      .eq("id", w.user_id)
+      .maybeSingle();
+    if (profile)
+      name = profile.full_name || profile.email || shortId(w.user_id);
+
+    const option = document.createElement("option");
+    option.value = w.user_id;
+    option.textContent = `${name} — ${fmtEGP(w.balance)}`;
+    select.appendChild(option);
+  }
+}
+
+// 💰 تنفيذ الخصم من المحفظة
+async function deductBalanceAdmin() {
+  const userId = document.getElementById("deductUserSelect").value;
+  const amount = Number(document.getElementById("deductAmount").value);
+  const note =
+    document.getElementById("deductNote").value.trim() || "خصم إداري من الأدمن";
+
+  if (!userId || amount <= 0) {
+    toast("⚠️ يرجى اختيار المحفظة وإدخال مبلغ صحيح", "error");
+    return;
+  }
+
+  if (!confirm("هل أنت متأكد من تنفيذ الخصم؟")) return;
+
+  // جلب الرصيد الحالي
+  const { data: w } = await supabase
+    .from("wallet")
+    .select("balance")
+    .eq("user_id", userId)
+    .single();
+
+  const newBal = Math.max(0, (w?.balance || 0) - amount);
+
+  await supabase.from("wallet").update({ balance: newBal }).eq("user_id", userId);
+  await supabase.from("wallet_history").insert({
+    user_id: userId,
+    amount: -amount,
+    type: "deduct",
+    note,
+  });
+
+  toast("✅ تم خصم المبلغ بنجاح");
+  document.getElementById("deductAmount").value = "";
+  document.getElementById("deductNote").value = "";
+  await loadWalletSelectList();
+  await loadWalletsAdmin();
+  await loadTransactionsAdmin();
+}
+
+
+
+async function loadTransactionsAdmin(){
+  const q = el('txnSearch')?.value?.trim() || '';
+  const type = el('txnTypeFilter')?.value || '';
+  let builder = supabase.from('wallet_history').select('*').order('created_at',{ascending:false});
+  if(type) builder = builder.eq('type', type);
+  if(q) builder = builder.or(`user_id.ilike.%${q}%,note.ilike.%${q}%`);
+  const { data, error } = await builder;
+  if(error){ console.error('loadTransactionsAdmin', error); return; }
+  const cont = el('transactionsListAdmin');
+  cont.innerHTML = data?.length ? data.map(t=>{
+    return `<div class="p-2 flex justify-between items-center text-sm">
+      <div><b>${shortId(t.user_id)}</b> — ${t.user_id}</div>
+      <div class="text-xs text-gray-600">${t.note || t.type}</div>
+      <div class="${t.amount>0?'text-green-600':'text-red-600'} font-bold">${fmtEGP(t.amount)}</div>
+    </div>`;
+  }).join('') : `<div class="p-3 text-gray-500">لا سجلات</div>`;
+}
+
+// ---------- Users list ----------
+async function loadUsersAdmin(){
+  // try to list wallets joined with profiles (if profiles exists)
+  let users = [];
+  // try join with profiles table (if exists)
+  const { data: profiles } = await supabase.from('profiles').select('id,full_name,email').limit(1).catch(()=>({ data:null }));
+  if(profiles){
+    // profiles exists; query wallet + profiles
+    const { data, error } = await supabase.from('profiles').select('id,full_name,email, wallets:wallet(balance)').limit(1000);
+    // fallback simpler:
+    if(!error && data){
+      // build display
+      users = data.map(p => ({ user_id: p.id, name: p.full_name || p.email, balance: (p.wallets?.[0]?.balance || 0) }));
+    }
+  }
+  if(!users.length){
+    // fallback: list wallet table
+    const { data, error } = await supabase.from('wallet').select('*').order('balance',{ascending:false});
+    if(error){ console.error('loadUsersAdmin', error); return; }
+    users = data;
+  }
+
+  const cont = el('usersListAdmin');
+  cont.innerHTML = users?.length ? users.map(u=>{
+    return `<div class="p-2 flex justify-between items-center">
+      <div>
+        <div class="font-medium">${u.name ? escapeHtml(u.name) : shortId(u.user_id)}</div>
+        <div class="text-xs text-gray-500">${u.user_id}</div>
+      </div>
+      <div class="text-green-700 font-bold">${fmtEGP(u.balance || 0)}</div>
+    </div>`;
+  }).join('') : `<div class="p-3 text-gray-500">لا مستخدمين</div>`;
+}
+
+// ---------- Referrals ----------
+async function loadReferralsAdmin(){
+  const { data, error } = await supabase.from('referrals').select('*').order('created_at',{ascending:false}).limit(200);
+  if(error){ console.error('loadReferralsAdmin', error); return; }
+  const cont = el('referralsListAdmin');
+  cont.innerHTML = data?.length ? data.map(r=>{
+    return `<div class="p-2 flex justify-between items-center text-sm">
+      <div>الداعي: ${shortId(r.inviter_id)} — المدعو: ${shortId(r.invited_id)}</div>
+      <div class="text-green-600 font-bold">${fmtEGP(r.reward)}</div>
+    </div>`;
+  }).join('') : `<div class="p-3 text-gray-500">لا إحالات</div>`;
+}
+
+function wireEvents(){
+  el('saveTaskBtn').addEventListener('click', upsertDailyTaskFromForm);
+  el('resetTaskBtn').addEventListener('click', ()=>{ el('taskForm').reset(); el('saveTaskBtn').textContent='💾 حفظ المهمة'; delete el('saveTaskBtn').dataset.editId; });
+  el('submittedFilter')?.addEventListener('change', loadSubmittedTasks);
+  el('addBalanceBtnAdmin')?.addEventListener('click', addBalanceAdmin);
+  el('walletSearch')?.addEventListener('input', debounce(loadWalletsAdmin, 500));
+  el('txnRefresh')?.addEventListener('click', loadTransactionsAdmin);
+  el('userRefresh')?.addEventListener('click', loadUsersAdmin);
+  el('saveDefaultReferral')?.addEventListener('click', async ()=>{
+    const v = Number(el('defaultReferralReward').value) || 0;
+    toast('تم حفظ القيمة محليًا (يمكن ربطها بجدول إعدادات لاحقًا)');
+  });
+  el('withdrawsListAdmin') && el('withdrawsListAdmin').addEventListener('click', ()=>{}); // placeholder
+  el("deductBtn")?.addEventListener("click", deductBalanceAdmin);
+
+}
+
+// debounce helper
+function debounce(fn, ms=300){
+  let t;
+  return (...a) => { clearTimeout(t); t = setTimeout(()=> fn(...a), ms); };
+}
+
+// ---------- boot ----------
+async function initAdminPanel(){
+  const ok = await checkAdmin();
+  if(!ok) return;
+  wireEvents();
+  loadDailyTasksAdmin();
+  loadSubmittedTasks();
+  loadWalletsAdmin();
+  loadWithdrawsAdmin();
+  loadTransactionsAdmin();
+  loadUsersAdmin();
+  loadReferralsAdmin();
+  loadStats();
+  loadWalletSelectList();
+
+}
+
+// call init
+initAdminPanel();
+
+/* ------------------
+  Helper: escapeHtml used in templates
+------------------- */
+function escapeHtml(s=''){ return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m])); }
+</script>
+
+</body>
+</html>
