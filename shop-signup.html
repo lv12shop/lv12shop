@@ -165,34 +165,42 @@ form.addEventListener("submit", async (e) => {
     message.className = "text-center mt-4 text-sm text-red-600";
     return;
   }
+// 🎯 حفظ بيانات الدعوة إذا تم إدخال الكود
+if (referral_code && data?.user) {
+  const newUserId = data.user.id;
 
-  // 🎯 تسجيل الدعوة في قاعدة البيانات
-  if (referral_code && data?.user) {
-    try {
-      const newUserId = data.user.id;
-      const { data: inviter } = await supabase
-        .from("user_profiles")
-        .select("user_id")
-        .eq("invite_code", referral_code)
-        .maybeSingle();
+  // نبحث عن الداعي حسب كود الدعوة
+  const { data: inviter } = await supabase
+    .from("user_profiles")
+    .select("user_id")
+    .eq("invite_code", referral_code)
+    .maybeSingle();
 
-      if (inviter?.user_id) {
-        const { error: insertError } = await supabase.from("referrals").insert({
-          inviter_id: inviter.user_id,
-          invitee_id: newUserId,
-          referral_code,
-          device_fp,
-          ip_address,
-          status: "pending",
-        });
-
-        if (insertError) console.error("❌ خطأ في حفظ الدعوة:", insertError.message);
-        else console.log("✅ تم تسجيل الدعوة لصالح:", inviter.user_id);
+  if (inviter?.user_id) {
+    // ✅ نسجّل العلاقة بين الداعي والمدعو بشكل صحيح
+    const { error: insertErr } = await supabase.from("referrals").insert([
+      {
+        inviter_id: inviter.user_id,
+        invitee_id: newUserId,
+        referral_code,
+        device_fp,
+        ip_address,
+        reward: 0, // تقدر تحط قيمة افتراضية أو تسيبها
+        status: "pending",
+        created_at: new Date().toISOString()
       }
-    } catch (err) {
-      console.error("Error saving referral:", err);
+    ]);
+
+    if (insertErr) {
+      console.error("Referral insert error:", insertErr);
+    } else {
+      console.log("✅ تم تسجيل الدعوة لصالح:", inviter.user_id);
     }
+  } else {
+    console.warn("⚠️ كود الدعوة غير موجود أو غير صالح:", referral_code);
   }
+}
+
 
   // 🎉 نجاح التسجيل
   message.textContent =
