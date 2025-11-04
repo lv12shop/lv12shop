@@ -41,9 +41,7 @@
       <input type="text" id="phone" placeholder="رقم الهاتف" class="field" required>
       <input type="email" id="email" placeholder="البريد الإلكتروني" class="field" required>
       <input type="password" id="password" placeholder="كلمة المرور" class="field" required>
-    <input type="text" id="referral_code" placeholder="كود الدعوة (اختياري)" class="w-full border p-3 rounded">
-
-
+      <input type="text" id="referral_code" placeholder="كود الدعوة (اختياري)" class="w-full border p-3 rounded">
       <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded hover:bg-blue-700 transition">تسجيل</button>
     </form>
 
@@ -54,6 +52,7 @@
 
     <p id="message" class="text-center mt-4 text-sm"></p>
   </div>
+
 <script>
 const SUPABASE_URL = "https://nszhzfysitppxssplqfb.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zemh6ZnlzaXRwcHhzc3BscWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA4OTcsImV4cCI6MjA3MzgwNjg5N30.5KvK4bhqkZ_GpIfED4qecIMfeubAJYwSFJslULwOp-w";
@@ -65,7 +64,7 @@ const urlParams = new URLSearchParams(window.location.search);
 const refCode = urlParams.get("ref");
 if (refCode) document.getElementById("referral_code").value = refCode;
 
-// 🧠 بصمة الجهاز (Fingerprint)
+// 🧠 بصمة الجهاز
 function getDeviceFingerprint() {
   const key = localStorage.getItem("device_fp");
   if (key) return key;
@@ -74,12 +73,22 @@ function getDeviceFingerprint() {
   return fp;
 }
 
-// 🌍 التحقق من الدولة عبر IP API
+// 🌍 التحقق من الدولة (يُسمح فقط لمصر، مع معالجة Unknown)
 async function getCountryCode() {
   try {
     const res = await fetch("https://ipapi.co/json/");
     const data = await res.json();
     return data.country_name || "Unknown";
+  } catch {
+    return "Unknown";
+  }
+}
+
+async function getIP() {
+  try {
+    const res = await fetch("https://api64.ipify.org?format=json");
+    const data = await res.json();
+    return data.ip;
   } catch {
     return "Unknown";
   }
@@ -93,6 +102,7 @@ form.addEventListener("submit", async (e) => {
   const password = document.getElementById("password").value.trim();
   const referral_code = document.getElementById("referral_code").value.trim();
   const device_fp = getDeviceFingerprint();
+  const ip_address = await getIP();
 
   if (!full_name || !email || !password) {
     message.textContent = "❌ الرجاء إدخال كل البيانات المطلوبة";
@@ -103,23 +113,23 @@ form.addEventListener("submit", async (e) => {
   message.textContent = "⏳ جاري التحقق من الموقع...";
   message.className = "text-center mt-4 text-sm text-gray-600";
 
-const country = await getCountryCode();
+  const country = await getCountryCode();
+  if (country !== "Egypt" && country !== "Unknown") {
+    message.textContent = `❌ نظام الدعوات متاح فقط داخل مصر (البلد الحالي: ${country})`;
+    message.className = "text-center mt-4 text-sm text-red-600";
+    return;
+  }
 
-if (country !== "Egypt" && country !== "Unknown") {
-  message.textContent = `❌ نظام الدعوات متاح فقط داخل مصر (البلد الحالي: ${country})`;
-  message.className = "text-center mt-4 text-sm text-red-600";
-  return;
-}
-
+  // ✅ منع التسجيل المتكرر بنفس الجهاز أو IP عند وجود كود دعوة
   if (referral_code) {
     const { data: existing } = await supabase
       .from("referrals")
-      .select("*")
-      .eq("device_fp", device_fp)
+      .select("id")
+      .or(`device_fp.eq.${device_fp},ip_address.eq.${ip_address}`)
       .maybeSingle();
 
     if (existing) {
-      message.textContent = "⚠️ هذا الجهاز استخدم كود دعوة مسبقًا.";
+      message.textContent = "⚠️ تخطيت الحد الأقصى لاستخدام كود دعوة من هذا الجهاز أو الشبكة.";
       message.className = "text-center mt-4 text-sm text-yellow-600";
       return;
     }
@@ -140,27 +150,27 @@ if (country !== "Egypt" && country !== "Unknown") {
     return;
   }
 
- // 🎯 حفظ بيانات الدعوة
-if (referral_code && data?.user) {
-  const newUserId = data.user.id;
-  const { data: inviter } = await supabase
-    .from("user_profiles")
-    .select("user_id")
-    .eq("invite_code", referral_code)
-    .maybeSingle();
+  // 🎯 حفظ بيانات الدعوة إذا تم إدخال الكود
+  if (referral_code && data?.user) {
+    const newUserId = data.user.id;
+    const { data: inviter } = await supabase
+      .from("user_profiles")
+      .select("user_id")
+      .eq("invite_code", referral_code)
+      .maybeSingle();
 
-  if (inviter?.user_id) {
-    await supabase.from("referrals").insert({
-      inviter_id: inviter.user_id,
-      invitee_id: newUserId,
-      referral_code,
-      device_fp,
-      status: "pending",
-    });
-
-    console.log("✅ تم تسجيل الدعوة لصالح:", inviter.user_id);
+    if (inviter?.user_id) {
+      await supabase.from("referrals").insert({
+        inviter_id: inviter.user_id,
+        invitee_id: newUserId,
+        referral_code,
+        device_fp,
+        ip_address,
+        status: "pending",
+      });
+      console.log("✅ تم تسجيل الدعوة لصالح:", inviter.user_id);
+    }
   }
-}
 
   message.textContent = "✅ تم التسجيل بنجاح! تحقق من بريدك الإلكتروني لتفعيل الحساب.";
   message.className = "text-center mt-4 text-sm text-green-600";
@@ -173,5 +183,3 @@ if (referral_code && data?.user) {
 
 </body>
 </html>
-
-
