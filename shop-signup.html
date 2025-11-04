@@ -103,14 +103,14 @@ form.addEventListener("submit", async (e) => {
   message.textContent = "⏳ جاري التحقق من الموقع...";
   message.className = "text-center mt-4 text-sm text-gray-600";
 
-  const country = await getCountryCode();
-  if (country !== "Egypt") {
-    message.textContent = "❌ نظام الدعوات غير متاح في بلدك (" + country + ")";
-    message.className = "text-center mt-4 text-sm text-red-600";
-    return;
-  }
+const country = await getCountryCode();
 
-  // منع التكرار من نفس الجهاز
+if (country !== "Egypt" && country !== "Unknown") {
+  message.textContent = `❌ نظام الدعوات متاح فقط داخل مصر (البلد الحالي: ${country})`;
+  message.className = "text-center mt-4 text-sm text-red-600";
+  return;
+}
+
   if (referral_code) {
     const { data: existing } = await supabase
       .from("referrals")
@@ -173,4 +173,5 @@ if (referral_code && data?.user) {
 
 </body>
 </html>
+
 
