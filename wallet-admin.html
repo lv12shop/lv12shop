@@ -81,7 +81,7 @@
     <!-- ====== Manage Tasks (Add/Edit Daily Tasks) ====== -->
     <section id="manageTasks" class="tab-content hidden card p-6 mb-6">
       <h2 class="text-lg font-bold mb-3">🎯 إدارة المهام اليومية</h2>
-  <div id="tasksListAdmin"></div>
+
       <!-- Form لإضافة مهمة -->
       <form id="taskForm" class="space-y-3">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -228,16 +228,17 @@
       <div id="usersListAdmin" class="divide-y text-sm"></div>
     </section>
 
-    <!-- ====== Referrals ====== -->
-    <section id="referrals" class="tab-content hidden card p-6 mb-6">
-      <h2 class="text-lg font-bold mb-3">🤝 الإحالات (Referrals)</h2>
-      <div class="mb-3">
-        <label>مكافأة الدعوة الافتراضية (ج.م)</label>
-        <input id="defaultReferralReward" type="number" step="0.01" value="5" class="border p-2 rounded w-32" />
-        <button id="saveDefaultReferral" class="bg-blue-600 text-white px-3 py-2 rounded ml-2">حفظ</button>
-      </div>
-      <div id="referralsListAdmin" class="divide-y text-sm"></div>
-    </section>
+   <section id="referrals" class="tab-content hidden card p-6 mb-6">
+  <h2 class="text-lg font-bold mb-3">🤝 الإحالات (Referrals)</h2>
+
+  <div class="mb-3 flex items-center gap-3">
+    <label>💰 مكافأة الدعوة الافتراضية (ج.م)</label>
+    <input id="defaultReferralReward" type="number" step="0.01" value="5" class="border p-2 rounded w-32" />
+    <button id="saveDefaultReferral" class="bg-blue-600 text-white px-3 py-2 rounded">حفظ</button>
+  </div>
+
+  <div id="referralsListAdmin" class="divide-y text-sm mt-4"></div>
+</section>
 
   </main>
 
@@ -357,62 +358,25 @@ async function loadStats(){
 //
 // ---------- DAILY TASKS (admin) ----------
 //
-// 🧭 تحميل المهام اليومية (للمراجعة أو التعديل من الأدمن)
+
 async function loadDailyTasksAdmin(){
-  const { data, error } = await supabase
-    .from('daily_tasks')
-    .select('*')
-    .order('id', { ascending: true });
-
-  if (error) {
-    console.error('loadDailyTasksAdmin', error);
-    return;
-  }
-
-  const container = document.getElementById('tasksListAdmin');
-  if (!container) return;
-
-  container.innerHTML = data?.length
-    ? data.map(t => `
-      <div class="p-3 flex justify-between items-center border-b">
+  const { data, error } = await supabase.from('daily_tasks').select('*').order('id',{ascending:true});
+  if(error){ console.error('loadDailyTasksAdmin', error); return; }
+  const container = el('tasksListAdmin');
+  container.innerHTML = data?.length ? data.map(t=>{
+    return `
+      <div class="p-3 flex justify-between items-center">
         <div>
-          <div class="font-semibold">${t.title} <span class="text-xs text-gray-500">(#${t.id})</span></div>
-          <div class="text-sm text-gray-600">${t.description || ''}</div>
-          <div class="text-xs text-gray-500 mt-1">
-            ⏱️ المدة: ${t.duration_minutes} دقيقة · 💰 المكافأة: ${t.reward} ج.م · 🔁 تكرار/يوم: ${t.repeat_per_day || 1}
-          </div>
+          <div class="font-semibold">${escapeHtml(t.title)} <span class="text-xs text-gray-500">(#${t.id})</span></div>
+          <div class="text-sm text-gray-600">${escapeHtml(t.description||'')}</div>
+          <div class="text-xs text-gray-500 mt-1">مدة: ${t.duration_minutes} دقيقة · مكافأة: ${fmtEGP(t.reward)} · تكرار/يوم: ${t.repeat_per_day} · صلاحية: ${t.expires_in_hours} ساعة</div>
         </div>
         <div class="flex gap-2">
-          <button onclick="editDailyTask(${t.id})" class="px-2 py-1 text-xs bg-yellow-400 rounded">✏️ تعديل</button>
-          <button onclick="deleteDailyTask(${t.id})" class="px-2 py-1 text-xs bg-red-500 text-white rounded">🗑️ حذف</button>
+          <button onclick="editDailyTask(${t.id})" class="px-2 py-1 text-xs bg-yellow-400 rounded">تعديل</button>
+          <button onclick="deleteDailyTask(${t.id})" class="px-2 py-1 text-xs bg-red-500 text-white rounded">حذف</button>
         </div>
-      </div>`
-    ).join('')
-    : `<div class="p-3 text-gray-500">لا توجد مهام حالياً</div>`;
-}
-
-async function deleteDailyTask(id){
-  if (!confirm("هل أنت متأكد من حذف هذه المهمة؟")) return;
-  const { error } = await supabase.from('daily_tasks').delete().eq('id', id);
-  if (!error){
-    alert("🗑️ تم حذف المهمة");
-    loadDailyTasksAdmin();
-  } else {
-    alert("❌ حدث خطأ أثناء الحذف");
-  }
-}
-
-async function editDailyTask(id){
-  const title = prompt("📝 أدخل العنوان الجديد:");
-  const reward = +prompt("💰 أدخل المكافأة:");
-  if(!title || !reward) return alert("❌ أدخل البيانات كاملة");
-  const { error } = await supabase.from('daily_tasks').update({ title, reward }).eq('id', id);
-  if(!error){
-    alert("✅ تم تحديث المهمة بنجاح");
-    loadDailyTasksAdmin();
-  } else {
-    alert("❌ فشل التحديث");
-  }
+      </div>`;
+  }).join('') : `<div class="p-3 text-gray-500">لا توجد مهام</div>`;
 }
 
 async function saveDailyTaskFromForm(){
@@ -737,16 +701,13 @@ async function loadWithdrawsAdmin(){
   }).join('') : `<div class="p-3 text-gray-500">لا طلبات سحب</div>`;
 }
 async function approveWithdraw(id, user, amount) {
-  // تحديث حالة السحب
   await supabase.from("withdraw_requests").update({ status: "approved" }).eq("id", id);
 
-  // خصم الرصيد فعليًا
   const { data: w } = await supabase.from("wallet").select("balance").eq("user_id", user).single();
   const newBal = Math.max(0, (w?.balance || 0) - amount);
 
   await supabase.from("wallet").update({ balance: newBal }).eq("user_id", user);
 
-  // تسجيل العملية في التاريخ
   await supabase.from("wallet_history").insert({
     user_id: user,
     amount: -amount,
@@ -757,25 +718,54 @@ async function approveWithdraw(id, user, amount) {
   showToast("✅ تم تأكيد السحب وخصم المبلغ");
   loadWithdraws(); loadWallets(); loadTransactions();
 }
+// ⚙️ تحميل قائمة الدعوات ومكافأة الإحالة
+async function loadReferralsAdmin() {
+  const { data } = await supabase
+    .from("referrals")
+    .select("id, inviter_id, invitee_id, status, created_at")
+    .order("created_at", { ascending: false });
+
+  const container = document.getElementById("referralsListAdmin");
+  container.innerHTML = data?.length
+    ? data.map(r => `
+      <div class="p-2 flex justify-between border-b">
+        <div>
+          👤 <b>${r.inviter_id}</b> دعا ➡️ <b>${r.invitee_id}</b>
+          <div class="text-xs text-gray-500">${new Date(r.created_at).toLocaleString()}</div>
+        </div>
+        <span class="pill ${r.status === 'claimed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">
+          ${r.status}
+        </span>
+      </div>
+    `).join("")
+    : `<div class="text-gray-500 p-3 text-center">لا توجد دعوات بعد</div>`;
+}
+
+// 💾 حفظ المكافأة الافتراضية
+document.getElementById("saveDefaultReferral").onclick = async () => {
+  const reward = Number(document.getElementById("defaultReferralReward").value);
+  await supabase.from("settings").upsert({ id: 1, referral_reward: reward });
+  alert("تم تحديث مكافأة الدعوة ✅");
+};
+
+// تحميل عند فتح التبويب
+document.querySelector('[data-tab="referrals"]').addEventListener('click', loadReferralsAdmin);
 
 async function rejectWithdraw(id) {
   const reason = prompt("❌ اكتب سبب رفض السحب:");
   if (!reason) return;
 
-  // جلب بيانات السحب قبل الرفض
   const { data: req } = await supabase
     .from("withdraw_requests")
     .select("*")
     .eq("id", id)
     .single();
 
-  // تحديث حالة الطلب مع سبب الرفض
   await supabase
     .from("withdraw_requests")
     .update({ status: "rejected", reject_reason: reason })
     .eq("id", id);
 
-  // 🔁 إعادة المبلغ للمستخدم
   const { data: w } = await supabase
     .from("wallet")
     .select("balance")
@@ -815,7 +805,6 @@ function showToast(msg, color="green") {
   setTimeout(() => el.remove(), 3000);
 }
 
-// 🧾 تحميل المحافظ في قائمة الخصم
 async function loadWalletSelectList() {
   const { data, error } = await supabase
     .from("wallet")
@@ -830,7 +819,6 @@ async function loadWalletSelectList() {
   select.innerHTML = '<option value="">-- اختر محفظة --</option>';
 
   for (const w of data) {
-    // جلب الاسم من profiles لو متاح
     let name = shortId(w.user_id);
     const { data: profile } = await supabase
       .from("profiles")
@@ -847,7 +835,6 @@ async function loadWalletSelectList() {
   }
 }
 
-// 💰 تنفيذ الخصم من المحفظة
 async function deductBalanceAdmin() {
   const userId = document.getElementById("deductUserSelect").value;
   const amount = Number(document.getElementById("deductAmount").value);
@@ -861,7 +848,6 @@ async function deductBalanceAdmin() {
 
   if (!confirm("هل أنت متأكد من تنفيذ الخصم؟")) return;
 
-  // جلب الرصيد الحالي
   const { data: w } = await supabase
     .from("wallet")
     .select("balance")
@@ -906,23 +892,16 @@ async function loadTransactionsAdmin(){
   }).join('') : `<div class="p-3 text-gray-500">لا سجلات</div>`;
 }
 
-// ---------- Users list ----------
 async function loadUsersAdmin(){
-  // try to list wallets joined with profiles (if profiles exists)
   let users = [];
-  // try join with profiles table (if exists)
   const { data: profiles } = await supabase.from('profiles').select('id,full_name,email').limit(1).catch(()=>({ data:null }));
   if(profiles){
-    // profiles exists; query wallet + profiles
     const { data, error } = await supabase.from('profiles').select('id,full_name,email, wallets:wallet(balance)').limit(1000);
-    // fallback simpler:
     if(!error && data){
-      // build display
       users = data.map(p => ({ user_id: p.id, name: p.full_name || p.email, balance: (p.wallets?.[0]?.balance || 0) }));
     }
   }
   if(!users.length){
-    // fallback: list wallet table
     const { data, error } = await supabase.from('wallet').select('*').order('balance',{ascending:false});
     if(error){ console.error('loadUsersAdmin', error); return; }
     users = data;
@@ -940,7 +919,6 @@ async function loadUsersAdmin(){
   }).join('') : `<div class="p-3 text-gray-500">لا مستخدمين</div>`;
 }
 
-// ---------- Referrals ----------
 async function loadReferralsAdmin(){
   const { data, error } = await supabase.from('referrals').select('*').order('created_at',{ascending:false}).limit(200);
   if(error){ console.error('loadReferralsAdmin', error); return; }
@@ -965,18 +943,14 @@ function wireEvents(){
     const v = Number(el('defaultReferralReward').value) || 0;
     toast('تم حفظ القيمة محليًا (يمكن ربطها بجدول إعدادات لاحقًا)');
   });
-  el('withdrawsListAdmin') && el('withdrawsListAdmin').addEventListener('click', ()=>{}); // placeholder
-  el("deductBtn")?.addEventListener("click", deductBalanceAdmin);
-
+  el('withdrawsListAdmin') && el('withdrawsListAdmin').addEventListener('click', ()=>{}); 
 }
 
-// debounce helper
 function debounce(fn, ms=300){
   let t;
   return (...a) => { clearTimeout(t); t = setTimeout(()=> fn(...a), ms); };
 }
 
-// ---------- boot ----------
 async function initAdminPanel(){
   const ok = await checkAdmin();
   if(!ok) return;
@@ -989,16 +963,11 @@ async function initAdminPanel(){
   loadUsersAdmin();
   loadReferralsAdmin();
   loadStats();
-  loadWalletSelectList();
-
 }
 
-// call init
 initAdminPanel();
 
-/* ------------------
-  Helper: escapeHtml used in templates
-------------------- */
+
 function escapeHtml(s=''){ return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m])); }
 </script>
 

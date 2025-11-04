@@ -137,6 +137,9 @@ async function checkAuth(){
   const display = currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0];
   document.getElementById('walletOwner').textContent = `👤 ${display}`;
   return true;
+  await loadInviteCodeAndProgress();
+await loadReferralStats();
+
 }
 
 async function loadWallet(){
@@ -227,6 +230,49 @@ async function loadInviteCodeAndProgress() {
   }
 }
 
+// 🧩 تحميل عدد الدعوات والمكافآت
+async function loadReferralStats() {
+  const { data: invites } = await supabase
+    .from("referrals")
+    .select("*")
+    .eq("inviter_id", currentUser.id);
+
+  const count = invites?.length || 0;
+  document.getElementById("inviteCount").textContent = count;
+
+  // الحصول على قيمة المكافأة الافتراضية
+  const { data: rewardCfg } = await supabase
+    .from("settings")
+    .select("referral_reward")
+    .maybeSingle();
+
+  const rewardAmount = rewardCfg?.referral_reward || 5;
+  document.getElementById("referralNote").textContent =
+    `💰 مكافأة الدعوة: ${rewardAmount} ج.م لكل صديق.`;
+
+  // تفعيل زر المطالبة إذا وُجدت دعوات جديدة
+  const claimBtn = document.getElementById("claimReferralBtn");
+  claimBtn.disabled = count === 0;
+  claimBtn.onclick = async () => {
+    if (count === 0) return toast("لا توجد دعوات بعد", false);
+
+    // إضافة المكافأة إلى المحفظة
+    const totalReward = rewardAmount * count;
+    await supabase.rpc("add_wallet_balance", {
+      user_id: currentUser.id,
+      amount: totalReward,
+      note: "مكافأة الدعوات",
+    });
+
+    // تحديث حالة الدعوات
+    await supabase.from("referrals")
+      .update({ status: "claimed" })
+      .eq("inviter_id", currentUser.id);
+
+    toast(`🎉 تمت إضافة ${totalReward} ج.م إلى محفظتك!`);
+    loadWallet();
+  };
+}
 
 async function claimReferralBonus(){
   try{
