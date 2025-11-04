@@ -119,11 +119,14 @@ form.addEventListener("submit", async (e) => {
   // 🌍 التحقق من الدولة
   message.textContent = "⏳ جاري التحقق من الموقع...";
   message.className = "text-center mt-4 text-sm text-gray-600";
-const country = await getCountryCode();
-if (country !== "Egypt" && country !== "Unknown") {
-  console.warn("⚠️ لم يتم التعرف على الدولة بدقة، سيتم السماح مؤقتًا لأن البلد Unknown");
-}
+  const country = await getCountryCode();
 
+  // ✅ مسموح فقط داخل مصر
+  if (country !== "Egypt") {
+    message.textContent = `❌ نظام الدعوات متاح فقط داخل مصر (البلد الحالي: ${country})`;
+    message.className = "text-center mt-4 text-sm text-red-600";
+    return;
+  }
 
   // 🚫 التحقق من استخدام كود الدعوة في نفس الجهاز أو IP مسبقًا
   if (referral_code) {
@@ -170,27 +173,26 @@ if (country !== "Egypt" && country !== "Unknown") {
 if (referral_code && data?.user) {
   const newUserId = data.user.id;
 
-  // نبحث عن الداعي حسب كود الدعوة
-  const { data: inviter } = await supabase
-    .from("user_profiles")
-    .select("user_id")
-    .eq("invite_code", referral_code)
-    .maybeSingle();
+const { data: inviter } = await supabase
+  .from("profiles")
+  .select("id")
+  .eq("invite_code", referral_code)
+  .maybeSingle();
 
-  if (inviter?.user_id) {
-    // ✅ نسجّل العلاقة بين الداعي والمدعو بشكل صحيح
-    const { error: insertErr } = await supabase.from("referrals").insert([
-      {
-        inviter_id: inviter.user_id,
-        invitee_id: newUserId,
-        referral_code,
-        device_fp,
-        ip_address,
-        reward: 0, // تقدر تحط قيمة افتراضية أو تسيبها
-        status: "pending",
-        created_at: new Date().toISOString()
-      }
-    ]);
+
+if (inviter?.id) {
+  const { error: insertErr } = await supabase.from("referrals").insert([
+    {
+      inviter_id: inviter.id,
+      invitee_id: newUserId,
+      referral_code,
+      device_fp,
+      ip_address,
+      reward: 0,
+      status: "pending",
+      created_at: new Date().toISOString()
+    }
+  ]);
 
     if (insertErr) {
       console.error("Referral insert error:", insertErr);
@@ -218,5 +220,3 @@ if (referral_code && data?.user) {
 
 </body>
 </html>
-
-
