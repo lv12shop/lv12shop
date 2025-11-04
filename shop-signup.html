@@ -119,14 +119,11 @@ form.addEventListener("submit", async (e) => {
   // 🌍 التحقق من الدولة
   message.textContent = "⏳ جاري التحقق من الموقع...";
   message.className = "text-center mt-4 text-sm text-gray-600";
-  const country = await getCountryCode();
+const country = await getCountryCode();
+if (country !== "Egypt" && country !== "Unknown") {
+  console.warn("⚠️ لم يتم التعرف على الدولة بدقة، سيتم السماح مؤقتًا لأن البلد Unknown");
+}
 
-  // ✅ مسموح فقط داخل مصر
-  if (country !== "Egypt") {
-    message.textContent = `❌ نظام الدعوات متاح فقط داخل مصر (البلد الحالي: ${country})`;
-    message.className = "text-center mt-4 text-sm text-red-600";
-    return;
-  }
 
   // 🚫 التحقق من استخدام كود الدعوة في نفس الجهاز أو IP مسبقًا
   if (referral_code) {
@@ -221,4 +218,5 @@ if (referral_code && data?.user) {
 
 </body>
 </html>
+
 
