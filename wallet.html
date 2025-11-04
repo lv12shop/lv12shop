@@ -45,26 +45,59 @@
     <div id="tasksList" class="space-y-3"></div>
   </section>
 
-  <section id="referrals" class="tab-content hidden bg-white p-4 rounded-xl shadow">
-    <h3 class="font-bold mb-3">🤝 كود الدعوة الخاص بك</h3>
-    <p class="text-sm small-muted mb-2">شارك الرابط التالي مع أصدقائك؛ سيتم احتساب الدعوات خلال 24 ساعة للمكافآت.</p>
-    <div id="inviteCode" class="bg-gray-100 p-3 rounded mt-2 font-mono text-blue-700"></div>
+<section id="referrals" class="tab-content hidden bg-white p-4 rounded-xl shadow">
+  <h3 class="font-bold mb-3">🤝 كود الدعوة الخاص بك</h3>
+  <p class="text-sm text-gray-600 mb-2">
+    شارك الرابط التالي مع أصدقائك — ستحصل على 💰 <b>5 ج.م</b> لكل صديق جديد يسجل، 
+    وإذا دعوت <b>10 أصدقاء</b> في نفس اليوم ستحصل على 🎁 <b>بونص 30 ج.م</b>.
+  </p>
 
-    <div class="mt-4">
-      <div class="flex items-center justify-between mb-2">
-        <div>عدد الدعوات خلال 24 ساعة</div>
-        <div id="inviteCount" class="font-bold">--</div>
-      </div>
-      <div class="w-full bg-gray-200 rounded h-3 overflow-hidden mb-2">
-        <div id="inviteProgress" style="height:100%; width:0%; background:linear-gradient(90deg,#34d399,#06b6d4)"></div>
-      </div>
-      <div class="flex gap-2">
-        <button id="claimReferralBtn" class="bg-green-600 text-white px-3 py-1 rounded" disabled>🎁 المطالبة بالمكافأة</button>
-        <button id="copyInviteBtn" class="bg-gray-200 px-3 py-1 rounded">نسخ الرابط</button>
-      </div>
-      <div id="referralNote" class="text-xs small-muted mt-2"></div>
+  <!-- 🔗 كود الدعوة -->
+  <div id="inviteCode" class="bg-gray-100 p-3 rounded font-mono text-blue-700 text-center"></div>
+
+  <!-- 📊 إحصائيات الدعوات -->
+  <div class="mt-5 border-t pt-3">
+    <h4 class="font-bold mb-2">📅 تقدم الدعوات اليومية</h4>
+    <div id="referralTaskProgress" class="text-sm bg-gray-50 border rounded p-3">
+      <div id="referralTaskStats">جارٍ التحميل...</div>
     </div>
-  </section>
+<button id="claimBonusBtn" class="hidden mt-3 bg-green-600 text-white px-4 py-2 rounded w-full">
+  🎁 استلام بونص 30 ج.م
+</button>
+
+    <div class="w-full bg-gray-200 rounded h-3 overflow-hidden mt-3">
+      <div id="inviteProgress" style="height:100%; width:0%; background:linear-gradient(90deg,#34d399,#06b6d4)"></div>
+    </div>
+
+    <div class="flex items-center justify-between mt-2">
+      <div>عدد الدعوات اليوم:</div>
+      <div id="inviteCount" class="font-bold">--</div>
+    </div>
+
+    <div id="referralNote" class="text-xs text-gray-500 mt-2">
+      📢 سيتم مراجعة الدعوات والمكافآت من قبل الأدارة خلال 24 ساعة.
+    </div>
+  </div>
+
+  <!-- 👥 الأصدقاء المدعوين اليوم -->
+  <div class="mt-6">
+    <h4 class="font-bold mb-2">👥 الأصدقاء الذين دعوتهم اليوم</h4>
+    <div id="todaysReferralsList" class="text-sm border rounded p-2 bg-white">
+      <div class="text-gray-500 text-center">لم تقم بدعوة أصدقاء بعد</div>
+    </div>
+  </div>
+
+  <!-- 🎁 أزرار -->
+  <div class="mt-4 flex gap-2 justify-center">
+    <button id="copyInviteBtn" class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 transition">
+      📋 نسخ رابط الدعوة
+    </button>
+    <button id="claimReferralBtn" class="bg-green-600 text-white px-4 py-2 rounded opacity-70 cursor-not-allowed" disabled>
+      ⏳ بانتظار موافقة الأدارة
+    </button>
+  </div>
+</section>
+
 
   <section id="withdraw" class="tab-content hidden bg-white p-4 rounded-xl shadow">
     <h3 class="font-bold mb-3">💳 طلب سحب رصيد</h3>
@@ -178,51 +211,54 @@ async function loadTransactions(){
       </div>
     `).join('') : `<div class="text-gray-500 text-center p-4">لا يوجد عمليات بعد</div>`;
   }catch(err){ console.error('loadTransactions', err); }
-}
-async function loadInviteCodeAndProgress() {
+}async function loadInviteCodeAndProgress() {
   try {
-    // 1️⃣ الحصول على كود الدعوة الثابت من قاعدة البيانات أو توليده لأول مرة
     let inviteCode = null;
-    const { data: existingProfile } = await supabase
+
+    // ✅ 1. الحصول على كود الدعوة من قاعدة البيانات
+    const { data: existingProfile, error: profileErr } = await supabase
       .from("user_profiles")
       .select("invite_code")
       .eq("user_id", currentUser.id)
       .maybeSingle();
 
+    if (profileErr) console.warn("loadInviteCode profileErr", profileErr);
+
     if (existingProfile?.invite_code) {
-      inviteCode = existingProfile.invite_code;
+      inviteCode = existingProfile.invite_code.toUpperCase();
     } else {
-      // توليد كود دعوة ثابت جديد (أول مرة فقط)
-      inviteCode = (currentUser.id || "").slice(0, 6).toUpperCase();
-      await supabase
+      // 🆕 إنشاء كود جديد لأول مرة فقط
+      inviteCode = currentUser.id.slice(0, 6).toUpperCase();
+      const { error: upsertErr } = await supabase
         .from("user_profiles")
         .upsert({ user_id: currentUser.id, invite_code: inviteCode }, { onConflict: "user_id" });
+      if (upsertErr) console.error("invite_code upsert error", upsertErr);
     }
 
-    // 2️⃣ إعداد الرابط الكامل للدعوة
+    // ✅ 2. إعداد الرابط
     const link = `https://lv12shop.shop/shop-signup.html?ref=${inviteCode}`;
     document.getElementById("inviteCode").innerHTML = `
       <div class="font-bold text-blue-700 text-lg">${inviteCode}</div>
       <a href="${link}" target="_blank" class="text-blue-500 text-sm underline">${link}</a>
     `;
 
-    // 3️⃣ حساب عدد الدعوات المسجلة لهذا المستخدم
-    const { data: invitedUsers } = await supabase
+    // ✅ 3. حساب عدد الدعوات المعلقة والمعتمدة
+    const { data: referrals } = await supabase
       .from("referrals")
-      .select("id")
+      .select("id, status, created_at")
       .eq("inviter_id", currentUser.id);
 
-    const totalInvites = invitedUsers?.length || 0;
-    document.getElementById("inviteCount").textContent = totalInvites;
+    const pending = referrals?.filter(r => r.status === "pending").length || 0;
+    const approved = referrals?.filter(r => r.status === "approved").length || 0;
+    document.getElementById("inviteCount").textContent = referrals?.length || 0;
 
-    // 4️⃣ زر نسخ الرابط
+    document.getElementById("referralNote").textContent =
+      `📢 تمت ${approved} دعوة مقبولة، و${pending} قيد المراجعة من الأدارة.`;
+
     document.getElementById("copyInviteBtn").onclick = () => {
       navigator.clipboard.writeText(link);
       toast("📋 تم نسخ رابط الدعوة بنجاح!");
     };
-
-    // 5️⃣ ملاحظات إضافية
-    document.getElementById("referralNote").textContent = `قمت بدعوة ${totalInvites} صديق${totalInvites !== 1 ? "ـًا" : ""} حتى الآن. المكافأة ستضاف بعد موافقة الأدمن.`;
 
   } catch (err) {
     console.error("loadInviteCodeAndProgress", err);
@@ -230,48 +266,42 @@ async function loadInviteCodeAndProgress() {
   }
 }
 
-// 🧩 تحميل عدد الدعوات والمكافآت
+
+
 async function loadReferralStats() {
-  const { data: invites } = await supabase
-    .from("referrals")
-    .select("*")
-    .eq("inviter_id", currentUser.id);
+  try {
+    const user = currentUser;
+    if (!user) return;
 
-  const count = invites?.length || 0;
-  document.getElementById("inviteCount").textContent = count;
+    const { data: invites } = await supabase
+      .from("referrals")
+      .select("*")
+      .eq("inviter_id", user.id);
 
-  // الحصول على قيمة المكافأة الافتراضية
-  const { data: rewardCfg } = await supabase
-    .from("settings")
-    .select("referral_reward")
-    .maybeSingle();
+    const approved = invites?.filter(i => i.status === "approved").length || 0;
+    const pending = invites?.filter(i => i.status === "pending").length || 0;
 
-  const rewardAmount = rewardCfg?.referral_reward || 5;
-  document.getElementById("referralNote").textContent =
-    `💰 مكافأة الدعوة: ${rewardAmount} ج.م لكل صديق.`;
+    document.getElementById("inviteCount").textContent = invites?.length || 0;
 
-  // تفعيل زر المطالبة إذا وُجدت دعوات جديدة
-  const claimBtn = document.getElementById("claimReferralBtn");
-  claimBtn.disabled = count === 0;
-  claimBtn.onclick = async () => {
-    if (count === 0) return toast("لا توجد دعوات بعد", false);
+    // جلب إعدادات المكافأة
+    const { data: rewardCfg } = await supabase
+      .from("settings")
+      .select("referral_reward")
+      .maybeSingle();
 
-    // إضافة المكافأة إلى المحفظة
-    const totalReward = rewardAmount * count;
-    await supabase.rpc("add_wallet_balance", {
-      user_id: currentUser.id,
-      amount: totalReward,
-      note: "مكافأة الدعوات",
-    });
+    const rewardAmount = Number(rewardCfg?.referral_reward || 5);
+    document.getElementById("referralNote").textContent =
+      `💰 مكافأة الدعوة: ${rewardAmount} ج.م لكل صديق بعد موافقة الأدارة. (${approved} موافق عليها، ${pending} قيد المراجعة)`;
 
-    // تحديث حالة الدعوات
-    await supabase.from("referrals")
-      .update({ status: "claimed" })
-      .eq("inviter_id", currentUser.id);
+    // زرّ المطالبة معطل لأن الموافقة تتم يدويًا من لوحة التحكم
+    const claimBtn = document.getElementById("claimReferralBtn");
+    claimBtn.disabled = true;
+    claimBtn.textContent = "بإنتظار موافقة الأدارة 👨‍💼";
 
-    toast(`🎉 تمت إضافة ${totalReward} ج.م إلى محفظتك!`);
-    loadWallet();
-  };
+  } catch (err) {
+    console.error("loadReferralStats", err);
+    toast("⚠️ فشل تحميل بيانات الإحالات", false);
+  }
 }
 
 async function claimReferralBonus(){
@@ -407,23 +437,167 @@ function restoreActiveTask(){
   }
 }
 
-async function finalizeTaskCompletion(taskId, startedAtMs, completedAtMs) {
+async function checkDailyReferralTask() {
   try {
-    const record = {
-      user_id: currentUser.id,
-      task_id: taskId,
-      status: "pending",
-      started_at: new Date(startedAtMs).toISOString(),
-      completed_at: new Date(completedAtMs).toISOString(),
-      created_at: new Date().toISOString(),
-    };
-    await supabase.from("user_tasks").insert(record);
-    toast("✅ تم إرسال المهمة للمراجعة");
+    const today = new Date().toISOString().split("T")[0];
+    const { data: invites, error } = await supabase
+      .from("referrals")
+      .select("id, invitee_id, status, created_at")
+      .eq("inviter_id", currentUser.id)
+      .gte("created_at", `${today}T00:00:00`);
+
+    if (error) throw error;
+
+    const total = invites?.length || 0;
+    const approved = invites?.filter(i => i.status === "approved").length || 0;
+    const pending = invites?.filter(i => i.status === "pending").length || 0;
+
+    // جلب مكافأة الدعوة من الإعدادات
+    const { data: cfg } = await supabase.from("referral_settings").select("referral_reward").maybeSingle();
+    const reward = Number(cfg?.referral_reward || 5);
+
+    const dailyReward = approved * reward;
+    const bonus = approved >= 10 ? 30 : 0;
+    const totalReward = dailyReward + bonus;
+
+    // تحديث الواجهة
+    document.getElementById("inviteCount").textContent = total;
+    document.getElementById("inviteProgress").style.width = Math.min((approved / 10) * 100, 100) + "%";
+    document.getElementById("referralTaskStats").innerHTML = `
+      ✅ تمت ${approved} دعوة مقبولة اليوم<br>
+      🕓 ${pending} بانتظار المراجعة<br>
+      💰 أرباحك اليوم: ${dailyReward} ج.م ${bonus ? `+ 🎁 ${bonus} ج.م بونص` : ""}
+    `;
+
+    // ✅ إظهار زر استلام البونص عند الوصول إلى 10 دعوات
+    const claimBtn = document.getElementById("claimBonusBtn");
+    if (approved >= 10) {
+      claimBtn.classList.remove("hidden");
+      claimBtn.disabled = false;
+      claimBtn.onclick = async () => {
+        await claimDailyBonus();
+      };
+    } else {
+      claimBtn.classList.add("hidden");
+    }
+
   } catch (err) {
-    console.error("finalizeTaskCompletion", err);
-    toast("فشل إرسال المهمة", false);
+    console.error("checkDailyReferralTask", err);
+    document.getElementById("referralTaskStats").textContent = "⚠️ فشل تحميل بيانات الدعوة اليومية";
   }
 }
+async function claimDailyBonus() {
+  try {
+    const today = new Date().toISOString().split("T")[0];
+    const claimKey = `bonus_claimed_${today}`;
+
+    // منع التكرار في نفس اليوم
+    if (localStorage.getItem(claimKey)) {
+      toast("🎁 تم استلام البونص بالفعل اليوم", false);
+      return;
+    }
+
+    // جلب الرصيد الحالي
+    const { data: w } = await supabase.from("wallet").select("balance").eq("user_id", currentUser.id).maybeSingle();
+    const newBal = (w?.balance || 0) + 30;
+
+    // تحديث المحفظة
+    await supabase.from("wallet").upsert(
+      { user_id: currentUser.id, balance: newBal },
+      { onConflict: "user_id" }
+    );
+
+    // إضافة سجل للحركات
+    await supabase.from("wallet_history").insert({
+      user_id: currentUser.id,
+      amount: 30,
+      type: "referral_bonus",
+      note: "🎁 بونص 10 دعوات يومية",
+      created_at: new Date().toISOString()
+    });
+
+    // تخزين في localStorage لمنع التكرار
+    localStorage.setItem(claimKey, "true");
+
+    toast("✅ تمت إضافة 30 ج.م إلى رصيدك كبونص الدعوات!");
+    await loadWallet();
+    await loadTransactions();
+    await checkDailyReferralTask();
+
+  } catch (err) {
+    console.error("claimDailyBonus", err);
+    toast("❌ فشل أثناء استلام البونص", false);
+  }
+}
+
+async function loadTodaysReferrals() {
+  try {
+    const today = new Date().toISOString().split("T")[0];
+    const { data, error } = await supabase
+      .from("referrals")
+      .select("invitee_id, status, created_at")
+      .eq("inviter_id", currentUser.id)
+      .gte("created_at", `${today}T00:00:00`)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+
+    const cont = document.getElementById("todaysReferralsList");
+    if (!data?.length) {
+      cont.innerHTML = `<div class="text-gray-500 text-center p-2">لا دعوات اليوم بعد</div>`;
+      return;
+    }
+
+    cont.innerHTML = data.map(r => `
+      <div class="flex justify-between items-center border-b py-1">
+        <div>🧑‍🤝‍🧑 ${r.invitee_id.slice(0, 8)}</div>
+        <div class="text-xs ${r.status === "approved" ? "text-green-600" : "text-yellow-600"}">
+          ${r.status === "approved" ? "✔️ تمت الموافقة" : "⏳ قيد المراجعة"}
+        </div>
+      </div>
+    `).join("");
+  } catch (err) {
+    console.error("loadTodaysReferrals", err);
+  }
+}
+
+// ✅ بعد انتهاء المهمة اليومية يتم إرسالها للأدمن للمراجعة
+async function finalizeTaskCompletion(taskId, startTime, endTime) {
+  try {
+    // التأكد من المستخدم الحالي
+    if (!currentUser?.id) {
+      toast("⚠️ لم يتم التحقق من المستخدم", false);
+      return;
+    }
+
+    // تجهيز بيانات الإرسال
+    const startedAt = new Date(startTime).toISOString();
+    const completedAt = new Date(endTime).toISOString();
+
+    // إدخال المهمة في جدول user_tasks
+    const { error } = await supabase.from("user_tasks").insert({
+      user_id: currentUser.id,
+      task_id: taskId,
+      started_at: startedAt,
+      completed_at: completedAt,
+      status: "pending",
+      proof: { auto: true }, // يمكنك لاحقاً تخزين إثبات إضافي لو لزم
+      created_at: new Date().toISOString()
+    });
+
+    if (error) {
+      console.error("insert user_task error:", error);
+      toast("⚠️ فشل إرسال المهمة للمراجعة", false);
+      return;
+    }
+
+    toast("✅ تم إرسال المهمة إلى الإدارة للمراجعة");
+  } catch (err) {
+    console.error("finalizeTaskCompletion", err);
+    toast("❌ حدث خطأ أثناء إرسال المهمة", false);
+  }
+}
+
 
 document.getElementById("withdrawBtn").addEventListener("click", async () => {
   const phone = document.getElementById("withdrawPhone").value.trim();
@@ -431,18 +605,18 @@ document.getElementById("withdrawBtn").addEventListener("click", async () => {
   const governorate = document.getElementById("withdrawGovernorate").value.trim();
 
   if (!phone || !amount || amount <= 0)
-    return alert("❌ أدخل بيانات صحيحة للسحب");
+    return toast("❌ أدخل رقم ومبلغ صالحين", false);
 
+  // جلب عنوان IP (اختياري)
   let ip = "غير معروف";
   try {
     const r = await fetch("https://api.ipify.org?format=json");
     const j = await r.json();
-    ip = j.ip || ip;
-  } catch (e) {
-    console.warn("ip fetch failed", e);
-  }
+    ip = j.ip;
+  } catch {}
 
   try {
+    // التحقق من الرصيد
     const { data: w } = await supabase
       .from("wallet")
       .select("balance")
@@ -450,36 +624,29 @@ document.getElementById("withdrawBtn").addEventListener("click", async () => {
       .maybeSingle();
 
     const balance = w?.balance || 0;
-    if (balance < amount)
-      return toast("❌ الرصيد غير كافٍ لطلب السحب", false);
+    if (balance < amount) return toast("❌ الرصيد غير كافٍ", false);
 
-    const { data: profile } = await supabase
+    // تحديث أو إنشاء ملف المستخدم
+    await supabase
       .from("user_profiles")
-      .select("*")
-      .eq("user_id", currentUser.id)
-      .maybeSingle();
+      .upsert({ user_id: currentUser.id, wallet_number: phone }, { onConflict: "user_id" });
 
-    if (!profile) {
-      await supabase
-        .from("user_profiles")
-        .insert({ user_id: currentUser.id, wallet_number: phone });
-    } else if (!profile.wallet_number) {
-      await supabase
-        .from("user_profiles")
-        .update({ wallet_number: phone })
-        .eq("user_id", currentUser.id);
-    }
+const { error: insertErr } = await supabase.from("withdraw_requests").insert({
+  user_id: currentUser.id,
+  amount,
+  wallet_number: phone,
+  phone, // ✅ أضف هذا السطر الجديد
+  governorate,
+  ip_address: ip,
+  status: "pending",
+  created_at: new Date().toISOString(),
+});
+if (insertErr) {
+  console.error("❌ withdraw insert failed:", insertErr);
+  return toast("⚠️ فشل حفظ طلب السحب في قاعدة البيانات", false);
+}
 
-    await supabase.from("withdraw_requests").insert({
-      user_id: currentUser.id,
-      amount,
-      wallet_number: phone,
-      governorate,
-      ip_address: ip,
-      status: "pending",
-      created_at: new Date().toISOString(),
-    });
-
+    // خصم مؤقت من الرصيد
     const newBal = balance - amount;
     await supabase
       .from("wallet")
@@ -489,20 +656,17 @@ document.getElementById("withdrawBtn").addEventListener("click", async () => {
       user_id: currentUser.id,
       amount: -amount,
       type: "withdraw_hold",
-      note: "خصم مؤقت لطلب سحب قيد المراجعة",
+      note: "🕓 خصم مؤقت لطلب سحب قيد المراجعة",
+      created_at: new Date().toISOString(),
     });
 
-    toast("✅ تم إرسال طلب السحب للمراجعة");
+    toast("✅ تم إرسال الطلب للمراجعة");
     document.getElementById("withdrawStatus").textContent =
-      "تم إرسال الطلب للمراجعة — سيتم إعلامك بعد المراجعة.";
-    document.getElementById("withdrawPhone").value = phone;
-    document.getElementById("withdrawPhone").disabled = true;
-
-    await loadWallet();
+      "تم إرسال الطلب — سيقوم  الأدارة بالمراجعة قريبًا."; 
     await loadTransactions();
   } catch (err) {
     console.error("withdraw error", err);
-    toast("⚠️ فشل إرسال طلب السحب", false);
+    toast("⚠️ فشل إرسال الطلب للسيرفر", false);
   }
 });
 
@@ -554,6 +718,9 @@ document.getElementById("topupBtn").addEventListener("click", async () => {
   await loadTransactions();
   await loadInviteCodeAndProgress();
   await loadDailyTasks();
+    await checkDailyReferralTask();
+  await loadTodaysReferrals();
+
   try{
     const { data } = await supabase.from('user_profiles').select('wallet_number').eq('user_id', currentUser.id).maybeSingle();
     if(data?.wallet_number){

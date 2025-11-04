@@ -52,7 +52,6 @@
 
     <p id="message" class="text-center mt-4 text-sm"></p>
   </div>
-
 <script>
 const SUPABASE_URL = "https://nszhzfysitppxssplqfb.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zemh6ZnlzaXRwcHhzc3BscWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA4OTcsImV4cCI6MjA3MzgwNjg5N30.5KvK4bhqkZ_GpIfED4qecIMfeubAJYwSFJslULwOp-w";
@@ -62,13 +61,15 @@ const form = document.getElementById("signup-form");
 const message = document.getElementById("message");
 const urlParams = new URLSearchParams(window.location.search);
 const refCode = urlParams.get("ref");
-if (refCode) document.getElementById("referral_code").value = refCode;
+if (refCode) document.getElementById("referral_code").value = refCode.toUpperCase();
 
 // 🧠 بصمة الجهاز
 function getDeviceFingerprint() {
   const key = localStorage.getItem("device_fp");
   if (key) return key;
-  const fp = `${navigator.userAgent}_${screen.width}x${screen.height}_${Math.random().toString(36).slice(2, 10)}`;
+  const fp = `${navigator.userAgent}_${screen.width}x${screen.height}_${Math.random()
+    .toString(36)
+    .slice(2, 10)}`;
   localStorage.setItem("device_fp", fp);
   return fp;
 }
@@ -107,44 +108,37 @@ form.addEventListener("submit", async (e) => {
   const phone = document.getElementById("phone").value.trim();
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value.trim();
-  const referral_code = document.getElementById("referral_code").value.trim();
+  const referral_code = document.getElementById("referral_code").value.trim().toUpperCase();
   const device_fp = getDeviceFingerprint();
   const ip_address = await getIP();
 
-  // 🧩 تحقق من المدخلات
+  // 🧩 التحقق من المدخلات
   if (!full_name || !email || !password) {
     message.textContent = "❌ الرجاء إدخال كل البيانات المطلوبة";
     message.className = "text-center mt-4 text-sm text-red-600";
     return;
   }
 
+  // 🌍 تحقق من الدولة
   message.textContent = "⏳ جاري التحقق من الموقع...";
   message.className = "text-center mt-4 text-sm text-gray-600";
   const country = await getCountryCode();
-
-  // ✅ السماح فقط داخل مصر
   if (country !== "Egypt") {
     message.textContent = `❌ نظام الدعوات متاح فقط داخل مصر (البلد الحالي: ${country})`;
     message.className = "text-center mt-4 text-sm text-red-600";
     return;
   }
 
-  // 🚫 منع استخدام نفس الجهاز أو IP أكثر من مرة في الدعوات
+  // 🚫 التحقق من استخدام الجهاز أو IP المكرر
   if (referral_code) {
-    const { data: existing, error: checkError } = await supabase
+    const { data: existing } = await supabase
       .from("referrals")
       .select("id")
-      .or(
-        `device_fp.eq.${encodeURIComponent(device_fp)},ip_address.eq.${encodeURIComponent(
-          ip_address
-        )}`
-      )
+      .or(`device_fp.eq.${device_fp},ip_address.eq.${ip_address}`)
       .maybeSingle();
 
-    if (checkError) console.error("Check referral error:", checkError);
     if (existing) {
-      message.textContent =
-        "⚠️ تخطيت الحد الأقصى لاستخدام كود دعوة من هذا الجهاز أو الشبكة.";
+      message.textContent = "⚠️ تم استخدام كود دعوة بالفعل من هذا الجهاز أو الشبكة.";
       message.className = "text-center mt-4 text-sm text-yellow-600";
       return;
     }
@@ -173,39 +167,69 @@ form.addEventListener("submit", async (e) => {
     return;
   }
 
-  // 🔹 توليد كود دعوة خاص بالمستخدم الجديد
-  const inviteCode = (newUserId || "").slice(0, 6).toUpperCase();
+  // 🔹 توليد كود دعوة فريد وتخزينه في profiles
+  const inviteCode = newUserId.slice(0, 6).toUpperCase();
   await supabase
     .from("profiles")
     .upsert({ id: newUserId, invite_code: inviteCode }, { onConflict: "id" });
 
-  // 🎯 تسجيل الدعوة لو في كود صالح
+  // 🎯 تسجيل الدعوة بعد التأكد من صحة الكود وانتظار ظهور الـprofile
   if (referral_code) {
-    const { data: inviter } = await supabase
+    console.log("🔍 البحث عن كود الدعوة:", referral_code);
+    const { data: inviter, error: inviterErr } = await supabase
       .from("profiles")
-      .select("id")
-      .eq("invite_code", referral_code)
+      .select("id, invite_code")
+      .ilike("invite_code", referral_code)
       .maybeSingle();
 
-    if (inviter?.id) {
-      const { error: insertErr } = await supabase.from("referrals").insert([
-        {
-          inviter_id: inviter.id,
-          invitee_id: newUserId,
-          referral_code,
-          device_fp,
-          ip_address,
-          reward: 0,
-          status: "pending",
-          created_at: new Date().toISOString(),
-        },
-      ]);
+    console.log("📋 نتيجة البحث:", inviter, inviterErr);
 
-      if (insertErr)
-        console.error("❌ Referral insert error:", insertErr);
-      else console.log("✅ تم تسجيل الدعوة لصالح:", inviter.id);
+    if (inviter?.id) {
+      console.log("✅ الكود صالح - جاري انتظار إنشاء profile للمستخدم الجديد...");
+      let retries = 0;
+      let newProfile = null;
+
+      while (retries < 5) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("id", newUserId)
+          .maybeSingle();
+
+        if (profile) {
+          newProfile = profile;
+          break;
+        }
+        retries++;
+        await new Promise((r) => setTimeout(r, 1000)); // انتظر ثانية
+      }
+
+      if (newProfile) {
+        const { error: insertErr } = await supabase.from("referrals").insert([
+          {
+            inviter_id: inviter.id,
+            invitee_id: newUserId,
+            referral_code,
+            device_fp,
+            ip_address,
+            reward: 0,
+            status: "pending",
+            created_at: new Date().toISOString(),
+          },
+        ]);
+
+        if (insertErr) {
+          console.error("❌ Referral insert error:", insertErr);
+        } else {
+          console.log("✅ تم تسجيل الدعوة لصالح:", inviter.id);
+        }
+      } else {
+        console.warn("⚠️ لم يتم العثور على profile للمستخدم الجديد بعد.");
+      }
     } else {
-      console.warn("⚠️ كود الدعوة غير صالح:", referral_code);
+      console.warn("⚠️ كود الدعوة غير صالح أو غير موجود:", referral_code);
+      message.textContent = `⚠️ كود الدعوة غير صالح (${referral_code})`;
+      message.className = "text-center mt-4 text-sm text-yellow-600";
     }
   }
 
@@ -218,6 +242,7 @@ form.addEventListener("submit", async (e) => {
   }, 2000);
 });
 </script>
+
 
 </body>
 </html>

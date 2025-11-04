@@ -544,7 +544,6 @@ checkoutBtn.addEventListener("click", async () => {
 
   const { data: insertedOrders } = await supabase.from("orders").insert(orders).select();
 
-  // 🧾 توثيق في سجل الأدمن (علشان تتابع من صفحة الإدارة)
   if (insertedOrders?.length) {
     for (const order of insertedOrders) {
       await supabase.from("wallet_admin_log").insert({
@@ -557,7 +556,6 @@ checkoutBtn.addEventListener("click", async () => {
     }
   }
 
-  // 💬 إرسال واتساب مع كود الدولة +20
   const phoneWithCode = `20${"01094965067".replace(/^0/, "")}`;
   let msg = `🛍️ طلب جديد من متجر LV12%0A`;
   msg += `👤 الاسم: ${custName.value}%0A📞 الهاتف: ${custPhone.value}%0A🏠 العنوان: ${custAddress.value}%0A`;

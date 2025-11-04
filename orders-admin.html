@@ -211,7 +211,7 @@ async function checkAdmin() {
   }
 
   if (user.email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
-    showToast("🚫 ليس لديك صلاحية الأدمن", false);
+    showToast("🚫 ليس لديك صلاحية الأدارة", false);
     setTimeout(() => (location.href = "/"), 1500);
     return false;
   }
