@@ -73,12 +73,16 @@ function getDeviceFingerprint() {
   return fp;
 }
 
-// 🌍 التحقق من الدولة (يُسمح فقط لمصر، مع معالجة Unknown)
 async function getCountryCode() {
   try {
-    const res = await fetch("https://ipapi.co/json/");
-    const data = await res.json();
-    return data.country_name || "Unknown";
+    const res = await fetch("https://cloudflare.com/cdn-cgi/trace");
+    const text = await res.text();
+    const country = text.match(/loc=([A-Z]+)/);
+    if (country && country[1]) {
+      const map = { EG: "Egypt" };
+      return map[country[1]] || "Unknown";
+    }
+    return "Unknown";
   } catch {
     return "Unknown";
   }
@@ -217,3 +221,4 @@ if (referral_code && data?.user) {
 
 </body>
 </html>
+
