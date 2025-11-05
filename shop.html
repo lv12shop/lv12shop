@@ -53,8 +53,6 @@
   ]
 }
 </script>
-
-
 <style>
 :root {
   --primary: #1d4ed8;
@@ -78,6 +76,7 @@ body {
   line-height: 1.6;
 }
 
+/* === Header === */
 header {
   background: #fff;
   position: sticky;
@@ -157,6 +156,7 @@ header .actions {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-wrap: wrap;
 }
 .btn-main, .btn-outline {
   display: flex;
@@ -168,6 +168,7 @@ header .actions {
   padding: 8px 14px;
   cursor: pointer;
   transition: var(--transition);
+  justify-content: center;
 }
 .btn-main {
   background: linear-gradient(90deg, var(--primary), var(--accent));
@@ -198,6 +199,7 @@ header .actions {
   border-radius: 50%;
 }
 
+/* === Product Grid === */
 #productsGrid, .products-day-container {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -264,6 +266,7 @@ header .actions {
   box-shadow: 0 3px 8px rgba(239,68,68,0.4);
 }
 
+/* === Footer === */
 footer {
   background: linear-gradient(180deg, #0f172a, var(--primary-dark));
   color: #e2e8f0;
@@ -287,6 +290,7 @@ footer .border-t {
   border-color: rgba(255,255,255,0.2);
 }
 
+/* === Responsive Fix === */
 @media (max-width: 768px) {
   header .container {
     flex-direction: column;
@@ -296,6 +300,10 @@ footer .border-t {
   header .actions {
     justify-content: center;
     flex-wrap: wrap;
+  }
+  header .actions a {
+    flex: 1 1 calc(50% - 10px);
+    text-align: center;
   }
   header .search-area {
     order: 3;
@@ -311,6 +319,9 @@ footer .border-t {
 }
 
 @media (max-width: 480px) {
+  header .actions a {
+    flex: 1 1 100%;
+  }
   .product-card img {
     height: 140px;
   }
@@ -2451,7 +2462,4 @@ document.addEventListener("DOMContentLoaded", renderUserInterests);
 
 </body>
 </html>
-
-
-
 
