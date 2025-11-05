@@ -4,6 +4,30 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>LV12 Shop — تصفح الفئة</title>
+  <link rel="icon" href="/lv12.png" />
+<link rel="image_src" href="https://www.lv12shop.shop/lv12.png" />
+
+<meta property="og:title" content="متجر LV12 - تسوق ذكي وسريع" />
+<meta property="og:description" content="أفضل تجربة تسوق عبر الإنترنت - منتجات مميزة وشحن سريع لجميع المحافظات." />
+<meta property="og:image" content="https://www.lv12shop.shop/lv12.png" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://www.lv12shop.shop" />
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="متجر LV12 - تسوق ذكي وسريع" />
+<meta name="twitter:description" content="أفضل تجربة تسوق عبر الإنترنت - منتجات مميزة وشحن سريع لجميع المحافظات." />
+<meta name="twitter:image" content="https://www.lv12shop.shop/lv12.png" />
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "LV12 Shop",
+  "url": "https://www.lv12shop.shop",
+  "logo": "https://www.lv12shop.shop/lv12.png"
+}
+</script>
+
   <meta name="description" content="تصفح منتجات الفئة المختارة من متجر LV12 — عروض، خصومات، وأسعار مميزة.">
   <link rel="icon" href="/lv12.ico" />
   <meta name="theme-color" content="#2563eb" />
@@ -43,7 +67,6 @@
 </head>
 
 <body>
-  <!-- ✅ الهيدر -->
   <header>
     <a href="index.html" class="flex items-center gap-2">
       <img src="https://www.lv12shop.shop/lv12.png" alt="LV12">
@@ -52,7 +75,6 @@
     <button onclick="history.back()" class="bg-white text-blue-700 px-3 py-1 rounded-lg text-sm font-semibold">⬅️ رجوع</button>
   </header>
 
-  <!-- ✅ الصفحة -->
   <main class="max-w-7xl mx-auto px-4 py-8">
     <h2 id="categoryTitle" class="text-xl font-bold mb-5 text-center text-blue-900"></h2>
     <div id="loading" class="text-center text-gray-500 py-10">⏳ جاري تحميل المنتجات...</div>
@@ -60,7 +82,6 @@
     <p id="noProducts" class="text-center text-gray-500 mt-4 hidden">لا توجد منتجات في هذه الفئة.</p>
   </main>
 
-  <!-- ✅ فوتر حديث -->
   <footer class="bg-blue-950 text-gray-100 mt-16">
     <div class="max-w-7xl mx-auto px-4 py-12 grid grid-cols-1 md:grid-cols-4 gap-10">
       <div>
@@ -111,7 +132,6 @@
     </div>
   </footer>
 
-  <!-- ✅ جافا سكريبت -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const supabase = window.supabase.createClient(
@@ -135,10 +155,9 @@ async function renderCategoryPage() {
   loader.classList.remove("hidden");
   grid.classList.add("hidden");
 
-  // ✅ تحميل المنتجات مع الصور من Supabase
   const { data, error } = await supabase
     .from("products")
-    .select("*, product_images(*)") // تحميل الصور التابعة
+    .select("*, product_images(*)") 
     .eq("category", category);
 
   loader.classList.add("hidden");
@@ -155,18 +174,16 @@ async function renderCategoryPage() {
     return;
   }
 
-  // ✅ تجهيز كل منتج مع صورته الرئيسية
   const processed = data.map(p => {
     const imgs = (p.product_images || []).sort((a, b) => (a.ordering || 0) - (b.ordering || 0));
     const mainImg =
       imgs.find(i => i.is_primary)?.image_url ||
       imgs[0]?.image_url ||
-      "https://www.lv12shop.shop/lv12.jpg"; // صورة افتراضية
+      "https://www.lv12shop.shop/lv12.jpg"; 
 
     return { ...p, mainImg };
   });
 
-  // ✅ عرض المنتجات
   grid.classList.remove("hidden");
   grid.innerHTML = processed.map(p => `
     <div class="product-card" onclick="window.location.href='product.html?id=${p.id}'">

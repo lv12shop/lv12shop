@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>👤 ملفي الشخصي - LV12</title>
+  <link rel="icon" href="/lv12.png" />
+<link rel="image_src" href="https://www.lv12shop.shop/lv12.png" />
+
+<meta property="og:title" content="متجر LV12 - تسوق ذكي وسريع" />
+<meta property="og:description" content="أفضل تجربة تسوق عبر الإنترنت - منتجات مميزة وشحن سريع لجميع المحافظات." />
+<meta property="og:image" content="https://www.lv12shop.shop/lv12.png" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://www.lv12shop.shop" />
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="متجر LV12 - تسوق ذكي وسريع" />
+<meta name="twitter:description" content="أفضل تجربة تسوق عبر الإنترنت - منتجات مميزة وشحن سريع لجميع المحافظات." />
+<meta name="twitter:image" content="https://www.lv12shop.shop/lv12.png" />
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "LV12 Shop",
+  "url": "https://www.lv12shop.shop",
+  "logo": "https://www.lv12shop.shop/lv12.png"
+}
+</script>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="lv12.ico" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { font-family: "Cairo", sans-serif; background:#f8fafc; }
+  </style>
+</head>
+
+<body class="min-h-screen flex flex-col items-center py-10 px-4">
+
+  <header class="w-full max-w-2xl bg-white shadow p-4 rounded-xl flex justify-between items-center mb-6">
+    <h1 class="text-xl font-bold text-blue-700">👤 ملفي الشخصي</h1>
+    <a href="shop.html" class="text-blue-600 hover:underline">🏠 الرئيسية</a>
+  </header>
+
+  <main class="w-full max-w-2xl bg-white rounded-2xl shadow p-6">
+    <div class="flex flex-col items-center">
+      <div class="relative">
+        <img id="profilePic" src="lv12.png" class="w-28 h-28 rounded-full border-4 border-blue-100 object-cover" alt="Profile" />
+        <label for="uploadPic" class="absolute bottom-1 right-1 bg-blue-600 text-white p-2 rounded-full cursor-pointer text-xs">📷</label>
+        <input id="uploadPic" type="file" accept="image/*" class="hidden" />
+      </div>
+
+      <div class="mt-4 text-center">
+        <div class="text-gray-600 text-sm">البريد الإلكتروني:</div>
+        <div id="userEmail" class="font-semibold">جارٍ التحميل...</div>
+      </div>
+    </div>
+
+    <div class="mt-6">
+      <label class="block text-sm font-medium mb-1 text-gray-700">الاسم الكامل</label>
+      <input id="fullName" type="text" class="border p-2 w-full rounded" placeholder="اكتب اسمك هنا" />
+    </div>
+
+    <button id="saveBtn" class="mt-6 bg-blue-600 text-white w-full py-2 rounded text-lg font-semibold">💾 حفظ التغييرات</button>
+
+    <div id="statusMsg" class="text-center text-sm mt-3 text-gray-600"></div>
+  </main>
+
+<script>
+const SUPABASE_URL = "https://nszhzfysitppxssplqfb.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zemh6ZnlzaXRwcHhzc3BscWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA4OTcsImV4cCI6MjA3MzgwNjg5N30.5KvK4bhqkZ_GpIfED4qecIMfeubAJYwSFJslULwOp-w";
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let currentUser = null;
+
+async function checkAuth() {
+  const { data } = await supabase.auth.getSession();
+  currentUser = data?.session?.user;
+
+  if (!currentUser) {
+    window.location.href = "shop-login.html";
+    return;
+  }
+
+  document.getElementById("userEmail").textContent = currentUser.email;
+  document.getElementById("fullName").value = currentUser.user_metadata?.full_name || "";
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("avatar_url")
+    .eq("id", currentUser.id)
+    .maybeSingle();
+
+  if (profile?.avatar_url) {
+    document.getElementById("profilePic").src = profile.avatar_url;
+  }
+}
+checkAuth();
+
+document.getElementById("uploadPic").addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const fileName = `${currentUser.id}_${Date.now()}.jpg`;
+  const { data, error } = await supabase.storage.from("avatars").upload(fileName, file, { upsert: true });
+
+  if (error) {
+    alert("حدث خطأ أثناء رفع الصورة.");
+    console.error(error);
+    return;
+  }
+
+  const { data: { publicUrl } } = supabase.storage.from("avatars").getPublicUrl(fileName);
+  document.getElementById("profilePic").src = publicUrl;
+
+  await supabase.from("profiles").upsert({
+    id: currentUser.id,
+    avatar_url: publicUrl
+  });
+
+  document.getElementById("statusMsg").textContent = "✅ تم تحديث الصورة بنجاح";
+});
+
+document.getElementById("saveBtn").addEventListener("click", async () => {
+  const newName = document.getElementById("fullName").value.trim();
+  if (!newName) {
+    alert("الرجاء إدخال الاسم الكامل");
+    return;
+  }
+
+  await supabase.auth.updateUser({ data: { full_name: newName } });
+
+  await supabase.from("profiles").upsert({
+    id: currentUser.id,
+    full_name: newName
+  });
+
+  document.getElementById("statusMsg").textContent = "✅ تم حفظ الاسم بنجاح";
+});
+</script>
+</body>
+</html>

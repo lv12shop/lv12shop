@@ -39,123 +39,6 @@
       });
     }
   </script>
-<style>
-
-#productsGrid,
-.products-day-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
-  gap: 14px;
-}
-
-.product-card {
-  background: #ffffff;
-  border-radius: 14px;
-  padding: 10px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-  transition: 0.3s ease;
-  cursor: pointer;
-  position: relative;
-}
-.product-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 5px 14px rgba(0,0,0,0.18);
-}
-
-.product-card img {
-  width: 100%;
-  height: 170px;
-  border-radius: 12px;
-  object-fit: cover;
-}
-
-.price-new {
-  color: #d60000;
-  font-weight: 700;
-  font-size: 16px;
-}
-.price-old {
-  text-decoration: line-through;
-  color: #777;
-  font-size: 13px;
-  margin-right: 4px;
-}
-
-.discount-badge {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  background: linear-gradient(45deg,#ff0000,#b30000);
-  color: #fff;
-  padding: 3px 7px;
-  border-radius: 6px;
-  font-size: 11px;
-  font-weight: 700;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-}
-
-.category-card {
-  background: #fff;
-  padding: 14px;
-  border-radius: 14px;
-  box-shadow: 0 1px 6px rgba(0,0,0,0.09);
-  text-align: center;
-  cursor: pointer;
-  transition: 0.3s;
-}
-.category-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 5px 14px rgba(0,0,0,0.16);
-}
-.cat-img {
-  width: 100%;
-  height: 125px;
-  object-fit: cover;
-  border-radius: 12px;
-  margin-bottom: 8px;
-}
-.category-card h3 {
-  font-size: 15px;
-  font-weight: 600;
-  margin: 8px 0 2px;
-  color: #0a3d62;
-}
-.category-card p {
-  font-size: 13px;
-  color: #666;
-}
-
-#discountDaysBar {
-  padding: 8px 12px;
-  background: #ffffff;
-  border-bottom: 1px solid #e5e7eb;
-  display: flex;
-  gap: 10px;
-  overflow-x: auto;
-  white-space: nowrap;
-}
-
-#discountDaysBar button {
-  padding: 8px 15px;
-  border-radius: 25px;
-  background: #f1f5f9;
-  color: #0a3d62;
-  font-weight: 600;
-  border: none;
-  cursor: pointer;
-  transition: .25s;
-  font-size: 14px;
-}
-#discountDaysBar button:hover {
-  background: #dbeafe;
-}
-#discountDaysBar button.active {
-  background: #2563eb;
-  color: white;
-  box-shadow: 0 2px 8px rgba(0,0,0,.14);
-}
-
-</style>
 
 <script type="application/ld+json">
 {
@@ -170,15 +53,300 @@
   ]
 }
 </script>
+<style>
+#productsGrid,
+.products-day-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
+  gap: 16px;
+  padding: 4px;
+}
+
+.product-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+.product-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.15);
+}
+.product-card img {
+  width: 100%;
+  height: 170px;
+  border-radius: 12px;
+  object-fit: cover;
+  transition: 0.3s;
+}
+.product-card:hover img {
+  transform: scale(1.03);
+}
+.price-new {
+  color: #dc2626;
+  font-weight: 700;
+  font-size: 16px;
+}
+.price-old {
+  text-decoration: line-through;
+  color: #6b7280;
+  font-size: 13px;
+  margin-right: 5px;
+}
+
+.discount-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: linear-gradient(135deg,#ef4444,#b91c1c);
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(239,68,68,0.4);
+  letter-spacing: .3px;
+}
+
+.category-card {
+  background: #fff;
+  padding: 14px;
+  border-radius: 14px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.09);
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.category-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.15);
+}
+.cat-img {
+  width: 100%;
+  height: 125px;
+  object-fit: cover;
+  border-radius: 12px;
+  margin-bottom: 8px;
+  transition: 0.3s;
+}
+.category-card:hover .cat-img {
+  transform: scale(1.05);
+}
+.category-card h3 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0a3d62;
+  margin-bottom: 4px;
+}
+.category-card p {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+#discountDaysBar {
+  padding: 8px 12px;
+  background: #fff;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  white-space: nowrap;
+  scrollbar-width: thin;
+  scrollbar-color: #2563eb transparent;
+}
+#discountDaysBar::-webkit-scrollbar {
+  height: 6px;
+}
+#discountDaysBar::-webkit-scrollbar-thumb {
+  background: #2563eb;
+  border-radius: 3px;
+}
+
+#discountDaysBar button {
+  padding: 8px 15px;
+  border-radius: 25px;
+  background: #f1f5f9;
+  color: #1e3a8a;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all .25s ease;
+  font-size: 14px;
+}
+#discountDaysBar button:hover {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+#discountDaysBar button.active {
+  background: linear-gradient(90deg,#2563eb,#1d4ed8);
+  color: #fff;
+  box-shadow: 0 3px 10px rgba(37,99,235,0.3);
+}
+
+.bg-soft {
+  background: linear-gradient(to right, #eff6ff, #f9fafb);
+}
+.text-gradient {
+  background: linear-gradient(90deg,#2563eb,#1d4ed8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@media (max-width: 768px) {
+  #productsGrid,
+  .products-day-container {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+  }
+  .product-card img {
+    height: 150px;
+  }
+  .product-card {
+    padding: 8px;
+    border-radius: 12px;
+  }
+  .discount-badge {
+    font-size: 10px;
+    padding: 3px 6px;
+  }
+  .price-new {
+    font-size: 15px;
+  }
+  .price-old {
+    font-size: 12px;
+  }
+  .category-card {
+    padding: 10px;
+    border-radius: 10px;
+  }
+  .cat-img {
+    height: 100px;
+  }
+  #discountDaysBar button {
+    padding: 7px 12px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .product-card img {
+    height: 135px;
+  }
+  .price-new {
+    font-size: 14px;
+  }
+  .category-card h3 {
+    font-size: 14px;
+  }
+  .category-card p {
+    font-size: 12px;
+  }
+}
+#interestProducts h3 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1e3a8a;
+  margin: 6px 8px 2px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+#interestProducts p {
+  font-size: 14px;
+  font-weight: 700;
+  color: #2563eb;
+  margin: 0 8px 10px;
+}
+
+section h2 {
+  background: linear-gradient(90deg, #2563eb, #1e40af);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 800;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+footer {
+  background: linear-gradient(180deg, #0f172a, #1e3a8a);
+  color: #e2e8f0;
+  font-family: 'Cairo', sans-serif;
+}
+footer h4 {
+  font-weight: 700;
+  font-size: 16px;
+  color: #fff;
+  margin-bottom: 8px;
+}
+footer a {
+  transition: 0.3s ease;
+}
+footer a:hover {
+  color: #fff;
+}
+footer .border-t {
+  border-color: rgba(255,255,255,0.2);
+}
+footer img {
+  transition: 0.3s ease;
+}
+footer img:hover {
+  transform: rotate(5deg);
+}
+
+@media (max-width: 768px) {
+  #interestProducts {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+  }
+  #interestProducts img {
+    height: 140px;
+  }
+  #interestProducts h3 {
+    font-size: 14px;
+  }
+  #interestProducts p {
+    font-size: 13px;
+  }
+  footer .grid {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+  footer img {
+    margin: 0 auto;
+  }
+  footer .flex {
+    justify-content: center;
+  }
+}
+
+#interestProducts a {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeUp 0.6s ease forwards;
+}
+#interestProducts a:nth-child(1) { animation-delay: 0.05s; }
+#interestProducts a:nth-child(2) { animation-delay: 0.1s; }
+#interestProducts a:nth-child(3) { animation-delay: 0.15s; }
+#interestProducts a:nth-child(4) { animation-delay: 0.2s; }
+@keyframes fadeUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+</style>
 
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-
-</head>
 <body class="antialiased">
 
-  <header class="bg-white shadow-sm sticky top-0 z-50 border-b border-gray-100">
+  <header class="shadow-sm sticky top-0 z-50 border-b border-gray-100">
     <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between flex-wrap gap-3">
       <a href="index.html" class="flex items-center gap-3 group">
         <img src="/lv12.ico" class="w-10 h-10 rounded-md transition-transform group-hover:rotate-6" alt="LV12 logo" />
@@ -191,7 +359,7 @@
       <div class="flex-1 px-4 w-full sm:w-auto">
         <div class="relative">
           <input id="searchInput" type="search" placeholder="🔍 ابحث عن منتج..."
-            class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white/70 backdrop-blur-sm shadow-sm" />
           <button id="clearSearch" class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 hidden">✖</button>
         </div>
       </div>
@@ -201,6 +369,7 @@
           🛍️ السلة
           <span id="cartBadge" class="absolute -left-2 -top-2 bg-red-600 text-white text-xs font-semibold px-2 py-0.5 rounded-full hidden">0</span>
         </a>
+        <a href="profile.html" class="btn-outline px-4 py-2 rounded-md flex items-center gap-2">👤 ملفي</a>
 
         <a href="wallet.html" id="walletBtn" class="btn-outline px-4 py-2 rounded-md flex items-center gap-2 hidden">
           💰 <span id="walletAmount">0 ج.م</span>
@@ -211,24 +380,21 @@
         <div id="userArea"></div>
       </div>
     </div>
-
   </header>
 
+  <div id="discountDaysBar" class="flex gap-2 overflow-x-auto whitespace-nowrap px-3 py-2 bg-white shadow-sm sticky top-[70px] z-40 rounded-b-lg"></div>
 
-  <div id="discountDaysBar" class="flex gap-2 overflow-x-auto whitespace-nowrap px-3 py-2 bg-white shadow-sm sticky top-[70px] z-40"></div>
-
-
-  <section class="bg-gradient-to-l from-blue-100 to-blue-50 py-16">
-    <div class="max-w-7xl mx-auto px-4">
+  <section class="bg-gradient-to-l from-blue-100 to-blue-50 py-16 relative overflow-hidden">
+    <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/white-wall.png')] opacity-10"></div>
+    <div class="max-w-7xl mx-auto px-4 relative">
       <div class="grid md:grid-cols-2 gap-10 items-center">
         <div>
           <h2 class="text-4xl font-extrabold text-blue-900 mb-4 leading-snug">
             اكتشف <span class="text-blue-600">المنتجات الأكثر مشاهدة</span>
           </h2>
           <p class="text-gray-700 mb-6 text-lg">هذه المنتجات نالت اهتمام المتسوقين، جرّبها الآن!</p>
-
           <div class="flex flex-wrap gap-4">
-            <a href="#products" class="btn-main px-5 py-3 rounded-md text-sm font-semibold">ابدأ التسوق الآن</a>
+            <a href="#products" class="btn-main px-5 py-3 rounded-md text-sm font-semibold shadow-md">ابدأ التسوق الآن</a>
             <a href="about.html" class="btn-outline px-5 py-3 rounded-md text-sm font-semibold">من نحن</a>
           </div>
         </div>
@@ -240,57 +406,62 @@
     </div>
   </section>
 
-<main id="products" class="max-w-7xl mx-auto px-4 py-10">
-<section class="my-4">
-  <h2 class="text-lg font-bold mb-2 text-blue-700">الفئات</h2>
-  <div id="categoriesBar" class="flex gap-3 overflow-x-auto snap-x pb-3"></div>
+  <main id="products" class="max-w-7xl mx-auto px-4 py-10 space-y-10">
+
+    <section>
+      <h2 class="text-lg font-bold mb-2 text-blue-700">الفئات</h2>
+      <div id="categoriesBar" class="flex gap-3 overflow-x-auto snap-x pb-3"></div>
+    </section>
+
+    <section id="categoriesContainer" class="space-y-6"></section>
+
+    <section>
+      <div id="productGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
+    </section>
+
+    <section id="deals" class="p-4 bg-red-50 rounded-xl mt-4 shadow-sm border border-red-100">
+      <div class="flex justify-between items-center mb-3">
+        <h2 class="text-xl font-bold">🔥 عروض اليوم</h2>
+        <a href="discount-day.html" class="text-sm text-blue-500 hover:underline">عرض الكل</a>
+      </div>
+      <div id="dealsCarousel" class="flex gap-3 overflow-x-auto snap-x snap-mandatory"></div>
+    </section>
+
+    <section id="under100Wrapper" class="mt-10">
+  <h2 class="text-xl font-bold text-blue-800 mb-3">💰 منتجات أقل من 100 ج.م</h2>
+  <div id="under100" class="products-day-container"></div>
 </section>
 
-<section id="categoriesContainer" class="my-6 space-y-6"></section>
-
-<section id="products">
-  <div id="productGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
+<section id="under200Wrapper" class="mt-10">
+  <h2 class="text-xl font-bold text-blue-800 mb-3">💰 منتجات أقل من 200 ج.م</h2>
+  <div id="under200" class="products-day-container"></div>
 </section>
 
-<section id="deals" class="p-4 bg-red-50 rounded-xl mt-4">
-  <div class="flex justify-between items-center mb-3">
-    <h2 class="text-xl font-bold">🔥 عروض اليوم</h2>
-    <a href="discount-day.html" class="text-sm text-blue-500">عرض الكل</a>
-  </div>
-  <div id="dealsCarousel" class="flex gap-3 overflow-x-auto snap-x snap-mandatory"></div>
-</section>
+    <section id="discountDaysWrapper" class="hidden">
+      <h2 class="text-xl font-bold text-red-700 mb-3">📅 عروض حسب الأيام</h2>
+      <div id="discountDaysBar" class="flex gap-2 overflow-x-auto py-2"></div>
+      <div id="discountDayProducts" class="products-day-container mt-4"></div>
+    </section>
 
+    <section id="categoriesBrowse">
+      <h2 class="text-xl font-bold text-blue-900 mb-4">🏷️ تصفح حسب الفئة</h2>
+      <div id="categoriesGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
+    </section>
 
+    <section>
+      <div id="productsGrid" class="hidden grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6"></div>
+      <div id="noResults" class="hidden text-center text-gray-500 py-10">لم يتم العثور على نتائج 🔎</div>
+      <section id="categoryGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 my-4"></section>
+    </section>
 
-  <section id="under100Wrapper" class="mt-10 hidden">
-    <h2 class="text-xl font-bold text-blue-800 mb-3">💰 منتجات أقل من 100 ج.م</h2>
-    <div id="under100" class="products-day-container"></div>
-  </section>
+    <section>
+      <h2 class="text-xl font-bold text-blue-800 mb-3">✨ اهتماماتك</h2>
+      <div id="interestProducts" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
+    </section>
 
-  <section id="under200Wrapper" class="mt-10 hidden">
-    <h2 class="text-xl font-bold text-blue-800 mb-3">💰 منتجات أقل من 200 ج.م</h2>
-    <div id="under200" class="products-day-container"></div>
-  </section>
+  </main>
 
-  <section id="discountDaysWrapper" class="mt-10 hidden">
-    <h2 class="text-xl font-bold text-red-700 mb-3">📅 عروض حسب الأيام</h2>
-    <div id="discountDaysBar" class="flex gap-2 overflow-x-auto py-2"></div>
-    <div id="discountDayProducts" class="products-day-container mt-4"></div>
-  </section>
-
-  <section id="categoriesBrowse" class="mt-12">
-    <h2 class="text-xl font-bold text-blue-900 mb-4">🏷️ تصفح حسب الفئة</h2>
-    <div id="categoriesGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
-  </section>
-
-  <section class="mt-12">
-    <div id="productsGrid" class="hidden grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6"></div>
-    <div id="noResults" class="hidden text-center text-gray-500 py-10">لم يتم العثور على نتائج 🔎</div>
-  </section>
-
-</main>
-
-  <footer class="bg-blue-950 text-gray-100 mt-16">
+  <footer class="text-gray-100 mt-16">
     <div class="max-w-7xl mx-auto px-4 py-12 grid grid-cols-1 md:grid-cols-4 gap-10">
       <div>
         <img src="/lv12.ico" class="w-14 h-14 rounded mb-3" alt="LV12 logo">
@@ -311,7 +482,7 @@
         <a href="mailto:shoplv12shop@gmail.com" class="inline-block bg-blue-50 hover:bg-blue-100 text-blue-700 px-4 py-2 rounded-lg text-sm font-medium transition">
           📧 shoplv12shop@gmail.com
         </a>
-        <a href="tel:01094965067" class="block text-blue-700 text-lg font-bold hover:underline mt-2">
+        <a href="tel:01094965067" class="block text-blue-200 text-lg font-bold hover:underline mt-2">
           📞 01094965067
         </a>
       </div>
@@ -323,43 +494,96 @@
         </div>
       </div>
     </div>
-    <div class="border-t border-gray-700 text-center py-4 text-sm text-gray-400">
+    <div class="border-t border-blue-800 text-center py-4 text-sm text-blue-100">
       © <span id="yearFooter"></span> LV12 — جميع الحقوق محفوظة.
     </div>
   </footer>
-<script>
-  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zemh6ZnlzaXRwcHhzc3BscWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA4OTcsImV4cCI6MjA3MzgwNjg5N30.5KvK4bhqkZ_GpIfED4qecIMfeubAJYwSFJslULwOp-w";
 
-
-  function showToast(message) {
-    const toast = document.createElement("div");
-    toast.className = "toast";
-    toast.textContent = message;
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 5000);
+  <script>
+    document.getElementById("yearFooter").textContent = new Date().getFullYear();
+  </script>
+<style>
+.toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: linear-gradient(135deg, #2563eb, #1e40af);
+  color: #fff;
+  padding: 14px 18px;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+  font-size: 15px;
+  font-weight: 600;
+  z-index: 9999;
+  animation: slideIn 0.4s ease, fadeOut 0.4s ease 4.6s forwards;
+  max-width: 300px;
+  text-align: right;
+  line-height: 1.4;
+}
+@keyframes slideIn {
+  from { transform: translateX(120%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+@keyframes fadeOut {
+  to { transform: translateX(120%); opacity: 0; }
+}
+@media (max-width: 640px) {
+  .toast {
+    right: 10px;
+    left: 10px;
+    bottom: 15px;
+    font-size: 14px;
+    max-width: unset;
   }
+}
+</style>
 
-  supabase
-  .channel("products-realtime")
-  .on("postgres_changes", { event: "INSERT", schema: "public", table: "products" }, async (payload) => {
-    const p = payload.new;
-    const msg = `🆕 تم إضافة منتج جديد: ${p.name} بسعر ${p.price} جنيه 💸`;
-    showToast(msg);
+<script>
+function showToast(message) {
+  const toast = document.createElement("div");
+  toast.className = "toast";
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 5000);
+}
 
-    if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
-      navigator.serviceWorker.controller.postMessage({
-        type: "SHOW_NOTIFICATION",
-        title: "🆕 منتج جديد في متجر LV12",
-        body: `${p.name} متاح الآن بسعر ${p.price} جنيه 💸`,
-        url: `/product.html?id=${p.id}`
-      });
-    } else {
-      console.log("⚠️ لا يوجد Service Worker متصل حالياً");
+(async () => {
+  try {
+    if (!supabase?.realtime || typeof supabase.realtime.channel !== "function") {
+      console.warn("⚠️ Realtime غير مدعوم في نسخة Supabase الحالية");
+      return;
     }
-  })
-  .subscribe();
 
+    const channel = supabase.realtime.channel("products-realtime");
+
+    channel
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "products" }, async (payload) => {
+        const p = payload.new;
+        if (!p?.name || !p?.price) return;
+
+        const msg = `🆕 تم إضافة منتج جديد: ${p.name} بسعر ${p.price} ج.م 💸`;
+        showToast(msg);
+
+        if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
+          navigator.serviceWorker.controller.postMessage({
+            type: "SHOW_NOTIFICATION",
+            title: "🆕 منتج جديد في متجر LV12",
+            body: `${p.name} متاح الآن بسعر ${p.price} ج.م 💸`,
+            url: `/product.html?id=${p.id}`
+          });
+        } else {
+          console.log("ℹ️ Service Worker غير متصل حالياً");
+        }
+      })
+      .subscribe();
+
+    console.log("✅ تم تفعيل متابعة المنتجات الجديدة عبر Realtime");
+  } catch (err) {
+    console.error("❌ خطأ أثناء تفعيل Realtime:", err);
+  }
+})();
 </script>
+
 
 <style>
   .toast {
@@ -436,8 +660,7 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const productsGrid = document.getElementById("productsGrid");
 const loadingEl = document.getElementById("loading");
 const noResultsEl = document.getElementById("noResults");
-const searchInput = document.getElementById("searchInput");
-const clearSearch = document.getElementById("clearSearch");
+
 const categoryFilter = document.getElementById("categoryFilter");
 const stockFilter = document.getElementById("stockFilter");
 const priceMin = document.getElementById("priceMin");
@@ -918,10 +1141,9 @@ async function loadProducts(limit = 60) {
     showLoadingSkeleton();
 
     const CACHE_KEY = "LV12_PRODUCTS_CACHE";
-    const CACHE_DURATION = 3 * 60 * 60 * 1000; // 3 ساعات
+    const CACHE_DURATION = 3 * 60 * 60 * 1000; 
     const cached = localStorage.getItem(CACHE_KEY);
 
-    // 🧠 تحميل من الكاش أولًا لتسريع التجربة
     if (cached) {
       const { data, ts } = JSON.parse(cached);
       if (data && Date.now() - ts < CACHE_DURATION) {
@@ -929,13 +1151,11 @@ async function loadProducts(limit = 60) {
         window.allProducts = data;
         renderAllSections(data);
         hideLoadingSkeleton();
-        // تحديث في الخلفية بدون تأخير المستخدم
         fetchProductsFromSupabase(limit, true);
         return;
       }
     }
 
-    // 🔥 تحميل من Supabase مباشرة عند أول مرة
     await fetchProductsFromSupabase(limit, false);
 
   } catch (err) {
@@ -958,7 +1178,6 @@ async function fetchProductsFromSupabase(limit = 60, background = false) {
 
     const now = new Date();
 
-    // 🎨 تجهيز وتحسين بيانات المنتجات
     const processed = data.map(p => {
       const imgs = (p.product_images || []).sort((a, b) => (a.ordering || 0) - (b.ordering || 0));
       const mainImg =
@@ -980,7 +1199,6 @@ async function fetchProductsFromSupabase(limit = 60, background = false) {
       };
     });
 
-    // 🧱 حفظ في الذاكرة والكاش
     window.allProducts = processed;
     localStorage.setItem("LV12_PRODUCTS_CACHE", JSON.stringify({ data: processed, ts: Date.now() }));
 
@@ -1016,7 +1234,6 @@ function renderProducts(products) {
   const categoriesMap = new Map();
   const deals = [];
 
-  // تجميع الفئات والعروض
   products.forEach((p) => {
     if (p.category && !categoriesMap.has(p.category)) {
       categoriesMap.set(p.category, p);
@@ -1029,7 +1246,6 @@ function renderProducts(products) {
   renderCategories(categoriesMap);
   renderDealsOfDay(deals);
 
-  // عرض جميع المنتجات العادية
   const productCards = products
     .map(
       (p) => `
@@ -1056,24 +1272,30 @@ function renderProducts(products) {
 
   allProductsSection.innerHTML = productCards;
 }
-
-// 🟨 إنشاء قسم الفئات (كل فئة بصورة أول منتج فيها)
 function renderCategories(categoriesMap) {
   const container = document.getElementById("categoryGrid");
-  container.innerHTML = "";
+  if (!container) return;
+  
+  if (!categoriesMap || typeof categoriesMap.forEach !== "function") {
+    console.warn("⚠️ لا توجد فئات متاحة للعرض");
+    container.innerHTML = `<p class="text-gray-500 text-center py-4">لا توجد فئات حالياً</p>`;
+    return;
+  }
 
+  container.innerHTML = "";
   categoriesMap.forEach((product, category) => {
     container.innerHTML += `
       <div
         class="cursor-pointer text-center bg-white p-3 rounded-xl shadow-sm hover:shadow-md transition"
         onclick="openCategory('${encodeURIComponent(category)}')"
       >
-        <img src="${product.image}" class="rounded-xl w-full h-32 object-cover"/>
+        <img src="${product.image || 'lv12.png'}" class="rounded-xl w-full h-32 object-cover"/>
         <h4 class="mt-2 font-semibold text-sm">${category}</h4>
       </div>
     `;
   });
 }
+
 function renderDealsOfDay(products) {
   const container = document.getElementById("dealsCarousel");
   if (!container) return;
@@ -1156,11 +1378,9 @@ function openCategory(cat) {
   window.location.href = "category.html";
 }
 
-// 🔗 انتقال للمنتج
 function openProduct(id) {
   window.location.href = `product.html?id=${id}`;
 }
-// ⏳ عرض هيكل مؤقت أثناء التحميل
 function showLoadingSkeleton() {
   const grid = document.getElementById("productGrid");
   grid.innerHTML = `<div class="text-center text-gray-400 w-full py-6">جارٍ تحميل المنتجات...</div>`;
@@ -1169,7 +1389,7 @@ function showLoadingSkeleton() {
 function hideLoadingSkeleton() {
   const grid = document.getElementById("productGrid");
   if (grid && grid.innerText.includes("جارٍ تحميل")) {
-    grid.innerHTML = ""; // امسح الرسالة بعد تحميل المنتجات
+    grid.innerHTML = ""; 
   }
 }
 
@@ -1206,24 +1426,43 @@ function renderProductsGrid(products) {
     )
     .join("");
 }
-
-
 function renderTodayOffers() {
-  const now = new Date();
-  const today = allProducts.filter(p =>
-    p.discount_price &&
-    p.discount_start &&
-    p.discount_end &&
-    new Date(p.discount_start) <= now &&
-    new Date(p.discount_end) >= now
-  );
+  try {
+    const wrap = document.getElementById("todayOffers") || document.getElementById("dealsCarousel");
+    if (!wrap) {
+      console.warn("⚠️ عنصر عروض اليوم (todayOffers) غير موجود في الصفحة");
+      return;
+    }
 
-  const wrap = document.getElementById("todayOffers");
-  if (!today.length) return wrap.innerHTML = "";
+    if (!window.allProducts || !Array.isArray(allProducts)) {
+      wrap.innerHTML = `<p class="text-gray-500 text-center py-4">لا توجد بيانات منتجات حالياً</p>`;
+      return;
+    }
 
-  wrap.innerHTML = today.map(renderSmallCardHorizontal).join("");
+    const now = new Date();
+    const today = allProducts.filter(p =>
+      p.discount_price &&
+      p.discount_start &&
+      p.discount_end &&
+      new Date(p.discount_start) <= now &&
+      new Date(p.discount_end) >= now
+    );
+
+    if (!today.length) {
+      wrap.innerHTML = `
+        <div class="text-center py-6 text-gray-500">
+          📭 لا توجد عروض متاحة اليوم، ترقب التخفيضات القادمة!
+        </div>
+      `;
+      return;
+    }
+
+    wrap.innerHTML = today.map(renderSmallCardHorizontal).join("");
+
+  } catch (err) {
+    console.error("❌ خطأ أثناء عرض عروض اليوم:", err);
+  }
 }
-
 
 function renderUnder100() {
   const list = allProducts.filter(p =>
@@ -1249,6 +1488,114 @@ function renderUnder100() {
 }
 
 
+function renderSmallCardHorizontal(product) {
+  return `
+    <div class="flex bg-white rounded-xl shadow-sm hover:shadow-md p-3 gap-3 cursor-pointer transition-all duration-300 hover:-translate-y-1"
+         onclick="window.location.href='product.html?id=${product.id}'">
+      <img src="${product.image_url || 'lv12.png'}" 
+           alt="${product.name}" 
+           class="w-24 h-24 rounded-lg object-cover flex-shrink-0 border border-gray-100" />
+
+      <div class="flex-1 flex flex-col justify-between">
+        <div>
+          <h4 class="font-semibold text-gray-800 text-sm mb-1">${product.name}</h4>
+          <p class="text-gray-500 text-xs line-clamp-2">${product.description || ''}</p>
+        </div>
+        <div class="flex items-center gap-2 mt-2">
+          <span class="text-blue-600 font-bold text-sm">${product.discount_price || product.price} ج.م</span>
+          ${product.discount_price
+            ? `<span class="line-through text-gray-400 text-xs">${product.price} ج.م</span>`
+            : ""}
+        </div>
+      </div>
+
+      ${product.discount_price
+        ? `<div class="absolute top-2 right-2 bg-red-600 text-white text-xs font-semibold px-2 py-1 rounded-lg shadow-md">خصم</div>`
+        : ""}
+    </div>
+  `;
+}
+function normalizeText(text) {
+  return text
+    .toLowerCase()
+    .replace(/[أإآ]/g, "ا")
+    .replace(/ة/g, "ه")
+    .replace(/ى/g, "ي")
+    .trim();
+}
+
+function normalizeText(text) {
+  return text
+    .toLowerCase()
+    .replace(/[أإآ]/g, "ا")
+    .replace(/ة/g, "ه")
+    .replace(/ى/g, "ي")
+    .trim();
+}const searchInput = document.getElementById("searchInput");
+const clearSearch = document.getElementById("clearSearch");
+const allSections = Array.from(document.querySelectorAll("main > section"));
+
+const suggestionBox = document.createElement("div");
+suggestionBox.id = "suggestionBox";
+suggestionBox.className = "absolute bg-white border border-gray-200 shadow-lg rounded-lg w-full mt-1 z-50 hidden";
+document.querySelector(".relative").appendChild(suggestionBox);
+
+searchInput.addEventListener("input", () => {
+  const query = normalizeText(searchInput.value);
+  suggestionBox.innerHTML = "";
+  if (!query) {
+    suggestionBox.classList.add("hidden");
+    return;
+  }
+
+  const suggestions = allProducts
+    .filter(p => {
+      const name = normalizeText(p.name);
+      const dist = levenshtein(name, query);
+      return name.includes(query) || dist <= 2;
+    })
+    .slice(0, 6); 
+
+  if (suggestions.length === 0) {
+    suggestionBox.classList.add("hidden");
+    return;
+  }
+
+  suggestionBox.classList.remove("hidden");
+  suggestionBox.innerHTML = suggestions.map(p => `
+    <div class="px-4 py-2 hover:bg-blue-50 cursor-pointer text-sm flex items-center gap-2" data-id="${p.id}">
+      <img src="${p.mainImg}" class="w-8 h-8 rounded object-cover border">
+      <span>${p.name}</span>
+    </div>
+  `).join("");
+
+  suggestionBox.querySelectorAll("div").forEach(div => {
+    div.addEventListener("click", () => {
+      const pid = div.dataset.id;
+      suggestionBox.classList.add("hidden");
+      window.location.href = `product.html?id=${pid}`;
+    });
+  });
+});
+
+searchInput.addEventListener("keydown", e => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    suggestionBox.classList.add("hidden");
+    const query = normalizeText(searchInput.value);
+    const results = allProducts.filter(p => normalizeText(p.name).includes(query));
+    allSections.forEach(sec => sec.classList.add("hidden"));
+    productsGrid.parentElement.classList.remove("hidden");
+    productsGrid.innerHTML = results.map(renderProductCard).join("");
+  }
+});
+
+clearSearch.addEventListener("click", () => {
+  searchInput.value = "";
+  suggestionBox.classList.add("hidden");
+  allSections.forEach(sec => sec.classList.remove("hidden"));
+  loadProducts();
+});
 function renderUnder200() {
   const list = allProducts.filter(p =>
     (p.discount_price ?? p.price) > 100 &&
@@ -1425,7 +1772,6 @@ function groupByDiscountDay(products) {
 
   return groups;
 }
-// 🟦 عرض كل منتجات فئة محددة
 async function renderCategoryPage() {
   const params = new URLSearchParams(window.location.search);
   const category = params.get("name");
@@ -1466,7 +1812,6 @@ async function renderCategoryPage() {
     )
     .join("");
 }
-// ✅ عرض شريط الفئات في الأعلى
 function renderCategoriesBar(products) {
   const container = document.getElementById("categoriesBar");
   if (!container) return;
@@ -1493,7 +1838,6 @@ function renderCategoriesBar(products) {
 }
 
 
-// ✅ عرض الفئات بالأقسام
 function renderCategorySections(products) {
   const container = document.getElementById("categoriesContainer");
   if (!container) return;
@@ -1529,8 +1873,41 @@ function renderCategorySections(products) {
   }).join("");
 }
 
+async function loadInterestProducts() {
+  const { data: sessionData } = await supabase.auth.getSession();
+  const user = sessionData?.session?.user;
+  if (!user) return;
 
+  const { data: visits, error } = await supabase
+    .from("page_visits")
+    .select("product_id")
+    .eq("user_id", user.id)
+    .order("visited_at", { ascending: false })
+    .limit(8);
 
+  if (error || !visits?.length) {
+    console.warn("⚠️ لا توجد اهتمامات بعد:", error);
+    document.getElementById("interestProducts").innerHTML = `<p class="text-gray-500 text-sm">لا توجد اهتمامات بعد.</p>`;
+    return;
+  }
+
+  const productIds = visits.map(v => v.product_id);
+  const { data: products } = await supabase
+    .from("products")
+    .select("id, name, price, image")
+    .in("id", productIds);
+
+  const container = document.getElementById("interestProducts");
+  container.innerHTML = products.map(p => `
+    <a href="product.html?id=${p.id}" class="bg-white rounded-xl shadow hover:shadow-lg transition p-2 flex flex-col">
+      <img src="${p.image || 'lv12.png'}" class="w-full h-40 object-cover rounded-lg mb-2">
+      <h3 class="font-semibold text-sm text-gray-800 truncate">${p.name}</h3>
+      <p class="text-blue-600 font-bold text-sm">${p.price} ج.م</p>
+    </a>
+  `).join("");
+}
+
+document.addEventListener("DOMContentLoaded", loadInterestProducts);
 
 function getDiscountDays(products) {
   const days = ["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
@@ -1753,20 +2130,22 @@ function levenshtein(a, b) {
   return dp[m][n];
 }
 
-function smartSearch(query, items) {
-  if (!query) return items;
-  query = query.trim().toLowerCase();
-  const threshold = 2; 
-  return items.filter(p => {
-    const name = (p.name || "").toLowerCase();
-    const desc = (p.description || "").toLowerCase();
+function renderSearchResults(list) {
+  if (!list.length) {
+    productsGrid.innerHTML = `<p class="text-center text-gray-500 col-span-full">لم يتم العثور على نتائج 🔍</p>`;
+    return;
+  }
 
-    if (name.includes(query) || desc.includes(query)) return true;
-
-    const dist = levenshtein(name, query);
-    return dist <= threshold;
-  });
+  productsGrid.innerHTML = list.map(p => `
+    <div class="bg-white rounded-xl shadow hover:shadow-md transition p-2 cursor-pointer"
+         onclick="location.href='product.html?id=${p.id}'">
+      <img src="${p.mainImg || p.image}" class="w-full h-40 object-cover rounded-lg mb-2">
+      <h3 class="font-semibold text-sm text-gray-800 truncate">${p.name}</h3>
+      <p class="text-blue-600 font-bold text-sm">${p.price} ج.م</p>
+    </div>
+  `).join("");
 }
+
 
 const suggestionsBox = document.createElement("div");
 suggestionsBox.id = "search-suggestions";
@@ -1809,30 +2188,6 @@ function showSearchSuggestions(query) {
   });
 }
 
-function performSearch() {
-  const q = searchInput.value.trim().toLowerCase();
-  const cat = categoryFilter.value;
-  const stock = stockFilter.value;
-  const minP = parseFloat(priceMin.value) || 0;
-  const maxP = parseFloat(priceMax.value) || Infinity;
-
-  let list = smartSearch(q, allProducts).filter(p =>
-    (!cat || p.category === cat) &&
-    (!stock || (stock === "in" ? p.stock > 0 : p.stock <= 0)) &&
-    (p.price >= minP && p.price <= maxP)
-  );
-
-  if (userCountry === "Egypt" && userCity) {
-    list = list.sort((a, b) => {
-      const aLocal = a.available_cities?.includes(userCity);
-      const bLocal = b.available_cities?.includes(userCity);
-      return aLocal === bLocal ? 0 : aLocal ? -1 : 1;
-    });
-  }
-
-  renderProducts(list);
-}
-
 searchInput.addEventListener("input", debounce(() => {
   const val = searchInput.value.trim();
   clearSearch.classList.toggle("hidden", !val);
@@ -1867,11 +2222,251 @@ resetFiltersBtn.addEventListener("click", () => {
   updateCartUI();
   await checkAuth();
   await detectUserLocation();
-  await loadProducts(); // هتستدعي renderAllSections تلقائيًا
+  await loadProducts(); 
   hideLoadingSkeleton();
 })();
 
 
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const taskId = localStorage.getItem("activeTaskId");
+  const duration = Number(localStorage.getItem("taskDuration"));
+  let remaining = Number(localStorage.getItem("taskRemaining")) || duration;
+  let lastUpdate = Number(localStorage.getItem("taskLastUpdate")) || Date.now();
+  if (!taskId || !duration) return;
+
+  const bar = document.createElement("div");
+  Object.assign(bar.style, {
+    position: "fixed",
+    top: "0",
+    left: "0",
+    right: "0",
+    zIndex: "9999",
+    background: "#2563eb",
+    color: "#fff",
+    textAlign: "center",
+    padding: "10px",
+    fontWeight: "bold",
+    fontSize: "15px",
+    transition: "opacity 0.5s ease"
+  });
+  document.body.prepend(bar);
+
+  let finishedShown = false;
+
+  function saveState() {
+    localStorage.setItem("taskRemaining", remaining);
+    localStorage.setItem("taskLastUpdate", Date.now());
+  }
+
+  function finishTask() {
+    if (finishedShown) return;
+    finishedShown = true;
+    clearInterval(window.__taskTimer);
+    bar.textContent = "✅ تم إنهاء المهمة! يمكنك العودة للمحفظة.";
+    localStorage.removeItem("activeTaskId");
+    localStorage.removeItem("taskDuration");
+    localStorage.removeItem("taskRemaining");
+    localStorage.removeItem("taskLastUpdate");
+    localStorage.setItem(`task_${taskId}_completed_at`, new Date().toISOString());
+    setTimeout(() => (bar.style.opacity = "0"), 2000);
+    setTimeout(() => bar.remove(), 3000);
+  }
+
+  function tick() {
+    const now = Date.now();
+    const diff = Math.floor((now - lastUpdate) / 1000);
+    lastUpdate = now;
+    remaining -= diff;
+
+    if (remaining <= 0) return finishTask();
+
+    const m = Math.floor(remaining / 60);
+    const s = remaining % 60;
+    bar.textContent = `⏳ المهمة جارية — ${m}:${String(s).padStart(2, "0")} دقيقة`;
+    saveState();
+  }
+
+  tick();
+  window.__taskTimer = setInterval(tick, 1000);
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+      saveState();
+      clearInterval(window.__taskTimer);
+    } else {
+      const now = Date.now();
+      const diff = Math.floor((now - lastUpdate) / 1000);
+      remaining -= diff;
+      lastUpdate = now;
+      tick();
+      clearInterval(window.__taskTimer);
+      window.__taskTimer = setInterval(tick, 1000);
+    }
+  });
+});
+</script>
+<script>
+
+async function updateUserArea() {
+  const { data } = await supabase.auth.getSession();
+  const session = data?.session;
+  const user = session?.user;
+
+  const userArea = document.getElementById('userArea');
+  const walletBtn = document.getElementById('walletBtn');
+  const walletAmount = document.getElementById('walletAmount');
+
+  if (user) {
+    const name = user.user_metadata?.full_name || user.email?.split('@')[0];
+    userArea.innerHTML = `
+      <div class="flex items-center gap-2">
+        👤 <span class="text-sm text-gray-700 font-medium">${name}</span>
+        <button id="logoutBtn" class="bg-red-600 text-white px-3 py-1 rounded text-sm">تسجيل الخروج</button>
+      </div>
+    `;
+
+    try {
+      const { data: wallet } = await supabase
+        .from('wallet')
+        .select('balance')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      const bal = wallet?.balance ?? 0;
+      walletAmount.textContent = `${Number(bal).toFixed(2)} ج.م`;
+      walletBtn.classList.remove('hidden');
+    } catch (err) {
+      console.warn('Wallet load error:', err);
+    }
+
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      await supabase.auth.signOut();
+      location.reload();
+    });
+
+  } else {
+    userArea.innerHTML = `
+      <a href="shop-login.html" class="bg-blue-600 text-white px-4 py-2 rounded text-sm">تسجيل الدخول</a>
+    `;
+    walletBtn.classList.add('hidden');
+  }
+}
+
+updateUserArea();
+
+function updateCartBadge() {
+  const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+  const cartBadge = document.getElementById('cartBadge');
+  if (cart.length > 0) {
+    cartBadge.textContent = cart.length;
+    cartBadge.classList.remove('hidden');
+  } else {
+    cartBadge.classList.add('hidden');
+  }
+}
+updateCartBadge();
+</script>
+<script>
+async function renderUnderPriceSections() {
+  try {
+    if (!window.allProducts || !allProducts.length) {
+      console.warn("⚠️ لا توجد منتجات متاحة بعد لعرض الأقسام");
+      return;
+    }
+    const under100 = allProducts.filter(p => p.price <= 100);
+    const under200 = allProducts.filter(p => p.price > 100 && p.price <= 200);
+    const under100Container = document.getElementById("under100");
+    const under200Container = document.getElementById("under200");
+    if (under100Container) {
+      under100Container.innerHTML = under100.map(renderProductCard).join("");
+    }
+
+    if (under200Container) {
+      under200Container.innerHTML = under200.map(renderProductCard).join("");
+    }
+    document.getElementById("under100Wrapper").classList.remove("hidden");
+    document.getElementById("under200Wrapper").classList.remove("hidden");
+  } catch (err) {
+    console.error("❌ خطأ في عرض أقسام الأسعار:", err);
+  }
+}
+document.addEventListener("DOMContentLoaded", async () => {
+  await fetchProducts();
+  renderUnderPriceSections();
+});
+</script>
+<script>
+async function renderUserInterests() {
+  const container = document.getElementById("interestProducts");
+  if (!container) return;
+
+  try {
+    const { data: session } = await supabase.auth.getSession();
+    const user = session?.session?.user;
+
+    if (!user) {
+      container.innerHTML = `<p class="text-gray-500 text-center py-4">سجل دخولك لعرض اهتماماتك ❤️</p>`;
+      return;
+    }
+
+    const { data: interests, error } = await supabase
+      .from("user_interests")
+      .select("product_id")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(12);
+
+    if (error) throw error;
+
+    if (!interests?.length) {
+      container.innerHTML = `<p class="text-gray-500 text-center py-4">لم تقم بزيارة أي منتجات بعد 👀</p>`;
+      return;
+    }
+
+    const ids = interests.map(i => i.product_id);
+
+    const { data: products, error: pErr } = await supabase
+      .from("products")
+      .select(`
+        id, name, price, discount_price,
+        product_images(image_url, is_primary)
+      `)
+      .in("id", ids);
+
+    if (pErr) throw pErr;
+
+    if (!products?.length) {
+      container.innerHTML = `<p class="text-gray-500 text-center py-4">لا توجد منتجات مطابقة بعد</p>`;
+      return;
+    }
+
+    container.innerHTML = products.map(p => {
+      const img =
+        (p.product_images?.find(im => im.is_primary)?.image_url) ||
+        (p.product_images?.[0]?.image_url) ||
+        "/assets/no-image.png";
+
+      const price = p.discount_price ?? p.price;
+      return `
+        <div class="bg-white rounded-xl shadow hover:shadow-lg transition p-2 cursor-pointer"
+             onclick="location.href='product.html?id=${p.id}'">
+          <img src="${img}" class="w-full h-40 object-cover rounded-lg mb-2" alt="${p.name}">
+          <h3 class="font-semibold text-sm text-gray-800 truncate">${p.name}</h3>
+          <p class="text-blue-600 font-bold text-sm">${price} ج.م</p>
+        </div>
+      `;
+    }).join("");
+
+  } catch (err) {
+    console.error("❌ خطأ في عرض الاهتمامات:", err);
+    container.innerHTML = `<p class="text-red-500 text-center py-4">حدث خطأ أثناء تحميل الاهتمامات 😞</p>`;
+  }
+}
+
+document.addEventListener("DOMContentLoaded", renderUserInterests);
 </script>
 
 

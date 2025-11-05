@@ -39,10 +39,8 @@
     <button class="tab btn px-4 py-2 rounded" data-tab="referrals">🤝 الدعوات</button>
   </nav>
 
-  <!-- محتوى التبويبات -->
   <main>
 
-    <!-- ====== Dashboard ====== -->
     <section id="dashboard" class="tab-content card p-6 mb-6">
       <h2 class="text-lg font-bold mb-3">📊 ملخص سريع</h2>
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -124,6 +122,7 @@
 
     <section id="submittedTasks" class="tab-content hidden card p-6 mb-6">
       <h2 class="text-lg font-bold mb-3">📩 المهام المرسلة للمراجعة</h2>
+<div id="toast" style="display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);padding:8px 12px;border-radius:6px;color:#fff;z-index:9999;"></div>
 
       <div class="mb-3">
         <label class="text-sm">فلتر الحالة</label>
@@ -200,6 +199,7 @@
     </div>
   </div>
   <button id="deductBtn" class="mt-3 bg-red-600 text-white px-4 py-2 rounded">💸 تنفيذ الخصم</button>
+  
 </div>
 
     </section>
@@ -225,7 +225,6 @@
       <div id="transactionsListAdmin" class="divide-y text-sm"></div>
     </section>
 
-    <!-- ====== Users ====== -->
     <section id="users" class="tab-content hidden card p-6 mb-6">
       <h2 class="text-lg font-bold mb-3">👥 المستخدمين</h2>
       <div class="mb-3 flex gap-2">
@@ -234,7 +233,6 @@
       </div>
       <div id="usersListAdmin" class="divide-y text-sm"></div>
     </section>
-<!-- ====== Referrals Section ====== -->
 <section id="referrals" class="tab-content hidden card p-6 mb-6">
   <h2 class="text-lg font-bold mb-3">🤝 الإحالات (Referrals)</h2>
 
@@ -242,17 +240,14 @@
     👥 عدد الأشخاص الذين دعوتهم: <span id="referralCount">0</span>
   </div>
 
-  <!-- الإعدادات العامة لمكافأة الدعوة -->
   <div class="mb-4 flex items-center gap-3">
     <label class="font-medium">💰 مكافأة الدعوة الافتراضية (ج.م)</label>
     <input id="defaultReferralReward" type="number" step="0.01" value="5" class="border p-2 rounded w-32" />
     <button id="saveDefaultReferral" class="bg-blue-600 text-white px-3 py-2 rounded">💾 حفظ</button>
   </div>
 
-  <!-- قائمة الإحالات -->
   <div id="referralsListAdmin" class="divide-y text-sm mt-4 border rounded-lg bg-gray-50"></div>
 
-  <!-- 🧩 نموذج إضافة مهمة دعوة جديدة -->
   <div class="p-4 border rounded-lg bg-white shadow mt-6">
     <h3 class="text-lg font-bold mb-2">➕ إضافة مهمة دعوة جديدة</h3>
 
@@ -277,8 +272,9 @@
     </form>
 
  
-    <div id="referralTasksList" class="mt-4 divide-y"></div>
-    <div id="referralTasksList" class="mt-4 divide-y"></div>
+<div id="referralTasksList" class="mt-4 divide-y"></div>
+<div id="referralTasksList2" class="mt-4 divide-y"></div>
+
 </div>
 
 <div id="adminTasksList" class="mt-6"></div>
@@ -398,7 +394,6 @@ async function saveDailyTaskFromForm(){
 
   if(!title){ toast('ادخل عنوان المهمة', 'error'); return; }
 
-  // insert
   const { data, error } = await supabase.from('daily_tasks').insert([{
     title, description: desc, duration_minutes: duration,
     reward, repeat_per_day: repeat, expires_in_hours: expiry
@@ -406,7 +401,6 @@ async function saveDailyTaskFromForm(){
 
   if(error){ console.error('saveDailyTask', error); toast('فشل الحفظ', 'error'); return; }
   toast('تمت إضافة المهمة ✅');
-  // reset form
   el('taskForm').reset();
   el('taskDuration').value = 10;
   el('taskReward').value = 5;
@@ -416,7 +410,6 @@ async function saveDailyTaskFromForm(){
 }
 
 async function editDailyTask(id){
-  // fetch record and populate form for editing; save will perform update if id present
   const { data, error } = await supabase.from('daily_tasks').select('*').eq('id',id).single();
   if(error){ console.error('editDailyTask', error); toast('فشل جلب المهمة', 'error'); return; }
   el('taskTitle').value = data.title || '';
@@ -426,7 +419,6 @@ async function editDailyTask(id){
   el('taskExpiry').value = data.expires_in_hours || 24;
   el('taskDescription').value = data.description || '';
 
-  // change save button to update mode
   el('saveTaskBtn').textContent = 'تحديث المهمة';
   el('saveTaskBtn').dataset.editId = id;
 }
@@ -442,7 +434,6 @@ async function deleteDailyTask(id){
 async function upsertDailyTaskFromForm(){
   const editId = el('saveTaskBtn').dataset.editId;
   if(editId){
-    // update
     const title = el('taskTitle').value.trim();
     const duration = parseInt(el('taskDuration').value) || 10;
     const reward = Number(el('taskReward').value) || 0;
@@ -463,87 +454,18 @@ async function upsertDailyTaskFromForm(){
     await saveDailyTaskFromForm();
   }
 }
-// ✅ تحميل المهام المرسلة للمراجعة
-async function loadSubmittedTasks() {
-  const filter = el('submittedFilter')?.value || 'pending';
-  const cont = el('submittedTasksList');
-  cont.innerHTML = `<div class="p-3 text-gray-500">⏳ جاري التحميل...</div>`;
-
-  try {
-    // جلب المهام حسب الحالة
-    let { data, error } = await supabase
-      .from('user_tasks')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .eq('status', filter)
-      .limit(100);
-
-    if (error) throw error;
-
-    if (!data?.length) {
-      cont.innerHTML = `<div class="p-3 text-gray-500 text-center">لا توجد مهام بهذه الحالة</div>`;
-      return;
-    }
-
-    // جلب تفاصيل المهام اليومية المرتبطة
-    const taskIds = [...new Set(data.map(d => d.task_id))];
-    const { data: tasks } = await supabase
-      .from('daily_tasks')
-      .select('id,title,reward,duration_minutes')
-      .in('id', taskIds);
-
-    const taskMap = {};
-    (tasks || []).forEach(t => taskMap[t.id] = t);
-
-    // عرض النتائج في الصفحة
-    cont.innerHTML = data.map(u => {
-      const task = taskMap[u.task_id] || {};
-      const started = u.started_at ? new Date(u.started_at).toLocaleString() : '-';
-      const completed = u.completed_at ? new Date(u.completed_at).toLocaleString() : '-';
-      return `
-      <div class="p-3 flex justify-between items-start border-b bg-white hover:bg-gray-50 rounded">
-        <div>
-          <div class="font-semibold text-sm text-blue-800">
-            #${u.id} — المستخدم: ${shortId(u.user_id)} — المهمة: ${escapeHtml(task.title || 'غير معروفة')}
-          </div>
-          <div class="text-xs text-gray-600 mt-1">
-            💰 المكافأة: ${fmtEGP(task.reward || 0)} — ⏱️ المدة المطلوبة: ${task.duration_minutes || '-'} دقيقة<br>
-            بدأ: ${started} · انتهى: ${completed} · الحالة: ${u.status}
-          </div>
-          ${
-            u.proof
-              ? `<div class="text-xs text-gray-500 mt-1">📎 إثبات: ${escapeHtml(JSON.stringify(u.proof))}</div>`
-              : ''
-          }
-        </div>
-        <div class="flex flex-col gap-2">
-          <button onclick="adminApproveUserTask(${u.id})" class="bg-green-600 text-white text-xs px-3 py-1 rounded">✅ موافقة</button>
-          <button onclick="adminRejectUserTask(${u.id})" class="bg-red-600 text-white text-xs px-3 py-1 rounded">❌ رفض</button>
-          <button onclick="markSuspicious(${u.id})" class="bg-yellow-400 text-black text-xs px-3 py-1 rounded">🔍 مشتبه</button>
-        </div>
-      </div>`;
-    }).join('');
-
-  } catch (err) {
-    console.error('loadSubmittedTasks error:', err);
-    cont.innerHTML = `<div class="p-3 text-red-600">⚠️ فشل تحميل المهام (${err.message})</div>`;
-  }
-}
 
 
-// ✅ زر حفظ مكافأة الدعوة الافتراضية وتحديث الإحالات pending
 document.getElementById("saveDefaultReferral").onclick = async () => {
   const reward = Number(document.getElementById("defaultReferralReward").value) || 0;
 
   try {
-    // 1️⃣ تحديث الإعداد الافتراضي في جدول referral_settings
     const { error: setErr } = await supabase
       .from("referral_settings")
       .upsert({ id: 1, referral_reward: reward }, { onConflict: "id" });
 
     if (setErr) throw setErr;
 
-    // 2️⃣ تحديث كل الإحالات pending بالقيمة الجديدة
     const { error: refErr } = await supabase
       .from("referrals")
       .update({ reward })
@@ -561,168 +483,217 @@ document.getElementById("saveDefaultReferral").onclick = async () => {
 };
 
 
-async function adminApproveUserTask(userTaskId){
-  try{
-    // fetch user_task joined with task
-    const { data: ut } = await supabase.from('user_tasks').select('*, daily_tasks:daily_tasks(duration_minutes, reward)').eq('id', userTaskId).single();
-    if(!ut){ toast('لم يتم العثور على المهمة', 'error'); return; }
 
-    // basic verification
-    const durationNeeded = Number(ut.daily_tasks?.duration_minutes || 0);
-    const started = ut.started_at ? new Date(ut.started_at) : null;
-    const completed = ut.completed_at ? new Date(ut.completed_at) : null;
-
-    if(!completed){
-      // if completed_at missing, mark suspicious and require manual check
-      await supabase.from('user_tasks').update({ status: 'suspicious' }).eq('id', userTaskId);
-      toast('لا يوجد وقت إكمال صالح - تم وضعها كمشتبه فيها', 'error');
-      loadSubmittedTasks();
-      return;
-    }
-
-    const elapsedMinutes = Math.floor((completed - started) / 60000);
-    // require completed minutes >= durationNeeded
-    if(elapsedMinutes < durationNeeded){
-      await supabase.from('user_tasks').update({ status: 'suspicious' }).eq('id', userTaskId);
-      toast(`المدة الفعلية ${elapsedMinutes} دقيقة أقل من المطلوب ${durationNeeded} دقيقة — وضعت كمشتبه`, 'error');
-      loadSubmittedTasks();
-      return;
-    }
-
-    // check repeat per day: ensure user hasn't exceeded repeats today
-    const { data: task } = await supabase.from('daily_tasks').select('repeat_per_day').eq('id', ut.task_id).single();
-    const repPerDay = task?.repeat_per_day || 1;
-
-    const todayStart = new Date(); todayStart.setHours(0,0,0,0);
-    const { data: todayDone } = await supabase.from('user_tasks').select('id').eq('user_id', ut.user_id).eq('task_id', ut.task_id).gte('created_at', todayStart.toISOString());
-    const doneCount = (todayDone || []).length;
-
-    if(doneCount > repPerDay){
-      await supabase.from('user_tasks').update({ status: 'suspicious' }).eq('id', userTaskId);
-      toast('المستخدم تجاوز عدد التكرارات اليومي — وضع كمشتبه', 'error');
-      loadSubmittedTasks();
-      return;
-    }
-
-    // all ok -> approve: update user_tasks, add wallet, add wallet_history
-    await supabase.from('user_tasks').update({ status: 'approved' }).eq('id', userTaskId);
-    const reward = Number(ut.daily_tasks?.reward || 0);
-
-    // upsert wallet
-    const { data: wdata } = await supabase.from('wallet').select('balance').eq('user_id', ut.user_id).single();
-    const newBal = (wdata?.balance || 0) + reward;
-    await supabase.from('wallet').upsert({ user_id: ut.user_id, balance: newBal }, { onConflict: 'user_id' });
-    await supabase.from('wallet_history').insert({ user_id: ut.user_id, amount: reward, type: 'reward', note: `مكافأة مهمة: ${ut.task_id}` });
-
-    toast('تمت الموافقة وتم إضافة المكافأة ✅');
-    loadSubmittedTasks();
-    loadWalletsAdmin();
-    loadTransactionsAdmin();
-  }catch(err){
-    console.error('adminApproveUserTask err', err);
-    toast('فشل عند محاولة الموافقة', 'error');
-  }
+function toast(msg, ok = true) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.style.background = ok ? '#16a34a' : '#dc2626';
+  el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 2500);
 }
 
-async function adminRejectUserTask(userTaskId){
-  if(!confirm('هل أنت متأكد من رفض هذه المهمة؟')) return;
-  await supabase.from('user_tasks').update({ status: 'rejected' }).eq('id', userTaskId);
-  toast('تم رفض المهمة');
-  loadSubmittedTasks();
-}
-
-async function markSuspicious(id){
-  await supabase.from('user_tasks').update({ status: 'suspicious' }).eq('id', id);
-  toast('تم وضع المهمة كمشتبه فيها');
-  loadSubmittedTasks();
-}
 
 async function loadWalletsAdmin() {
   try {
-    const search = document.getElementById("walletSearch")?.value?.trim() || "";
-    let query = supabase.from("wallet").select("user_id, balance, updated_at").order("updated_at", { ascending: false });
+    const cont = document.getElementById("walletsListAdmin");
+    const select = document.getElementById("deductUserSelect");
+    cont.innerHTML = `<div class="text-gray-500 p-3">⏳ جاري تحميل المحافظ...</div>`;
+    select.innerHTML = `<option value="">-- جاري التحميل... --</option>`;
 
-    if (search) query = query.ilike("user_id", `%${search}%`);
-
-    const { data, error } = await query;
+    const { data, error } = await supabase
+      .from("wallet")
+      .select("user_id, balance, ip_address, created_at")
+      .order("created_at", { ascending: false });
 
     if (error) throw error;
 
-    const container = document.getElementById("walletsListAdmin");
-    if (!container) return;
+    if (!data?.length) {
+      cont.innerHTML = `<div class="text-gray-500 text-center p-3">⚠️ لا توجد محافظ بعد</div>`;
+      select.innerHTML = `<option value="">-- لا توجد محافظ --</option>`;
+      return;
+    }
 
-    container.innerHTML = data?.length
-      ? data.map(w => `
-        <div class="p-2 border-b flex justify-between items-center">
+    select.innerHTML =
+      `<option value="">-- اختر محفظة --</option>` +
+      data.map(
+        w =>
+          `<option value="${w.user_id}">
+            ${w.user_id.slice(0, 8)} — ${Number(w.balance || 0).toFixed(2)} ج.م
+          </option>`
+      ).join("");
+
+    cont.innerHTML = data
+      .map(
+        w => `
+        <div class="p-3 border-b bg-white rounded hover:bg-gray-50 flex justify-between items-center">
           <div>
-            <div class="font-bold">${w.user_id}</div>
-            <div class="text-sm text-gray-500">${new Date(w.updated_at).toLocaleString()}</div>
+            <div class="font-semibold text-blue-700">👤 ${w.user_id}</div>
+            <div class="text-xs text-gray-500">
+              🌐 ${w.ip_address || "—"} · 🕒 ${new Date(w.created_at).toLocaleString()}
+            </div>
           </div>
-          <div class="font-bold text-green-600">${w.balance.toFixed(2)} ج.م</div>
-        </div>
-      `).join("")
-      : `<div class="text-gray-500 text-center">لا توجد محافظ بعد</div>`;
+          <div class="font-bold text-green-600 text-lg">${Number(w.balance || 0).toFixed(2)} ج.م</div>
+        </div>`
+      )
+      .join("");
   } catch (err) {
-    console.error("loadWalletsAdmin", err);
+    console.error("loadWalletsAdmin error:", err);
     toast("⚠️ فشل تحميل المحافظ", false);
+  }
+}
+
+document.getElementById("deductBtn").addEventListener("click", async () => {
+  const userId = document.getElementById("deductUserSelect").value;
+  const amount = Number(document.getElementById("deductAmount").value);
+  const note = document.getElementById("deductNote").value.trim() || "خصم إداري";
+
+  if (!userId || !amount || amount <= 0) {
+    toast("⚠️ اختر محفظة وأدخل مبلغ صحيح", false);
+    return;
+  }
+
+  try {
+    const { data: wallet } = await supabase
+      .from("wallet")
+      .select("balance")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (!wallet) {
+      toast("⚠️ لم يتم العثور على محفظة لهذا المستخدم", false);
+      return;
+    }
+
+    const newBalance = (wallet.balance || 0) - amount;
+
+    const { error: updateErr } = await supabase
+      .from("wallet")
+      .update({ balance: newBalance })
+      .eq("user_id", userId);
+    if (updateErr) throw updateErr;
+
+    await supabase.from("wallet_history").insert({
+      user_id: userId,
+      amount: -amount,
+      type: "admin_deduction",
+      note: `➖ ${note}`,
+      created_at: new Date().toISOString()
+    });
+
+    toast("✅ تم خصم المبلغ بنجاح");
+    await loadWalletsAdmin();
+  } catch (err) {
+    console.error("deductBtn error:", err);
+    toast("⚠️ حدث خطأ أثناء تنفيذ الخصم", false);
+  }
+});
+
+document.addEventListener("DOMContentLoaded", loadWalletsAdmin);
+
+
+async function adminDeductBalance(userId, amount, reason = "خصم إداري") {
+  try {
+    amount = Number(amount);
+    if (!userId || !amount || amount <= 0) return alert("❌ بيانات الخصم غير صحيحة");
+
+    const { data: wallet } = await supabase
+      .from("wallet")
+      .select("balance")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (!wallet) return alert("⚠️ لم يتم العثور على محفظة لهذا المستخدم");
+
+    const newBal = (wallet.balance || 0) - amount;
+
+    const { error: upErr } = await supabase
+      .from("wallet")
+      .update({ balance: newBal })
+      .eq("user_id", userId);
+
+    if (upErr) throw upErr;
+
+    await supabase.from("wallet_history").insert({
+      user_id: userId,
+      amount: -amount,
+      type: "admin_deduction",
+      note: `➖ خصم مبلغ ${amount} ج.م (${reason})`,
+      created_at: new Date().toISOString()
+    });
+
+    toast("✅ تم خصم المبلغ بنجاح");
+    loadWalletsAdmin(); 
+  } catch (err) {
+    console.error("adminDeductBalance error:", err);
+    toast("⚠️ فشل خصم المبلغ", false);
   }
 }
 
 
 async function resolveUserIdentifier(identifier){
-  // identifier may be uuid or email. If contains @ try profiles table then auth users (if available)
   if(!identifier) return null;
   identifier = identifier.trim();
   if(identifier.includes('@')){
-    // try profiles table
     const { data: p } = await supabase.from('profiles').select('id,email').ilike('email', identifier).maybeSingle();
     if(p) return p.id;
-    // fallback: try auth.users via RPC or view if you have a users table - this may not work on anon key
-    // If not found, return null to indicate admin must provide uuid
+   
     return null;
   } else {
-    // assume uuid
     return identifier.length >= 6 ? identifier : null;
   }
 }
 
 
+async function getUserIP() {
+  try {
+    const res = await fetch("https://api.ipify.org?format=json");
+    const data = await res.json();
+    return data.ip;
+  } catch (err) {
+    console.error("getUserIP error:", err);
+    return "0.0.0.0"; 
+  }
+}
 
 async function addBalanceAdmin() {
   const userId = document.getElementById("manualUserId").value.trim();
   const amount = Number(document.getElementById("manualAmount").value);
   const note = document.getElementById("manualNote").value.trim() || "رصيد مضاف يدويًا";
 
-  if (!userId || !amount) return toast("⚠️ أدخل بيانات صحيحة", false);
+  if (!userId || !amount) return toast("⚠️ أدخل بيانات صحيحة", "error");
 
   try {
+    const ip = await getUserIP();
+
     const { data: wallet } = await supabase.from("wallet").select("balance").eq("user_id", userId).maybeSingle();
     const newBalance = (wallet?.balance || 0) + amount;
 
-    await supabase.from("wallet").upsert({ user_id: userId, balance: newBalance }, { onConflict: "user_id" });
+    await supabase.from("wallet").upsert(
+      { user_id: userId, balance: newBalance, ip_address: ip },
+      { onConflict: "user_id" }
+    );
+
     await supabase.from("wallet_history").insert({
       user_id: userId,
       amount,
       type: "manual_add",
       note,
+      ip_address: ip,
       created_at: new Date().toISOString(),
     });
 
-    toast("✅ تم إضافة الرصيد بنجاح");
+    toast(`✅ تم إضافة الرصيد بنجاح (IP: ${ip})`);
     loadWalletsAdmin();
     loadStats();
-      loadTransactionsAdmin();
-
+    loadTransactionsAdmin();
   } catch (err) {
     console.error("addBalanceAdmin", err);
-    toast("⚠️ فشل أثناء إضافة الرصيد", false);
+    toast("⚠️ فشل أثناء إضافة الرصيد", "error");
   }
 }
 
 
-
 async function loadReferralsAdmin() {
-  // أولاً: جلب كل الإحالات
   const { data: referrals, error } = await supabase
     .from("referrals")
     .select("*")
@@ -740,7 +711,6 @@ async function loadReferralsAdmin() {
     return;
   }
 
-  // ثانياً: جمع كل معرفات الداعين والمدعوين لجلب أسمائهم دفعة واحدة
   const inviterIds = referrals.map((r) => r.inviter_id);
   const inviteeIds = referrals.map((r) => r.invitee_id);
   const allIds = [...new Set([...inviterIds, ...inviteeIds])];
@@ -755,7 +725,6 @@ async function loadReferralsAdmin() {
     nameMap[p.id] = p.full_name;
   });
 
-  // ثالثًا: عرض النتائج
   const cont = document.getElementById("referralsListAdmin");
   cont.innerHTML = referrals
     .map((r) => {
@@ -802,7 +771,8 @@ async function loadReferralsAdmin() {
     })
     .join("");
 }
-// ✅ موافقة (إضافة ربح + تنبيه تلقائي عند الوصول للحد المطلوب)
+
+
 async function approveReferral(referralId, inviterId, reward) {
   if (!confirm(`هل تريد الموافقة على هذه الإحالة؟`)) return;
 
@@ -816,7 +786,6 @@ async function approveReferral(referralId, inviterId, reward) {
     return;
   }
 
-  // إضافة الرصيد للمحفظة
   const { data: wallet } = await supabase
     .from("wallet")
     .select("balance")
@@ -836,7 +805,6 @@ async function approveReferral(referralId, inviterId, reward) {
     note: `مكافأة إحالة`,
   });
 
-  // 🔥 تحقق من عدد الدعوات المقبولة للمستخدم
   const { data: approvedRefs } = await supabase
     .from("referrals")
     .select("id")
@@ -845,7 +813,6 @@ async function approveReferral(referralId, inviterId, reward) {
 
   const approvedCount = approvedRefs?.length || 0;
 
-  // 🔔 إذا وصل المستخدم إلى عدد معين (مثلاً 20)
   const target = 20;
   if (approvedCount >= target) {
     await supabase.from("notifications").insert({
@@ -855,7 +822,6 @@ async function approveReferral(referralId, inviterId, reward) {
       type: "referral_bonus",
     });
 
-    // يمكنك أيضًا تحويل المكافأة الإضافية تلقائيًا هنا:
     const bonus = 30;
     const finalBal = newBal + bonus;
     await supabase
@@ -890,7 +856,227 @@ async function rejectReferralWithReason(referralId) {
 }
 
 
-// ✅ تحميل طلبات السحب للأدمن
+async function updateTaskStatus(id, newStatus, reward = 0, userId = null) {
+  try {
+    const { error: upErr } = await supabase
+      .from('user_tasks')
+      .update({ status: newStatus })
+      .eq('id', id);
+
+    if (upErr) throw upErr;
+
+    if (newStatus === 'approved' && reward > 0 && userId) {
+      const { data: wallet } = await supabase
+        .from('wallet')
+        .select('balance')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      const newBal = (wallet?.balance || 0) + reward;
+      await supabase.from('wallet').upsert(
+        { user_id: userId, balance: newBal },
+        { onConflict: 'user_id' }
+      );
+
+      await supabase.from('wallet_history').insert({
+        user_id: userId,
+        amount: reward,
+        type: 'task_reward',
+        note: `🎯 مكافأة إكمال مهمة #${id}`,
+        created_at: new Date().toISOString()
+      });
+    }
+
+    toast(`✅ تم تحديث المهمة (${newStatus})`);
+    loadSubmittedTasks();
+  } catch (err) {
+    console.error('updateTaskStatus', err);
+    toast('⚠️ حدث خطأ أثناء تحديث الحالة', false);
+  }
+}
+
+async function loadSubmittedTasks() {
+  const filter = el('submittedFilter')?.value || 'pending';
+  const cont = el('submittedTasksList');
+  cont.innerHTML = `<div class="p-3 text-gray-500">⏳ جاري التحميل...</div>`;
+
+  try {
+    let { data, error } = await supabase
+      .from('user_tasks')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .eq('status', filter)
+      .limit(100);
+
+    if (error) throw error;
+
+    if (!data?.length) {
+      cont.innerHTML = `<div class="p-3 text-gray-500 text-center">لا توجد مهام بهذه الحالة</div>`;
+      return;
+    }
+
+    const taskIds = [...new Set(data.map(d => d.task_id))];
+    const { data: tasks, error: taskError } = await supabase
+      .from('daily_tasks')
+      .select('id,title,reward,duration_minutes')
+      .in('id', taskIds);
+
+    if (taskError) throw taskError;
+
+    const taskMap = {};
+    (tasks || []).forEach(t => taskMap[t.id] = t);
+
+    cont.innerHTML = data.map(u => {
+      const task = taskMap[u.task_id] || {};
+      const started = u.started_at ? new Date(u.started_at).toLocaleString() : '-';
+      const completed = u.completed_at ? new Date(u.completed_at).toLocaleString() : '-';
+      return `
+        <div class="p-3 flex justify-between items-start border-b bg-white hover:bg-gray-50 rounded">
+          <div>
+            <div class="font-semibold text-sm text-blue-800">
+              #${u.id} — المستخدم: ${shortId(u.user_id)} — المهمة: ${escapeHtml(task.title || 'غير معروفة')}
+            </div>
+            <div class="text-xs text-gray-600 mt-1">
+              💰 المكافأة: ${fmtEGP(task.reward || 0)} — ⏱️ المدة المطلوبة: ${task.duration_minutes || '-'} دقيقة<br>
+              بدأ: ${started} · انتهى: ${completed} · الحالة: ${u.status}
+            </div>
+            ${u.proof ? `<div class="text-xs text-gray-500 mt-1">📎 إثبات: ${escapeHtml(JSON.stringify(u.proof))}</div>` : ''}
+          </div>
+          <div class="flex flex-col gap-2">
+            <button class="bg-green-600 text-white text-xs px-3 py-1 rounded"
+              onclick="(${updateTaskStatus.toString()})('${u.id}', 'approved', ${task.reward || 0}, '${u.user_id}')">
+              ✅ موافقة
+            </button>
+            <button class="bg-red-600 text-white text-xs px-3 py-1 rounded"
+              onclick="(${updateTaskStatus.toString()})('${u.id}', 'rejected')">
+              ❌ رفض
+            </button>
+            <button class="bg-yellow-400 text-black text-xs px-3 py-1 rounded"
+              onclick="(${updateTaskStatus.toString()})('${u.id}', 'suspicious')">
+              🔍 مشتبه
+            </button>
+          </div>
+        </div>`;
+    }).join('');
+  } catch (err) {
+    console.error('loadSubmittedTasks', err);
+    cont.innerHTML = `<div class="p-3 text-red-600">⚠️ فشل تحميل المهام (${err.message})</div>`;
+  }
+}
+
+
+async function adminApproveUserTask(taskId) {
+  try {
+    const { data, error } = await supabase
+      .from('user_tasks')
+      .select('user_id, reward')
+      .eq('id', taskId)
+      .single();
+
+    if (error) {
+      console.error('Error fetching task details:', error);
+      toast("❌ فشل جلب بيانات المهمة");
+      return;
+    }
+
+    const { walletError } = await supabase
+      .from('wallet')
+      .update({ balance: supabase.raw('balance + ?', [data.reward]) })
+      .eq('user_id', data.user_id);
+
+    if (walletError) {
+      console.error('Error updating wallet balance:', walletError);
+      toast("❌ فشل إضافة الرصيد");
+      return;
+    }
+
+    const { updateError } = await supabase
+      .from('user_tasks')
+      .update({ status: 'approved' })
+      .eq('id', taskId);
+
+    if (updateError) {
+      console.error('Error updating task status:', updateError);
+      toast("❌ فشل تحديث حالة المهمة");
+      return;
+    }
+
+    toast("✅ تمت الموافقة وإضافة الرصيد بنجاح");
+    loadSubmittedTasks();
+  } catch (err) {
+    console.error('Error in adminApproveUserTask:', err);
+    toast("❌ فشل الموافقة");
+  }
+}
+
+async function adminRejectUserTask(taskId) {
+  const reason = prompt("أدخل سبب الرفض (اختياري):", "مخالفة الشروط");
+  if (!reason) return;
+
+  try {
+    const { data, error } = await supabase
+      .from('user_tasks')
+      .select('user_id, reward')
+      .eq('id', taskId)
+      .single();
+
+    if (error) {
+      console.error('Error fetching task details:', error);
+      toast("❌ فشل جلب بيانات المهمة");
+      return;
+    }
+
+    const { walletError } = await supabase
+      .from('wallet')
+      .update({ balance: supabase.raw('balance + ?', [data.reward]) })
+      .eq('user_id', data.user_id);
+
+    if (walletError) {
+      console.error('Error updating wallet balance:', walletError);
+      toast("❌ فشل إرجاع المبلغ");
+      return;
+    }
+
+    const { updateError } = await supabase
+      .from('user_tasks')
+      .update({ status: 'rejected', reject_reason: reason })
+      .eq('id', taskId);
+
+    if (updateError) {
+      console.error('Error updating task status:', updateError);
+      toast("❌ فشل تحديث حالة المهمة");
+      return;
+    }
+
+    toast("🚫 تم رفض المهمة وإرجاع المبلغ بنجاح");
+    loadSubmittedTasks(); 
+  } catch (err) {
+    console.error('Error in adminRejectUserTask:', err);
+    toast("❌ فشل الرفض");
+  }
+}
+
+async function markSuspicious(taskId) {
+  try {
+    const { updateError } = await supabase
+      .from('user_tasks')
+      .update({ status: 'suspicious' })
+      .eq('id', taskId); 
+
+    if (updateError) {
+      console.error('Error updating task status:', updateError);
+      toast("❌ فشل وضع علامة مشتبه بها");
+      return;
+    }
+
+    toast("⚠️ تم وضع علامة مشتبه بها");
+    loadSubmittedTasks(); 
+  } catch (err) {
+    console.error('Error in markSuspicious:', err);
+    toast("❌ فشل وضع علامة مشتبه بها");
+  }
+}
+
 async function loadWithdrawsAdmin() {
   try {
     const { data, error } = await supabase
@@ -951,18 +1137,15 @@ async function loadWithdrawsAdmin() {
   }
 }
 
-// ✅ الموافقة على طلب سحب
 async function approveWithdrawAdmin(id, userId, amount) {
   if (!confirm(`هل تريد الموافقة على سحب ${amount} ج.م لهذا المستخدم؟`)) return;
   try {
-    // تحديث الحالة
     const { error: e1 } = await supabase
       .from("withdraw_requests")
       .update({ status: "approved" })
       .eq("id", id);
     if (e1) throw e1;
 
-    // خصم الرصيد من المحفظة
     const { data: wallet } = await supabase
       .from("wallet")
       .select("balance")
@@ -974,7 +1157,6 @@ async function approveWithdrawAdmin(id, userId, amount) {
       .from("wallet")
       .upsert({ user_id: userId, balance: newBal }, { onConflict: "user_id" });
 
-    // إضافة إلى سجل الحركات
     await supabase.from("wallet_history").insert({
       user_id: userId,
       amount: -amount,
@@ -992,13 +1174,13 @@ async function approveWithdrawAdmin(id, userId, amount) {
     toast("⚠️ فشل أثناء اعتماد السحب", "error");
   }
 }
-// ✅ دالة رفض السحب + إرجاع المبلغ للمستخدم
+
+
 async function rejectWithdrawAdmin(id) {
   const reason = prompt("❌ اكتب سبب رفض السحب:");
   if (!reason) return;
 
   try {
-    // 1️⃣ جلب بيانات الطلب أولاً
     const { data: req, error: fetchErr } = await supabase
       .from("withdraw_requests")
       .select("*")
@@ -1007,13 +1189,11 @@ async function rejectWithdrawAdmin(id) {
 
     if (fetchErr || !req) throw fetchErr || new Error("الطلب غير موجود");
 
-    // 2️⃣ تحديث الحالة إلى مرفوض
     await supabase
       .from("withdraw_requests")
       .update({ status: "rejected", reject_reason: reason })
       .eq("id", id);
 
-    // 3️⃣ جلب رصيد المستخدم الحالي
     const { data: wallet } = await supabase
       .from("wallet")
       .select("balance")
@@ -1023,12 +1203,10 @@ async function rejectWithdrawAdmin(id) {
     const currentBal = Number(wallet?.balance || 0);
     const newBal = currentBal + Number(req.amount);
 
-    // 4️⃣ إرجاع المبلغ للمحفظة
     await supabase
       .from("wallet")
       .upsert({ user_id: req.user_id, balance: newBal }, { onConflict: "user_id" });
 
-    // 5️⃣ تسجيل العملية في السجل
     await supabase.from("wallet_history").insert({
       user_id: req.user_id,
       amount: req.amount,
@@ -1047,8 +1225,6 @@ async function rejectWithdrawAdmin(id) {
     toast("⚠️ حدث خطأ أثناء رفض السحب", false);
   }
 }
-
-
 
 
 
@@ -1254,35 +1430,151 @@ async function loadTransactionsAdmin(){
       <div class="${t.amount>0?'text-green-600':'text-red-600'} font-bold">${fmtEGP(t.amount)}</div>
     </div>`;
   }).join('') : `<div class="p-3 text-gray-500">لا سجلات</div>`;
+}function isValidUUID(value) {
+  const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+  return uuidRegex.test(value);
 }
 
-async function loadUsersAdmin() {
+async function loadTransactions() {
+  const searchQuery = document.getElementById('txnSearch').value.trim(); // أخذ قيمة البحث
+  const container = document.getElementById('transactions');
+  container.innerHTML = `<div class="p-2 text-gray-500">⏳ جاري تحميل الحركات...</div>`;
+
   try {
-    const { data, error } = await supabase
-      .from("user_profiles")
-      .select("user_id, full_name, wallet_number, created_at")
-      .order("created_at", { ascending: false })
-      .limit(100);
+    let builder = supabase
+      .from('wallet_history')
+      .select('*')
+      .ilike('note', `%${searchQuery}%`);  
+
+    if (isValidUUID(searchQuery)) {
+      builder = builder.or(`user_id.eq.${searchQuery}`); 
+    }
+
+    builder = builder.order('created_at', { ascending: false }).limit(100);
+
+    const { data, error } = await builder;
 
     if (error) throw error;
 
-    const container = document.getElementById("usersListAdmin");
-    if (!container) return;
+    if (!data?.length) {
+      container.innerHTML = `<div class="p-3 text-gray-500 text-center">لا توجد نتائج للبحث</div>`;
+      return;
+    }
 
-    container.innerHTML = data?.length
-      ? data.map(u => `
-        <div class="p-2 border-b">
-          <div><b>${u.full_name || "مستخدم بدون اسم"}</b> (${u.user_id})</div>
-          <div class="text-sm text-gray-500">📱 ${u.wallet_number || "-"}</div>
-          <div class="text-xs text-gray-400">${new Date(u.created_at).toLocaleString()}</div>
+    container.innerHTML = data.map(t => `
+      <div class="p-2 flex justify-between border-b">
+        <div>
+          <div class="font-medium">${t.note || t.type}</div>
+          <div class="text-xs text-gray-500">${new Date(t.created_at).toLocaleString()}</div>
         </div>
-      `).join("")
-      : `<div class="text-gray-500 text-center">لا يوجد مستخدمين بعد</div>`;
+        <div class="${t.amount > 0 ? 'text-green-600' : 'text-red-600'} font-bold">
+          ${Number(t.amount).toFixed(2)} ج.م
+        </div>
+      </div>
+    `).join('');
   } catch (err) {
-    console.error("loadUsersAdmin", err);
+    console.error('loadTransactions', err);
+    container.innerHTML = `<div class="text-red-600 p-3">⚠️ فشل تحميل الحركات</div>`;
+  }
+}
+
+document.getElementById('txnRefresh').addEventListener('click', loadTransactions);
+
+
+
+async function loadUsersAdmin() {
+  try {
+    const q = document.getElementById("userSearch")?.value?.trim().toLowerCase() || "";
+
+    const { data: users, error: userErr } = await supabase
+      .from("users")
+      .select("id, full_name, phone, email, created_at")
+      .order("created_at", { ascending: false })
+      .limit(500);
+
+    if (userErr) throw userErr;
+
+    const filtered = q
+      ? users.filter(u =>
+          (u.full_name || "").toLowerCase().includes(q) ||
+          (u.email || "").toLowerCase().includes(q) ||
+          (u.phone || "").toLowerCase().includes(q) ||
+          (u.id || "").toLowerCase().includes(q)
+        )
+      : users;
+
+    const { data: wallets, error: walletErr } = await supabase
+      .from("wallet")
+      .select("user_id,balance,ip_address");
+    if (walletErr) throw walletErr;
+
+    const walletMap = {};
+    (wallets || []).forEach(
+      w => (walletMap[w.user_id] = { balance: w.balance || 0, ip: w.ip_address || "—" })
+    );
+
+    const cont = document.getElementById("usersListAdmin");
+    if (!filtered?.length) {
+      cont.innerHTML = `<div class="text-gray-500 p-3 text-center">لا يوجد مستخدمين مطابقين</div>`;
+      return;
+    }
+
+    cont.innerHTML = filtered
+      .map(u => {
+        const wallet = walletMap[u.id] || { balance: 0, ip: "—" };
+        return `
+        <div class="p-3 border-b bg-white rounded hover:bg-gray-50 flex justify-between items-center">
+          <div>
+            <div class="font-bold">${escapeHtml(u.full_name || "بدون اسم")}</div>
+            <div class="text-xs text-gray-600">
+              📧 ${u.email || "—"}<br>
+              ☎️ ${u.phone || "—"}
+            </div>
+            <div class="text-xs text-gray-500">
+              🆔 ${u.id} · 🌐 ${wallet.ip} · 🕒 ${new Date(u.created_at).toLocaleString()}
+            </div>
+          </div>
+          <div class="font-bold text-green-600 text-lg">${fmtEGP(wallet.balance)}</div>
+        </div>`;
+      })
+      .join("");
+  } catch (err) {
+    console.error("loadUsersAdmin error:", err);
     toast("⚠️ فشل تحميل المستخدمين", false);
   }
 }
+
+
+
+async function searchUser(query) {
+  try {
+   const { data, error } = await supabase
+  .from("user_profiles")
+  .select("user_id, full_name, email, wallet_number, ip_address")
+  .or(`
+  full_name.ilike.%${query}%,
+  email.ilike.%${query}%,
+  user_id::text.ilike.%${query}%
+`);
+
+
+
+    if (error) throw error;
+
+    if (!data || !data.length) {
+      toast("❌ لا يوجد مستخدم بهذا الاسم أو الـ UUID", false);
+      return;
+    }
+
+    console.log("✅ نتائج البحث:", data);
+  } catch (err) {
+    console.error("searchUser error:", err);
+    toast("⚠️ فشل أثناء البحث", false);
+  }
+}
+
+
+
 async function loadReferralStats(){
   const user = await getCurrentUser();
   if(!user) return;
@@ -1347,7 +1639,7 @@ function wireReferralTaskEvents() {
 
       toast("✅ تمت إضافة مهمة الدعوة بنجاح");
       el("referralTaskForm").reset();
-      loadAdminTasks(); // تحديث القائمة العامة للمهام
+      loadAdminTasks(); 
     });
   }
 

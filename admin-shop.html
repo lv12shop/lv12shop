@@ -389,7 +389,7 @@ if (govContainer) {
   document.addEventListener("change", e => {
     if (e.target.classList && e.target.classList.contains("city-option")) document.getElementById("city-all").checked = false;
   });
-}// ✅ حفظ المنتج
+}
 productForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   saveBtn.disabled = true;
@@ -404,12 +404,10 @@ productForm.addEventListener("submit", async (e) => {
     const category = newCategoryInput.value.trim() || categorySelect.value || null;
     const visibleToAll = document.getElementById("visible-to-all")?.checked || false;
 
-    // ✅ خصم
     const discount_price = parseFloat(document.getElementById("discount-price")?.value) || null;
     const discount_start = document.getElementById("discount-start")?.value || null;
     const discount_end = document.getElementById("discount-end")?.value || null;
 
-    // 🏙️ المحافظات المختارة
     let availableCities = [];
     if (document.getElementById("city-all")?.checked) {
       availableCities = ["الجميع"];
@@ -417,7 +415,6 @@ productForm.addEventListener("submit", async (e) => {
       availableCities = Array.from(document.querySelectorAll(".city-option:checked")).map(el => el.value);
     }
 
-    // 🚚 وقت التوصيل
     let deliveryByCity = null;
     const deliveryRaw = document.getElementById("delivery-by-city")?.value?.trim();
 
@@ -498,7 +495,6 @@ productForm.addEventListener("submit", async (e) => {
     saveBtn.textContent = "💾 حفظ المنتج";
   }
 });
-// ✅ تحميل المنتجات من قاعدة البيانات Supabase
 async function loadProducts() {
   try {
     const { data, error } = await supabase
@@ -521,7 +517,6 @@ async function loadProducts() {
   }
 }
 
-// ✅ عرض المنتجات في الشبكة
 function renderProductsGrid(list) {
   if (!list || list.length === 0) {
     productsGrid.innerHTML = `<div class="col-span-full text-gray-500 text-center p-4">لا توجد منتجات بعد</div>`;

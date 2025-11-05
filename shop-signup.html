@@ -5,6 +5,30 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <title>✨ إنشاء حساب جديد | متجر LV12</title>
+  <link rel="icon" href="/lv12.png" />
+<link rel="image_src" href="https://www.lv12shop.shop/lv12.png" />
+
+<meta property="og:title" content="متجر LV12 - تسوق ذكي وسريع" />
+<meta property="og:description" content="أفضل تجربة تسوق عبر الإنترنت - منتجات مميزة وشحن سريع لجميع المحافظات." />
+<meta property="og:image" content="https://www.lv12shop.shop/lv12.png" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://www.lv12shop.shop" />
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="متجر LV12 - تسوق ذكي وسريع" />
+<meta name="twitter:description" content="أفضل تجربة تسوق عبر الإنترنت - منتجات مميزة وشحن سريع لجميع المحافظات." />
+<meta name="twitter:image" content="https://www.lv12shop.shop/lv12.png" />
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "LV12 Shop",
+  "url": "https://www.lv12shop.shop",
+  "logo": "https://www.lv12shop.shop/lv12.png"
+}
+</script>
+
   <meta name="description" content="أنشئ حسابك الآن في متجر LV12 واستمتع بالمكافآت، العروض الحصرية، وبرنامج دعوة الأصدقاء!">
   <link rel="icon" href="/lv12.ico" type="image/x-icon" />
   <link rel="apple-touch-icon" href="/lv12-192.png" />
@@ -63,7 +87,6 @@ const urlParams = new URLSearchParams(window.location.search);
 const refCode = urlParams.get("ref");
 if (refCode) document.getElementById("referral_code").value = refCode.toUpperCase();
 
-// 🧠 بصمة الجهاز
 function getDeviceFingerprint() {
   const key = localStorage.getItem("device_fp");
   if (key) return key;
@@ -74,7 +97,6 @@ function getDeviceFingerprint() {
   return fp;
 }
 
-// 🌍 التحقق من الدولة
 async function getCountryCode() {
   try {
     const res = await fetch("https://cloudflare.com/cdn-cgi/trace");
@@ -90,7 +112,6 @@ async function getCountryCode() {
   }
 }
 
-// 🌐 جلب عنوان IP
 async function getIP() {
   try {
     const res = await fetch("https://api64.ipify.org?format=json");
@@ -112,14 +133,12 @@ form.addEventListener("submit", async (e) => {
   const device_fp = getDeviceFingerprint();
   const ip_address = await getIP();
 
-  // 🧩 التحقق من المدخلات
   if (!full_name || !email || !password) {
     message.textContent = "❌ الرجاء إدخال كل البيانات المطلوبة";
     message.className = "text-center mt-4 text-sm text-red-600";
     return;
   }
 
-  // 🌍 تحقق من الدولة
   message.textContent = "⏳ جاري التحقق من الموقع...";
   message.className = "text-center mt-4 text-sm text-gray-600";
   const country = await getCountryCode();
@@ -129,7 +148,6 @@ form.addEventListener("submit", async (e) => {
     return;
   }
 
-  // 🚫 التحقق من استخدام الجهاز أو IP المكرر
   if (referral_code) {
     const { data: existing } = await supabase
       .from("referrals")
@@ -144,7 +162,6 @@ form.addEventListener("submit", async (e) => {
     }
   }
 
-  // 🧾 إنشاء الحساب
   message.textContent = "⏳ جاري إنشاء الحساب...";
   message.className = "text-center mt-4 text-sm text-gray-600";
 
@@ -167,13 +184,11 @@ form.addEventListener("submit", async (e) => {
     return;
   }
 
-  // 🔹 توليد كود دعوة فريد وتخزينه في profiles
   const inviteCode = newUserId.slice(0, 6).toUpperCase();
   await supabase
     .from("profiles")
     .upsert({ id: newUserId, invite_code: inviteCode }, { onConflict: "id" });
 
-  // 🎯 تسجيل الدعوة بعد التأكد من صحة الكود وانتظار ظهور الـprofile
   if (referral_code) {
     console.log("🔍 البحث عن كود الدعوة:", referral_code);
     const { data: inviter, error: inviterErr } = await supabase
@@ -201,7 +216,7 @@ form.addEventListener("submit", async (e) => {
           break;
         }
         retries++;
-        await new Promise((r) => setTimeout(r, 1000)); // انتظر ثانية
+        await new Promise((r) => setTimeout(r, 1000)); 
       }
 
       if (newProfile) {
@@ -233,7 +248,6 @@ form.addEventListener("submit", async (e) => {
     }
   }
 
-  // 🎉 نجاح التسجيل
   message.textContent = "✅ تم التسجيل بنجاح! تحقق من بريدك الإلكتروني لتفعيل الحساب.";
   message.className = "text-center mt-4 text-sm text-green-600";
 

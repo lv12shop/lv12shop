@@ -7,6 +7,29 @@
   
   <title>تفاصيل المنتج | متجر LV12</title>
   <meta name="description" content="📦 تصفح تفاصيل المنتج في متجر LV12 — صور عالية الجودة، السعر، المواصفات، والمراجعات من العملاء. تسوق بسهولة وأمان.">
+<link rel="icon" href="/lv12.png" />
+<link rel="image_src" href="https://www.lv12shop.shop/lv12.png" />
+
+<meta property="og:title" content="متجر LV12 - تسوق ذكي وسريع" />
+<meta property="og:description" content="أفضل تجربة تسوق عبر الإنترنت - منتجات مميزة وشحن سريع لجميع المحافظات." />
+<meta property="og:image" content="https://www.lv12shop.shop/lv12.png" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://www.lv12shop.shop" />
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="متجر LV12 - تسوق ذكي وسريع" />
+<meta name="twitter:description" content="أفضل تجربة تسوق عبر الإنترنت - منتجات مميزة وشحن سريع لجميع المحافظات." />
+<meta name="twitter:image" content="https://www.lv12shop.shop/lv12.png" />
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "LV12 Shop",
+  "url": "https://www.lv12shop.shop",
+  "logo": "https://www.lv12shop.shop/lv12.png"
+}
+</script>
 
   <meta property="og:title" content="تفاصيل المنتج | متجر LV12" />
   <meta property="og:description" content="تعرف على مميزات هذا المنتج الرائع من متجر LV12 — جودة عالية وسعر مناسب!" />
@@ -431,6 +454,11 @@ function injectProductSchema(p) {
       <h3 class="text-xl font-bold text-blue-800 mb-4">🛍️ منتجات مشابهة</h3>
       <div id="relatedProducts" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6"></div>
     </section>
+    <section>
+      <h2 class="text-xl font-bold text-blue-800 mb-3">✨ اهتماماتك</h2>
+      <div id="interestProducts" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
+    </section>
+
   </main>
 
   <div id="toast" class="toast hidden"></div>
@@ -697,10 +725,39 @@ async function loadProduct() {
     loadSalesCount(data.id);
     loadRelatedProducts(data.category, data.id);
     subscribeReviewsRealtime();
+  try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const user = sessionData?.session?.user;
+      if (user && data?.id) {
+        await supabase
+          .from("user_interests")
+          .upsert({
+            user_id: user.id,
+            product_id: data.id
+          }, { onConflict: ['user_id', 'product_id'] });
+        console.log("💾 تم تسجيل اهتمام المستخدم بهذا المنتج:", data.name);
+      }
+    } catch (err) {
+      console.warn("⚠️ فشل تسجيل الاهتمام:", err.message);
+    }
 
   } catch (err) {
     console.error("⚠️ خطأ أثناء loadProduct:", err);
     productSkeleton.innerHTML = `<div class="text-red-600 text-center">حدث خطأ أثناء تحميل المنتج</div>`;
+  }
+}
+async function saveUserInterest(productId) {
+  try {
+    const { data: session } = await supabase.auth.getSession();
+    const user = session?.session?.user;
+    if (!user) return;
+
+    await supabase
+      .from("user_interests")
+      .upsert([{ user_id: user.id, product_id: productId }], { onConflict: "user_id,product_id" });
+
+  } catch (err) {
+    console.warn("⚠️ لم يتم حفظ الاهتمام:", err.message);
   }
 }
 
@@ -957,8 +1014,80 @@ function renderAuthUI() {
     console.error("❌ خطأ أثناء تشغيل الصفحة:", err);
     showToast("حدث خطأ أثناء تحميل الصفحة", false);
   }
+  await saveUserInterest(data.id);
+
 })();
 
+</script>
+<script>
+async function renderUserInterests() {
+  const container = document.getElementById("interestProducts");
+  if (!container) return;
+
+  try {
+    const { data: session } = await supabase.auth.getSession();
+    const user = session?.session?.user;
+
+    if (!user) {
+      container.innerHTML = `<p class="text-gray-500 text-center py-4">سجل دخولك لعرض اهتماماتك ❤️</p>`;
+      return;
+    }
+
+    const { data: interests, error } = await supabase
+      .from("user_interests")
+      .select("product_id")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(12);
+
+    if (error) throw error;
+
+    if (!interests?.length) {
+      container.innerHTML = `<p class="text-gray-500 text-center py-4">لم تقم بزيارة أي منتجات بعد 👀</p>`;
+      return;
+    }
+
+    const ids = interests.map(i => i.product_id);
+
+    const { data: products, error: pErr } = await supabase
+      .from("products")
+      .select(`
+        id, name, price, discount_price,
+        product_images(image_url, is_primary)
+      `)
+      .in("id", ids);
+
+    if (pErr) throw pErr;
+
+    if (!products?.length) {
+      container.innerHTML = `<p class="text-gray-500 text-center py-4">لا توجد منتجات مطابقة بعد</p>`;
+      return;
+    }
+
+    container.innerHTML = products.map(p => {
+      const img =
+        (p.product_images?.find(im => im.is_primary)?.image_url) ||
+        (p.product_images?.[0]?.image_url) ||
+        "/assets/no-image.png";
+
+      const price = p.discount_price ?? p.price;
+      return `
+        <div class="bg-white rounded-xl shadow hover:shadow-lg transition p-2 cursor-pointer"
+             onclick="location.href='product.html?id=${p.id}'">
+          <img src="${img}" class="w-full h-40 object-cover rounded-lg mb-2" alt="${p.name}">
+          <h3 class="font-semibold text-sm text-gray-800 truncate">${p.name}</h3>
+          <p class="text-blue-600 font-bold text-sm">${price} ج.م</p>
+        </div>
+      `;
+    }).join("");
+
+  } catch (err) {
+    console.error("❌ خطأ في عرض الاهتمامات:", err);
+    container.innerHTML = `<p class="text-red-500 text-center py-4">حدث خطأ أثناء تحميل الاهتمامات 😞</p>`;
+  }
+}
+
+document.addEventListener("DOMContentLoaded", renderUserInterests);
 </script>
 
 </body>
