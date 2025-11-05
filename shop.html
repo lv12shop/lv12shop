@@ -54,6 +54,7 @@
 }
 </script>
 
+
 <style>
 :root {
   --primary: #1d4ed8;
@@ -73,6 +74,7 @@ body {
   color: var(--text-dark);
   margin: 0;
   padding: 0;
+  overflow-x: hidden;
   line-height: 1.6;
 }
 
@@ -83,6 +85,7 @@ header {
   z-index: 50;
   border-bottom: 1px solid #e5e7eb;
   box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+  width: 100%;
 }
 header .container {
   max-width: 1280px;
@@ -121,7 +124,6 @@ header p {
   font-size: 12px;
   color: var(--text-gray);
 }
-
 header .search-area {
   flex: 1;
   min-width: 220px;
@@ -151,7 +153,6 @@ header #clearSearch {
   cursor: pointer;
   display: none;
 }
-
 header .actions {
   display: flex;
   align-items: center;
@@ -185,7 +186,6 @@ header .actions {
   border-color: var(--accent);
   color: var(--accent);
 }
-
 #cartBadge {
   position: absolute;
   top: -6px;
@@ -196,6 +196,95 @@ header .actions {
   font-weight: 700;
   padding: 1px 5px;
   border-radius: 50%;
+}
+
+#productsGrid, .products-day-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 20px;
+  padding: 20px;
+  margin: 0 auto;
+  max-width: 1280px;
+}
+.product-card {
+  background: #fff;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  cursor: pointer;
+  transition: var(--transition);
+  position: relative;
+}
+.product-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 8px 18px rgba(0,0,0,0.12);
+}
+.product-card img {
+  width: 100%;
+  height: 190px;
+  object-fit: cover;
+  border-radius: 14px;
+  transition: .4s ease;
+}
+.product-card:hover img {
+  transform: scale(1.05);
+}
+.product-card h3 {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 10px 8px 4px;
+  color: var(--text-dark);
+}
+.price-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 8px 10px;
+}
+.price-new {
+  color: #dc2626;
+  font-weight: 700;
+  font-size: 16px;
+}
+.price-old {
+  text-decoration: line-through;
+  color: var(--text-gray);
+  font-size: 13px;
+}
+.discount-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: linear-gradient(135deg, #ef4444, #b91c1c);
+  color: #fff;
+  padding: 5px 9px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  box-shadow: 0 3px 8px rgba(239,68,68,0.4);
+}
+
+footer {
+  background: linear-gradient(180deg, #0f172a, var(--primary-dark));
+  color: #e2e8f0;
+  padding: 40px 20px;
+  margin-top: 40px;
+}
+footer h4 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 8px;
+}
+footer a {
+  color: #cbd5e1;
+  transition: .3s;
+}
+footer a:hover {
+  color: #fff;
+}
+footer .border-t {
+  border-color: rgba(255,255,255,0.2);
 }
 
 @media (max-width: 768px) {
@@ -211,6 +300,22 @@ header .actions {
   header .search-area {
     order: 3;
     width: 100%;
+  }
+  #productsGrid, .products-day-container {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    padding: 12px;
+  }
+  body {
+    overflow-x: hidden;
+  }
+}
+
+@media (max-width: 480px) {
+  .product-card img {
+    height: 140px;
+  }
+  .category-card h3, .product-card h3 {
+    font-size: 14px;
   }
 }
 </style>
@@ -2346,6 +2451,7 @@ document.addEventListener("DOMContentLoaded", renderUserInterests);
 
 </body>
 </html>
+
 
 
 
