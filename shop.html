@@ -53,6 +53,7 @@
   ]
 }
 </script>
+
 <style>
 :root {
   --primary: #1d4ed8;
@@ -75,191 +76,144 @@ body {
   line-height: 1.6;
 }
 
-#productsGrid,
-.products-day-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 20px;
-  padding: 20px;
+header {
+  background: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  border-bottom: 1px solid #e5e7eb;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+header .container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+header a {
+  text-decoration: none;
+}
+header .logo-area {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+header img {
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  transition: .3s;
+}
+header img:hover {
+  transform: rotate(5deg);
+}
+header h1 {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--primary);
+  margin-bottom: 2px;
+}
+header p {
+  font-size: 12px;
+  color: var(--text-gray);
 }
 
-.product-card {
-  background: #fff;
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  overflow: hidden;
-  cursor: pointer;
-  transition: var(--transition);
+header .search-area {
+  flex: 1;
+  min-width: 220px;
   position: relative;
 }
-.product-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 8px 18px rgba(0,0,0,0.12);
-}
-
-.product-card img {
+header input[type="search"] {
   width: 100%;
-  height: 190px;
-  object-fit: cover;
-  border-radius: 14px;
-  transition: .4s ease;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 8px 35px 8px 12px;
+  font-size: 14px;
+  background: #f8fafc;
+  transition: .2s;
 }
-.product-card:hover img {
-  transform: scale(1.05);
+header input[type="search"]:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(37,99,235,0.2);
+  background: #fff;
+}
+header #clearSearch {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  cursor: pointer;
+  display: none;
 }
 
-.product-card h3 {
-  font-size: 15px;
-  font-weight: 700;
-  margin: 10px 8px 4px;
-  color: var(--text-dark);
+header .actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
-
-.price-container {
+.btn-main, .btn-outline {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin: 0 8px 10px;
-}
-.price-new {
-  color: #dc2626;
-  font-weight: 700;
-  font-size: 16px;
-}
-.price-old {
-  text-decoration: line-through;
-  color: var(--text-gray);
-  font-size: 13px;
-}
-
-.discount-badge {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: linear-gradient(135deg, #ef4444, #b91c1c);
-  color: #fff;
-  padding: 5px 9px;
-  border-radius: 8px;
-  font-size: 11px;
-  font-weight: 700;
-  box-shadow: 0 3px 8px rgba(239,68,68,0.4);
-}
-
-.category-card {
-  background: #fff;
-  padding: 14px;
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  text-align: center;
-  cursor: pointer;
-  transition: var(--transition);
-}
-.category-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 18px rgba(0,0,0,0.12);
-}
-.cat-img {
-  width: 100%;
-  height: 125px;
-  object-fit: cover;
-  border-radius: 12px;
-  margin-bottom: 8px;
-  transition: .3s;
-}
-.category-card:hover .cat-img {
-  transform: scale(1.05);
-}
-.category-card h3 {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--primary-dark);
-  margin-bottom: 4px;
-}
-.category-card p {
-  font-size: 13px;
-  color: var(--text-gray);
-}
-
-#discountDaysBar {
-  display: flex;
-  gap: 12px;
-  padding: 12px 16px;
-  background: #fff;
-  border-bottom: 1px solid #e2e8f0;
-  overflow-x: auto;
-  scrollbar-width: thin;
-  scrollbar-color: var(--primary) transparent;
-}
-#discountDaysBar::-webkit-scrollbar {
-  height: 6px;
-}
-#discountDaysBar::-webkit-scrollbar-thumb {
-  background: var(--primary);
-  border-radius: 3px;
-}
-#discountDaysBar button {
-  padding: 8px 18px;
-  border-radius: 25px;
-  background: #f1f5f9;
-  color: var(--primary-dark);
-  font-weight: 600;
-  border: none;
-  cursor: pointer;
-  transition: var(--transition);
   font-size: 14px;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: var(--transition);
 }
-#discountDaysBar button:hover {
-  background: #dbeafe;
-  color: var(--primary);
-}
-#discountDaysBar button.active {
+.btn-main {
   background: linear-gradient(90deg, var(--primary), var(--accent));
   color: #fff;
-  box-shadow: 0 3px 10px rgba(37,99,235,0.3);
+  box-shadow: 0 2px 6px rgba(37,99,235,0.25);
+}
+.btn-main:hover {
+  background: linear-gradient(90deg, var(--accent), var(--primary));
+}
+.btn-outline {
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: var(--primary-dark);
+}
+.btn-outline:hover {
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
-footer {
-  background: linear-gradient(180deg, #0f172a, var(--primary-dark));
-  color: #e2e8f0;
-  padding: 40px 20px;
-}
-footer h4 {
-  font-size: 16px;
+#cartBadge {
+  position: absolute;
+  top: -6px;
+  left: -8px;
+  background: #dc2626;
+  color: #fff;
+  font-size: 11px;
   font-weight: 700;
-  color: #fff;
-  margin-bottom: 8px;
-}
-footer a {
-  color: #cbd5e1;
-  transition: .3s;
-}
-footer a:hover {
-  color: #fff;
-}
-footer .border-t {
-  border-color: rgba(255,255,255,0.2);
-}
-
-.fade-up {
-  opacity: 0;
-  transform: translateY(20px);
-  animation: fadeUp 0.6s ease forwards;
-}
-@keyframes fadeUp {
-  to { opacity: 1; transform: translateY(0); }
+  padding: 1px 5px;
+  border-radius: 50%;
 }
 
 @media (max-width: 768px) {
-  #productsGrid,
-  .products-day-container {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  header .container {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
   }
-  .product-card img {
-    height: 150px;
+  header .actions {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  header .search-area {
+    order: 3;
+    width: 100%;
   }
 }
 </style>
-
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -2392,5 +2346,6 @@ document.addEventListener("DOMContentLoaded", renderUserInterests);
 
 </body>
 </html>
+
 
 
