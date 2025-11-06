@@ -1497,7 +1497,8 @@ function renderSmallCardHorizontal(product) {
   return `
     <div class="flex bg-white rounded-xl shadow-sm hover:shadow-md p-3 gap-3 cursor-pointer transition-all duration-300 hover:-translate-y-1"
          onclick="window.location.href='product.html?id=${product.id}'">
-      <img src="${product.image_url || 'lv12.png'}" 
+   <img src="${product.mainImg || product.image || '/lv12.png'}"
+
            alt="${product.name}" 
            class="w-24 h-24 rounded-lg object-cover flex-shrink-0 border border-gray-100" />
 
