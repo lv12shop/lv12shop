@@ -146,6 +146,107 @@
       <p class="text-gray-600 mb-4">فريق الدعم لدينا جاهز دائمًا للإجابة على أسئلتك.</p>
       <a href="support.html" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded">تواصل معنا الآن</a>
     </section>
+<section id="policies" class="max-w-3xl mx-auto p-6 bg-white rounded-xl shadow mt-8">
+  <h2 class="text-2xl font-extrabold text-blue-800 mb-4">سياسات المحفظة والدفع — متجر LV12</h2>
+
+  <article class="mb-4">
+    <h3 class="text-lg font-semibold text-blue-700">1. مقدمة عامة</h3>
+    <p class="text-sm text-gray-700 mt-2">
+      تهدف سياسات المحفظة في متجر LV12 إلى حماية الحقوق وضمان سلامة المعاملات. باستخدامك المحفظة، أنت توافق على شروط الاستخدام التالية.
+    </p>
+  </article>
+
+  <article class="mb-4">
+    <h3 class="text-lg font-semibold text-blue-700">2. طرق الشحن والسحب</h3>
+    <ul class="text-sm text-gray-700 mt-2 list-disc pr-5 space-y-1">
+      <li>لضمان خصوصية بيانات التحويل وحماية المستخدمين، <strong>المنصة تدعم حصريًا فودافون كاش</strong> كطريقة للشحن والسحب (Vodafone Cash).</li>
+      <li>أي طلب شحن أو سحب يتم عبر واجهة المنصة يتطلب إرسال إثبات (صورة إيصال) إلى إدارة المتجر للمراجعة — ولا يتم تخزين أرقام المحفظة كاملة في السجلات.</li>
+      <li>نحتفظ فقط بـ <em>رقم محفظة مقنّع</em> (masked) وهاش (SHA-256) لرقم المحفظة لأغراض المطابقة والتحقّق؛ لا نخزن الأرقام النصية الكاملة.</li>
+    </ul>
+  </article>
+
+  <article class="mb-4">
+    <h3 class="text-lg font-semibold text-blue-700">3. سياسة السحب</h3>
+    <ul class="text-sm text-gray-700 mt-2 list-disc pr-5 space-y-1">
+      <li>يُطلب من المستخدم تقديم رقم محفظة فودافون كاش صالح وبيانات مطابقة للحساب.</li>
+      <li>جميع طلبات السحب تذهب إلى حالة <strong>قيد المراجعة</strong> حتى يؤكدها فريق الإدارة — في حال الموافقة تُتم المعاملة وتُخصم من رصيد المستخدم.</li>
+      <li>لا يمكن إتمام السحب إلا بعد تحقق الإدارة من إثبات الدفع/الإيصال عند الحاجة.</li>
+    </ul>
+  </article>
+
+  <article class="mb-4">
+    <h3 class="text-lg font-semibold text-blue-700">4. سياسة الشحن (إضافة رصيد)</h3>
+    <ul class="text-sm text-gray-700 mt-2 list-disc pr-5 space-y-1">
+      <li>طريقة الشحن الوحيدة المسموحة واجهياً: تحويل عبر فودافون كاش إلى رقم المتجر / المسؤول. يتم توثيق الطلب عبر رابط واتساب أو نموذج إرسال إيصال.</li>
+      <li>نحفظ في السجلات <strong>هاش رقم المحفظة</strong> ونسخة مقنّعة (masked) فقط لغرض الربط والمطابقة.</li>
+      <li>يتم تفعيل الرصيد بعد مراجعة الإيصال والمطابقة من قبل الإدارة.</li>
+    </ul>
+  </article>
+
+  <article class="mb-4">
+    <h3 class="text-lg font-semibold text-blue-700">5. التحويل الداخلي بين المستخدمين</h3>
+    <ul class="text-sm text-gray-700 mt-2 list-disc pr-5 space-y-1">
+      <li>يمكنك تحويل رصيدك لمستخدم آخر داخل النظام عبر رقم محفظة مسجل (فودافون كاش) أو عن طريق حساب المستخدم داخل المنصة.</li>
+      <li>كل تحويل يُسجل في سجل المحفظة (wallet_history) مع نوع العملية (transfer_sent / transfer_received) وتاريخ وبيان مقتضب.</li>
+      <li>لضمان سلامة العمليات يجب تنفيذ عمليات الخصم والإضافة بطريقة <strong>ذَرّية (atomic)</strong> على مستوى الخادم — أي تنفيذها داخل معاملة قاعدة بيانات واحدة.</li>
+    </ul>
+  </article>
+
+  <article class="mb-4">
+    <h3 class="text-lg font-semibold text-blue-700">6. سياسة الدعوات والإحالات</h3>
+    <ul class="text-sm text-gray-700 mt-2 list-disc pr-5 space-y-1">
+      <li>برامج الإحالة تُدار عبر أكواد/روابط دعوة فريدة. المكافآت تُمنح عند تحقيق شروط محددة (مثلاً أول عملية شراء أو إضافة رصيد بقيمة محددة).</li>
+      <li>الإحالات المزيفة أو إساءة الاستخدام تعرض الحساب للمراجعة وحرمان من مكافآت الإحالة.</li>
+    </ul>
+  </article>
+
+  <article class="mb-4">
+    <h3 class="text-lg font-semibold text-blue-700">7. حماية البيانات وخصوصية المعاملات</h3>
+    <ul class="text-sm text-gray-700 mt-2 list-disc pr-5 space-y-1">
+      <li>لا نخزن بيانات المحفظة الكاملة. يتم حفظ: <strong>phone_masked (مثل ****1234)</strong> و<strong>phone_hash</strong> (SHA-256) فقط.</li>
+      <li>أي مستندات (صور إيصالات) تُخزن في bucket مؤمّن وقابلة للمراجعة فقط من موظفي الإدارة المصرّح لهم.</li>
+      <li>المنصة لا تشارك بيانات الدفع مع طرف ثالث بدون موافقة المستخدم ما لم يطلبه القانون.</li>
+    </ul>
+  </article>
+
+  <article class="mb-4">
+    <h3 class="text-lg font-semibold text-blue-700">8. أمان وتنفيذ على مستوى السيرفر (مهم)</h3>
+    <p class="text-sm text-gray-700 mt-2">
+      من الضروري أن يتم تطبيق القواعد أعلاه أيضاً على مستوى السيرفر/قاعدة البيانات (وليس فقط في الواجهة) عبر:
+    </p>
+    <ul class="text-sm text-gray-700 mt-2 list-disc pr-5 space-y-1">
+      <li>إجبار طريقة الدفع على <code>vodafone_cash</code> في قواعد المعاملات أو عبر CHECK/Trigger.</li>
+      <li>تنفيذ تحويلات الأموال عبر Postgres function أو transaction atomic لضمان عدم فقدان الأموال أو حدوث تعارضات.</li>
+      <li>حفظ `phone_hash` و`phone_masked` بدل الرقم النصي الكامل، وتقييد صلاحيات الوصول لجدول إيصالات الدفع.</li>
+    </ul>
+  </article>
+
+  <article class="mb-4">
+    <h3 class="text-lg font-semibold text-blue-700">9. رسوم، أوقات التنفيذ، ورفض المعاملة</h3>
+    <ul class="text-sm text-gray-700 mt-2 list-disc pr-5 space-y-1">
+      <li>قد تُطبّق رسوم إدارية أو رسوم تحويل (يُوضّحها المتجر في صفحة الدفع إن وجدت).</li>
+      <li>تستغرق معالجة طلبات الشحن/السحب عادة بين (X–Y) ساعة/يوم عمل حسب وقت وصول إثبات الدفع ومراجعة الإدارة.</li>
+      <li>تحتفظ إدارة المتجر بحق رفض أي طلب يشتبه في كونه احتياليًا أو غير مطابق للسياسات.</li>
+    </ul>
+  </article>
+
+  <div class="mt-4 text-sm text-gray-600">
+    <strong>ملحوظة أخيرة:</strong> هذه السياسات للعرض أمام المستخدمين — ويجب تنفيذ الضوابط التقنية والتخزينية على الخادم/قاعدة البيانات قبل الاعتماد الكامل.
+  </div>
+</section>
+
+<nav class="text-sm text-gray-600 mt-3 text-center">
+  <a href="#policies" onclick="document.getElementById('policies').scrollIntoView({behavior:'smooth'});" class="text-blue-600 hover:underline">اطّلع على سياسات المحفظة</a>
+</nav>
+
+<style>
+  #policies { font-family: 'Cairo', sans-serif; }
+  #policies h2 { line-height: 1.05; }
+  #policies article + article { border-top: 1px solid #eef2ff; padding-top: 12px; }
+  @media (max-width:768px) {
+    #policies { padding: 18px; margin: 0 12px 24px; }
+  }
+</style>
 
   </main>
 
