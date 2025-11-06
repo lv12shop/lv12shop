@@ -331,40 +331,41 @@ footer .border-t {
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <body class="antialiased">
-<header class="header-main shadow-sm sticky top-0 z-50 border-b border-gray-100 bg-white">
-  <div class="container mx-auto px-4 py-3 flex items-center justify-between flex-wrap gap-3">
+
+<header id="mainHeader" class="header-main fixed top-0 left-0 right-0 z-50 bg-white shadow-sm border-b border-gray-200 transition-transform duration-300">
+  <div class="container mx-auto px-4 py-2 flex items-center justify-between gap-3 flex-wrap">
     
-    <a href="index.html" class="flex items-center gap-3 group">
-      <img src="/lv12.ico" class="w-10 h-10 rounded-md transition-transform group-hover:rotate-6" alt="LV12 logo" />
+    <a href="index.html" class="flex items-center gap-2 group">
+      <img src="/lv12.ico" class="w-9 h-9 rounded-md transition-transform group-hover:rotate-6" alt="LV12 logo" />
       <div>
-        <h1 class="text-lg font-extrabold text-blue-700">متجر LV12</h1>
-        <p class="text-xs text-gray-500">تسوق ذكي وسريع</p>
+        <h1 class="text-base font-extrabold text-blue-700 leading-tight">متجر LV12</h1>
+        <p class="text-[11px] text-gray-500">تسوق ذكي وسريع</p>
       </div>
     </a>
 
-    <div class="flex-1 px-2 w-full sm:w-auto order-3 sm:order-none">
+    <div class="flex-1 order-3 sm:order-none w-full sm:w-auto">
       <div class="relative">
         <input id="searchInput" type="search" placeholder="🔍 ابحث عن منتج..."
-          class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white/70 backdrop-blur-sm shadow-sm" />
+          class="w-full border border-gray-300 rounded-lg px-4 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white/80 backdrop-blur-sm text-sm shadow-sm" />
         <button id="clearSearch" class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 hidden">✖</button>
       </div>
     </div>
 
     <div class="actions flex items-center gap-2 sm:gap-3 flex-wrap justify-center">
-      <a href="cart.html" class="relative btn-main px-3 py-1.5 sm:px-4 sm:py-2 rounded-md shadow-sm flex items-center gap-1.5 text-sm sm:text-base">
+      <a href="cart.html" class="relative btn-main flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-md shadow-sm">
         🛍️ <span>السلة</span>
         <span id="cartBadge" class="absolute -left-2 -top-2 bg-red-600 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded-full hidden">0</span>
       </a>
 
-      <a href="profile.html" class="btn-outline px-3 py-1.5 sm:px-4 sm:py-2 rounded-md flex items-center gap-1.5 text-sm sm:text-base">
+      <a href="profile.html" class="btn-outline flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-md">
         👤 <span>ملفي</span>
       </a>
 
-      <a href="wallet.html" id="walletBtn" class="btn-outline px-3 py-1.5 sm:px-4 sm:py-2 rounded-md flex items-center gap-1.5 text-sm sm:text-base hidden">
+      <a href="wallet.html" id="walletBtn" class="btn-outline flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-md hidden">
         💰 <span id="walletAmount">0 ج.م</span>
       </a>
 
-      <a href="my-orders.html" class="btn-outline px-3 py-1.5 sm:px-4 sm:py-2 rounded-md flex items-center gap-1.5 text-sm sm:text-base">
+      <a href="my-orders.html" class="btn-outline flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-md">
         📦 <span>طلباتي</span>
       </a>
 
@@ -373,7 +374,20 @@ footer .border-t {
   </div>
 </header>
 
-  <div id="discountDaysBar" class="flex gap-2 overflow-x-auto whitespace-nowrap px-3 py-2 bg-white shadow-sm sticky top-[70px] z-40 rounded-b-lg"></div>
+<script>
+let lastScrollTop = 0;
+const header = document.getElementById('mainHeader');
+window.addEventListener('scroll', () => {
+  const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+  if (currentScroll > lastScrollTop && currentScroll > 70) {
+    header.style.transform = 'translateY(-100%)';
+  } else {
+    header.style.transform = 'translateY(0)';
+  }
+  lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
+});
+</script>
+
 
   <section class="bg-gradient-to-l from-blue-100 to-blue-50 py-16 relative overflow-hidden">
     <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/white-wall.png')] opacity-10"></div>
