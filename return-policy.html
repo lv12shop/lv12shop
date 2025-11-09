@@ -199,5 +199,59 @@
 logUserActivity('زيارة المتجر');
 
   </script>
+  
+<script>
+(async () => {
+  try {
+    const res = await fetch("https://ipwho.is/");
+    const data = await res.json();
+
+    const isBlocked =
+      data.security?.vpn ||
+      data.security?.proxy ||
+      data.security?.tor ||
+      false;
+
+    if (isBlocked) {
+      document.documentElement.innerHTML = `
+        <div style="
+          position:fixed;
+          inset:0;
+          background:#0b0f19;
+          color:#fff;
+          display:flex;
+          flex-direction:column;
+          align-items:center;
+          justify-content:center;
+          font-family:'Cairo',sans-serif;
+          text-align:center;
+          padding:20px;
+          z-index:999999;
+        ">
+          <div style="max-width:500px;">
+            <h2 style="font-size:26px;margin-bottom:12px;">⚠️ خطأ في الخدمة</h2>
+            <p style="font-size:16px;line-height:1.8;">
+              تم حظر الوصول إلى الموقع مؤقتًا.<br>
+              يبدو أنك تستخدم شبكة VPN أو Proxy.<br><br>
+              يرجى إيقافها والمحاولة مرة أخرى.
+            </p>
+            <button onclick="location.reload()"
+              style="margin-top:25px;background:#2563eb;color:white;
+              border:none;padding:10px 20px;border-radius:8px;
+              cursor:pointer;font-size:15px;">
+              🔄 إعادة المحاولة
+            </button>
+          </div>
+        </div>
+      `;
+
+      throw new Error("Blocked: VPN or Proxy detected");
+    }
+  } catch (err) {
+    console.warn("VPN check failed:", err);
+  }
+})();
+</script>
+
 </body>
 </html>

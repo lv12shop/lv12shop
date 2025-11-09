@@ -67,7 +67,6 @@
   --transition: all .35s ease;
 }
 
-/* 🌈 الجسم العام */
 body {
   font-family: 'Cairo', sans-serif;
   background: var(--bg-light);
@@ -79,7 +78,6 @@ body {
   scroll-behavior: smooth;
 }
 
-/* ✨ الهيدر */
 header {
   background: linear-gradient(90deg, var(--primary), var(--secondary));
   color: #fff;
@@ -122,7 +120,6 @@ header h1 {
   letter-spacing: 0.5px;
 }
 
-/* 🔍 شريط البحث */
 .search-bar {
   flex: 1;
   position: relative;
@@ -151,7 +148,6 @@ header h1 {
   font-size: 18px;
 }
 
-/* 🎁 الفئات */
 #categoriesBar {
   display: flex;
   overflow-x: auto;
@@ -196,7 +192,6 @@ header h1 {
   font-weight: 600;
 }
 
-/* 💎 المنتجات */
 #productsGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -262,7 +257,6 @@ header h1 {
   font-weight: 700;
 }
 
-/* ⚡️ زر "عرض الكل" */
 .view-all {
   display: inline-block;
   color: var(--primary-dark);
@@ -277,7 +271,6 @@ header h1 {
   text-decoration: underline;
 }
 
-/* 🧱 الأقسام بالفئات */
 .category-section {
   margin-bottom: 40px;
 }
@@ -309,7 +302,6 @@ header h1 {
   flex: 0 0 auto;
 }
 
-/* 🌙 الفوتر */
 footer {
   background: linear-gradient(180deg, var(--primary-dark), #0f172a);
   color: #e2e8f0;
@@ -441,6 +433,22 @@ footer .border-t {
       </a>
     </div>
   </div>
+ 
+<div id="shopAdBanner"
+  class="hidden fixed top-0 left-1/2 -translate-x-1/2 w-[95%] sm:w-[80%] z-[9999]
+         text-white text-center px-5 py-3 rounded-b-3xl shadow-[0_4px_12px_rgba(0,0,0,0.2)]
+         backdrop-blur-md transition-all duration-700 ease-[cubic-bezier(.4,0,.2,1)]
+         opacity-0 -translate-y-full bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 border border-white/20">
+  <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+    <span id="shopAdText" class="font-semibold text-sm sm:text-base leading-tight drop-shadow-md">
+      🤑 سجل الآن وابدأ الربح! ادعُ أصدقاءك واحصل على 5 جنيه عن كل صديق ينضم 🎁 بالإضافة إلى دخل إضافي يومي من تنفيذ المهام ومشاهدة المنتجات 🔥
+    </span>
+    <button id="closeShopAd"
+      class="bg-white/25 hover:bg-white/35 text-white px-2 py-1 rounded-full text-xs font-bold transition-all duration-300 shadow-sm">
+      ✖
+    </button>
+  </div>
+</div>
 </header>
 
 <button id="toggleHeaderBtn"
@@ -1476,8 +1484,6 @@ function renderRecommended(products) {
     )
     .join("");
 }
-
-
 
 
 async function renderRecommended() {
@@ -2679,24 +2685,59 @@ loadNotifications();
 
 
 <script>
-async function loadAds() {
-  const { data, error } = await supabase
-    .from('ads')
-    .select('*')
-    .order('created_at', { ascending: false });
 
-  if (error) return console.error("خطأ في تحميل الإعلانات:", error);
+const seenAds = JSON.parse(localStorage.getItem("seen_ads") || "{}");
 
-  const adsContainer = document.getElementById("adsContainer");
-  adsContainer.innerHTML = data.map(ad => `
-    <div class="p-4 bg-blue-900/20 rounded-xl mb-3">
-      <h3 class="font-bold text-sky-300">${ad.title}</h3>
-      <p class="text-gray-300">${ad.description}</p>
-    </div>
-  `).join('');
+async function showShopAd() {
+  try {
+    const { data, error } = await supabase
+      .from("shop_ads")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(1);
+
+    if (error) {
+      console.error("❌ خطأ من Supabase:", error);
+      return;
+    }
+
+    if (!data?.length) {
+      console.log("ℹ️ لا توجد إعلانات في shop_ads");
+      return;
+    }
+
+    const ad = data[0];
+    const now = new Date();
+
+    if ((ad.start_date && new Date(ad.start_date) > now) ||
+        (ad.end_date && new Date(ad.end_date) < now)) return;
+
+    if (seenAds[ad.id]) return;
+
+    const banner = document.getElementById("shopAdBanner");
+    const text = document.getElementById("shopAdText");
+
+    banner.style.background = ad.bg || "linear-gradient(to right, #16a34a, #22c55e, #0d9488)";
+    text.textContent = ad.text || "🔥 إعلان المتجر الجديد!";
+
+    banner.classList.remove("hidden");
+    setTimeout(() => {
+      banner.classList.remove("opacity-0", "-translate-y-full");
+      banner.classList.add("opacity-100", "translate-y-0");
+    }, 50);
+
+    document.getElementById("closeShopAd").addEventListener("click", () => {
+      banner.classList.add("opacity-0", "-translate-y-full");
+      setTimeout(() => banner.remove(), 500);
+      seenAds[ad.id] = true;
+      localStorage.setItem("seen_ads", JSON.stringify(seenAds));
+    });
+  } catch (err) {
+    console.error("❌ خطأ أثناء تحميل الإعلان:", err);
+  }
 }
-loadAds();
 
+document.addEventListener("DOMContentLoaded", showShopAd);
 async function logUserActivity(type) {
   const user = JSON.parse(localStorage.getItem('lv12_user') || '{}');
   await supabase.from('user_activity').insert({
@@ -3116,7 +3157,58 @@ function renderDiscountDays(groups) {
 }
 </script>
 
+<script>
+(async () => {
+  try {
+    const res = await fetch("https://ipwho.is/");
+    const data = await res.json();
 
+    const isBlocked =
+      data.security?.vpn ||
+      data.security?.proxy ||
+      data.security?.tor ||
+      false;
+
+    if (isBlocked) {
+      document.documentElement.innerHTML = `
+        <div style="
+          position:fixed;
+          inset:0;
+          background:#0b0f19;
+          color:#fff;
+          display:flex;
+          flex-direction:column;
+          align-items:center;
+          justify-content:center;
+          font-family:'Cairo',sans-serif;
+          text-align:center;
+          padding:20px;
+          z-index:999999;
+        ">
+          <div style="max-width:500px;">
+            <h2 style="font-size:26px;margin-bottom:12px;">⚠️ خطأ في الخدمة</h2>
+            <p style="font-size:16px;line-height:1.8;">
+              تم حظر الوصول إلى الموقع مؤقتًا.<br>
+              يبدو أنك تستخدم شبكة VPN أو Proxy.<br><br>
+              يرجى إيقافها والمحاولة مرة أخرى.
+            </p>
+            <button onclick="location.reload()"
+              style="margin-top:25px;background:#2563eb;color:white;
+              border:none;padding:10px 20px;border-radius:8px;
+              cursor:pointer;font-size:15px;">
+              🔄 إعادة المحاولة
+            </button>
+          </div>
+        </div>
+      `;
+
+      throw new Error("Blocked: VPN or Proxy detected");
+    }
+  } catch (err) {
+    console.warn("VPN check failed:", err);
+  }
+})();
+</script>
 
 
 </body>
