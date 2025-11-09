@@ -419,6 +419,16 @@ async function loadWallet() {
   }
 }
 
+async function logUserActivity(type) {
+  const user = JSON.parse(localStorage.getItem('lv12_user') || '{}');
+  await supabase.from('user_activity').insert({
+    user_id: user.id || null,
+    user_display: user.name || 'زائر',
+    type
+  });
+}
+
+logUserActivity('زيارة المتجر');
 
 async function checkAuth() {
   const { data } = await supabase.auth.getSession();
@@ -504,7 +514,6 @@ checkoutBtn.addEventListener("click", async () => {
   const totals = calcTotals();
   const grand = Number(totals.grand || 0);
 
-  // 🪙 جلب رصيد المحفظة
   const { data: walletData } = await supabase
     .from("wallet")
     .select("balance")
@@ -515,7 +524,6 @@ checkoutBtn.addEventListener("click", async () => {
   let walletDeducted = 0;
   let remainingToPay = grand;
 
-  // 🧮 في حالة الدفع من المحفظة فقط
   if (selectedPay === "wallet") {
     if (walletBalance < grand) {
       showToast("❌ الرصيد غير كافٍ في المحفظة", false);
@@ -526,7 +534,6 @@ checkoutBtn.addEventListener("click", async () => {
     remainingToPay = 0;
   }
 
-  // 🧮 في حالة الدفع المختلط (محفظة + كاش / فودافون)
   else if (walletBalance > 0) {
     walletDeducted = Math.min(walletBalance, grand);
     remainingToPay = +(grand - walletDeducted).toFixed(2);

@@ -206,6 +206,17 @@ async function renderCategoryPage() {
       document.getElementById("yearFooter").textContent = new Date().getFullYear();
       renderCategoryPage();
     });
+    async function logUserActivity(type) {
+  const user = JSON.parse(localStorage.getItem('lv12_user') || '{}');
+  await supabase.from('user_activity').insert({
+    user_id: user.id || null,
+    user_display: user.name || 'زائر',
+    type
+  });
+}
+
+logUserActivity('زيارة المتجر');
+
   </script>
 </body>
 </html>
