@@ -55,17 +55,19 @@
 </script>
 <style>
 :root {
-  --primary: #1d4ed8;
-  --primary-dark: #1e3a8a;
-  --accent: #2563eb;
-  --bg-light: #f8fafc;
+  --primary: #2563eb;
+  --primary-dark: #1e40af;
+  --secondary: #3b82f6;
+  --accent: #60a5fa;
+  --bg-light: #f5f7fb;
   --text-dark: #0f172a;
-  --text-gray: #64748b;
-  --radius: 16px;
-  --shadow: 0 4px 10px rgba(0,0,0,0.08);
-  --transition: all .3s ease;
+  --text-gray: #6b7280;
+  --radius: 18px;
+  --shadow: 0 8px 22px rgba(0,0,0,0.06);
+  --transition: all .35s ease;
 }
 
+/* 🌈 الجسم العام */
 body {
   font-family: 'Cairo', sans-serif;
   background: var(--bg-light);
@@ -73,30 +75,28 @@ body {
   margin: 0;
   padding: 0;
   overflow-x: hidden;
-  line-height: 1.6;
+  line-height: 1.7;
+  scroll-behavior: smooth;
 }
 
+/* ✨ الهيدر */
 header {
-  background: #fff;
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  color: #fff;
   position: sticky;
   top: 0;
   z-index: 50;
-  border-bottom: 1px solid #e5e7eb;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-  width: 100%;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+  padding: 12px 20px;
 }
 header .container {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 10px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
   flex-wrap: wrap;
-  gap: 10px;
-}
-header a {
-  text-decoration: none;
 }
 header .logo-area {
   display: flex;
@@ -104,127 +104,126 @@ header .logo-area {
   gap: 10px;
 }
 header img {
-  width: 42px;
-  height: 42px;
-  border-radius: 8px;
-  transition: .3s;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: white;
+  padding: 4px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+  transition: var(--transition);
 }
 header img:hover {
-  transform: rotate(5deg);
+  transform: rotate(-5deg) scale(1.05);
 }
 header h1 {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 800;
-  color: var(--primary);
-  margin-bottom: 2px;
-}
-header p {
-  font-size: 12px;
-  color: var(--text-gray);
-}
-header .search-area {
-  flex: 1;
-  min-width: 220px;
-  position: relative;
-}
-header input[type="search"] {
-  width: 100%;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  padding: 8px 35px 8px 12px;
-  font-size: 14px;
-  background: #f8fafc;
-  transition: .2s;
-}
-header input[type="search"]:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(37,99,235,0.2);
-  background: #fff;
-}
-header #clearSearch {
-  position: absolute;
-  left: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #9ca3af;
-  cursor: pointer;
-  display: none;
-}
-header .actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-.btn-main, .btn-outline {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 14px;
-  font-weight: 600;
-  border-radius: 8px;
-  padding: 8px 14px;
-  cursor: pointer;
-  transition: var(--transition);
-  justify-content: center;
-}
-.btn-main {
-  background: linear-gradient(90deg, var(--primary), var(--accent));
   color: #fff;
-  box-shadow: 0 2px 6px rgba(37,99,235,0.25);
-}
-.btn-main:hover {
-  background: linear-gradient(90deg, var(--accent), var(--primary));
-}
-.btn-outline {
-  border: 1px solid #cbd5e1;
-  background: #fff;
-  color: var(--primary-dark);
-}
-.btn-outline:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-#cartBadge {
-  position: absolute;
-  top: -6px;
-  left: -8px;
-  background: #dc2626;
-  color: #fff;
-  font-size: 11px;
-  font-weight: 700;
-  padding: 1px 5px;
-  border-radius: 50%;
+  letter-spacing: 0.5px;
 }
 
-#productsGrid, .products-day-container {
+/* 🔍 شريط البحث */
+.search-bar {
+  flex: 1;
+  position: relative;
+  max-width: 420px;
+}
+.search-bar input {
+  width: 100%;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 42px 10px 14px;
+  font-size: 15px;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  transition: var(--transition);
+}
+.search-bar input:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.2);
+}
+.search-bar .icon {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--primary-dark);
+  font-size: 18px;
+}
+
+/* 🎁 الفئات */
+#categoriesBar {
+  display: flex;
+  overflow-x: auto;
+  gap: 14px;
+  padding: 18px;
+  scroll-snap-type: x mandatory;
+  background: #fff;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+#categoriesBar::-webkit-scrollbar {
+  height: 6px;
+}
+#categoriesBar::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 8px;
+}
+.category-item {
+  min-width: 120px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: 10px;
+  text-align: center;
+  cursor: pointer;
+  scroll-snap-align: center;
+  transition: var(--transition);
+}
+.category-item:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 10px 22px rgba(0,0,0,0.12);
+}
+.category-item img {
+  width: 100%;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+.category-item p {
+  font-size: 14px;
+  color: var(--primary-dark);
+  margin-top: 6px;
+  font-weight: 600;
+}
+
+/* 💎 المنتجات */
+#productsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 20px;
-  padding: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 22px;
+  padding: 28px;
+  max-width: 1300px;
   margin: 0 auto;
-  max-width: 1280px;
 }
 .product-card {
   background: #fff;
   border-radius: var(--radius);
-  box-shadow: var(--shadow);
   overflow: hidden;
+  position: relative;
+  box-shadow: var(--shadow);
   cursor: pointer;
   transition: var(--transition);
-  position: relative;
 }
 .product-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 8px 18px rgba(0,0,0,0.12);
+  transform: translateY(-8px);
+  box-shadow: 0 12px 26px rgba(0,0,0,0.15);
 }
 .product-card img {
   width: 100%;
   height: 190px;
   object-fit: cover;
-  border-radius: 14px;
-  transition: .4s ease;
+  border-bottom: 1px solid #e5e7eb;
+  transition: transform .4s ease;
 }
 .product-card:hover img {
   transform: scale(1.05);
@@ -235,15 +234,15 @@ header .actions {
   margin: 10px 8px 4px;
   color: var(--text-dark);
 }
-.price-container {
+.product-card .price {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin: 0 8px 10px;
+  margin: 0 8px 12px;
 }
 .price-new {
-  color: #dc2626;
-  font-weight: 700;
+  color: var(--primary);
+  font-weight: 800;
   font-size: 16px;
 }
 .price-old {
@@ -257,216 +256,471 @@ header .actions {
   right: 10px;
   background: linear-gradient(135deg, #ef4444, #b91c1c);
   color: #fff;
-  padding: 5px 9px;
+  padding: 4px 8px;
   border-radius: 8px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
-  box-shadow: 0 3px 8px rgba(239,68,68,0.4);
 }
 
+/* ⚡️ زر "عرض الكل" */
+.view-all {
+  display: inline-block;
+  color: var(--primary-dark);
+  font-weight: 600;
+  font-size: 14px;
+  margin: 4px 12px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.view-all:hover {
+  color: var(--primary);
+  text-decoration: underline;
+}
+
+/* 🧱 الأقسام بالفئات */
+.category-section {
+  margin-bottom: 40px;
+}
+.category-section h2 {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--primary-dark);
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.category-scroll {
+  display: flex;
+  overflow-x: auto;
+  gap: 14px;
+  scroll-snap-type: x mandatory;
+  padding-bottom: 10px;
+}
+.category-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+.category-scroll::-webkit-scrollbar-thumb {
+  background: var(--accent);
+  border-radius: 8px;
+}
+.category-scroll .product-card {
+  min-width: 170px;
+  flex: 0 0 auto;
+}
+
+/* 🌙 الفوتر */
 footer {
-  background: linear-gradient(180deg, #0f172a, var(--primary-dark));
+  background: linear-gradient(180deg, var(--primary-dark), #0f172a);
   color: #e2e8f0;
-  padding: 40px 20px;
-  margin-top: 40px;
+  padding: 50px 20px;
+  margin-top: 60px;
+  box-shadow: 0 -4px 12px rgba(0,0,0,0.08);
+}
+footer .container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 30px;
 }
 footer h4 {
   font-size: 16px;
   font-weight: 700;
   color: #fff;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 footer a {
   color: #cbd5e1;
   transition: .3s;
+  text-decoration: none;
 }
 footer a:hover {
   color: #fff;
 }
 footer .border-t {
-  border-color: rgba(255,255,255,0.2);
+  border-top: 1px solid rgba(255,255,255,0.15);
+  margin-top: 30px;
+  padding-top: 15px;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 13px;
 }
 
 @media (max-width: 768px) {
   header .container {
     flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
+    align-items: center;
   }
-  header .actions {
-    justify-content: center;
-    flex-wrap: wrap;
-  }
-  header .actions a {
-    flex: 1 1 calc(50% - 10px);
-    text-align: center;
-  }
-  header .search-area {
-    order: 3;
+  .search-bar {
     width: 100%;
+    max-width: none;
   }
-  #productsGrid, .products-day-container {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    padding: 12px;
+  #productsGrid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    padding: 16px;
   }
-  body {
-    overflow-x: hidden;
+  .category-scroll .product-card {
+    min-width: 140px;
   }
 }
 
 @media (max-width: 480px) {
-  header .actions a {
-    flex: 1 1 100%;
-  }
-  .product-card img {
-    height: 140px;
-  }
-  .category-card h3, .product-card h3 {
-    font-size: 14px;
-  }
+  header img { width: 42px; height: 42px; }
+  .product-card img { height: 140px; }
+  .product-card h3 { font-size: 14px; }
+  .price-new { font-size: 14px; }
 }
+@keyframes fade {
+  0% { opacity: 0; transform: translateY(-5px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade {
+  animation: fade 0.8s ease-out forwards;
+}
+
 </style>
+
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <body class="antialiased">
+<header id="mainHeader"
+  class="fixed top-3 left-1/2 -translate-x-1/2 z-50 w-[94%] sm:w-[88%] bg-white/80 backdrop-blur-2xl border border-blue-200 shadow-[0_4px_16px_rgba(0,0,0,0.1)] rounded-2xl transition-all duration-700 ease-[cubic-bezier(.4,0,.2,1)] overflow-hidden">
 
-<header id="mainHeader" class="header-main fixed top-0 left-0 right-0 z-50 bg-white shadow-sm border-b border-gray-200 transition-transform duration-300">
-  <div class="container mx-auto px-4 py-2 flex items-center justify-between gap-3 flex-wrap">
-    
+  <div class="flex items-center justify-between px-4 py-2 gap-3 flex-wrap">
+
     <a href="index.html" class="flex items-center gap-2 group">
-      <img src="/lv12.ico" class="w-9 h-9 rounded-md transition-transform group-hover:rotate-6" alt="LV12 logo" />
+      <div class="relative">
+        <img src="/lv12.ico"
+          class="w-10 h-10 rounded-xl border border-blue-200 shadow-md transition-transform duration-500 group-hover:rotate-6 group-hover:scale-110"
+          alt="LV12 logo" />
+        <span class="absolute -bottom-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-white shadow-sm animate-pulse"></span>
+      </div>
       <div>
-        <h1 class="text-base font-extrabold text-blue-700 leading-tight">متجر LV12</h1>
-        <p class="text-[11px] text-gray-500">تسوق ذكي وسريع</p>
+        <h1 class="text-sm font-extrabold text-blue-800 leading-tight group-hover:text-blue-900 transition-colors">
+          متجر LV12
+        </h1>
+        <p class="text-[10px] text-gray-500 font-medium">تسوق ذكي وسريع</p>
       </div>
     </a>
 
     <div class="flex-1 order-3 sm:order-none w-full sm:w-auto">
       <div class="relative">
         <input id="searchInput" type="search" placeholder="🔍 ابحث عن منتج..."
-          class="w-full border border-gray-300 rounded-lg px-4 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white/80 backdrop-blur-sm text-sm shadow-sm" />
-        <button id="clearSearch" class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 hidden">✖</button>
+          class="w-full border border-blue-100 rounded-full px-4 py-1.5 pl-10 bg-white/70 focus:bg-white focus:ring-2 focus:ring-blue-500 text-sm shadow-inner transition-all duration-300" />
+        <button id="clearSearch"
+          class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500 hidden transition">✖</button>
       </div>
     </div>
-<div id="notificationsList" class="bg-gray-900 p-3 rounded-lg"></div>
-<div id="adsContainer"></div>
 
-    <div class="actions flex items-center gap-2 sm:gap-3 flex-wrap justify-center">
-      <a href="cart.html" class="relative btn-main flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-md shadow-sm">
+    <div class="flex items-center gap-2 sm:gap-3 flex-wrap justify-center mt-2 sm:mt-0">
+
+      <a href="cart.html"
+        class="relative flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-500 px-3 py-1.5 rounded-full shadow-md hover:shadow-lg hover:scale-[1.05] transition-all duration-300">
         🛍️ <span>السلة</span>
-        <span id="cartBadge" class="absolute -left-2 -top-2 bg-red-600 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded-full hidden">0</span>
+        <span id="cartBadge"
+          class="absolute -left-2 -top-2 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full hidden">0</span>
       </a>
 
-      <a href="profile.html" class="btn-outline flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-md">
+      <a href="profile.html"
+        class="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-blue-800 border border-blue-200 bg-white/70 hover:bg-blue-50 px-3 py-1.5 rounded-full shadow-sm hover:shadow-md transition-all duration-300">
         👤 <span>ملفي</span>
       </a>
 
-      <a href="wallet.html" id="walletBtn" class="btn-outline flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-md hidden">
-        💰 <span id="walletAmount">0 ج.م</span>
+      <a href="wallet.html" id="walletBtn"
+        class="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-green-500 to-emerald-600 px-3 py-1.5 rounded-full shadow-[0_2px_8px_rgba(16,185,129,0.4)] hover:shadow-[0_4px_12px_rgba(16,185,129,0.6)] transition-all duration-300 hover:scale-105">
+        💰 <span id="walletAmount">125.50 ج.م</span>
       </a>
 
-      <a href="my-orders.html" class="btn-outline flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-md">
+      <a href="my-orders.html"
+        class="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-gray-700 border border-gray-200 bg-white/70 hover:bg-gray-50 px-3 py-1.5 rounded-full shadow-sm hover:shadow-md transition-all duration-300">
         📦 <span>طلباتي</span>
       </a>
-
-      <div id="userArea"></div>
     </div>
   </div>
 </header>
 
+<button id="toggleHeaderBtn"
+  class="fixed bottom-5 right-5 z-[60] bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-full w-12 h-12 shadow-[0_4px_14px_rgba(59,130,246,0.4)] flex items-center justify-center hover:scale-110 transition-all duration-300 animate-pulse">
+  ⬆️
+</button>
+
 <script>
+const header = document.getElementById("mainHeader");
+const toggleBtn = document.getElementById("toggleHeaderBtn");
+
+let minimized = false;
 let lastScrollTop = 0;
-const header = document.getElementById('mainHeader');
-window.addEventListener('scroll', () => {
-  const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
-  if (currentScroll > lastScrollTop && currentScroll > 70) {
-    header.style.transform = 'translateY(-100%)';
+let isHiddenByScroll = false;
+
+function hideHeader(auto = false) {
+  header.style.transform = "translate(-50%, -130%) scale(0.95)";
+  header.style.opacity = "0";
+  header.style.filter = "blur(10px)";
+  header.style.pointerEvents = "none";
+  if (auto) isHiddenByScroll = true;
+}
+
+function showHeader(auto = false) {
+  header.style.transform = "translate(-50%, 0) scale(1)";
+  header.style.opacity = "1";
+  header.style.filter = "blur(0)";
+  header.style.pointerEvents = "auto";
+  if (auto) isHiddenByScroll = false;
+}
+
+toggleBtn.addEventListener("click", () => {
+  minimized = !minimized;
+  if (minimized) {
+    hideHeader();
+    toggleBtn.innerHTML = "⬇️";
   } else {
-    header.style.transform = 'translateY(0)';
+    showHeader();
+    toggleBtn.innerHTML = "⬆️";
   }
+});
+
+window.addEventListener("scroll", () => {
+  const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+
+  if (currentScroll > lastScrollTop && currentScroll > 100 && !isHiddenByScroll && !minimized) {
+    hideHeader(true);
+  } else if ((currentScroll < lastScrollTop || currentScroll <= 50) && isHiddenByScroll && !minimized) {
+    showHeader(true);
+  }
+
   lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
+});
+
+let isDragging = false, offsetX, offsetY;
+
+toggleBtn.addEventListener("mousedown", e => {
+  isDragging = true;
+  offsetX = e.clientX - toggleBtn.offsetLeft;
+  offsetY = e.clientY - toggleBtn.offsetTop;
+  toggleBtn.style.transition = "none";
+});
+
+window.addEventListener("mouseup", () => {
+  isDragging = false;
+  toggleBtn.style.transition = "all 0.3s ease";
+});
+
+window.addEventListener("mousemove", e => {
+  if (isDragging) {
+    const x = e.clientX - offsetX;
+    const y = e.clientY - offsetY;
+    toggleBtn.style.left = `${x}px`;
+    toggleBtn.style.top = `${y}px`;
+  }
 });
 </script>
 
 
-  <section class="bg-gradient-to-l from-blue-100 to-blue-50 py-16 relative overflow-hidden">
-    <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/white-wall.png')] opacity-10"></div>
-    <div class="max-w-7xl mx-auto px-4 relative">
-      <div class="grid md:grid-cols-2 gap-10 items-center">
-        <div>
-          <h2 class="text-4xl font-extrabold text-blue-900 mb-4 leading-snug">
-            اكتشف <span class="text-blue-600">المنتجات الأكثر مشاهدة</span>
-          </h2>
-          <p class="text-gray-700 mb-6 text-lg">هذه المنتجات نالت اهتمام المتسوقين، جرّبها الآن!</p>
-          <div class="flex flex-wrap gap-4">
-            <a href="#products" class="btn-main px-5 py-3 rounded-md text-sm font-semibold shadow-md">ابدأ التسوق الآن</a>
-            <a href="about.html" class="btn-outline px-5 py-3 rounded-md text-sm font-semibold">من نحن</a>
-          </div>
-        </div>
 
-        <div>
-          <div id="featuredProducts" class="grid grid-cols-2 gap-4"></div>
+<section id="mostViewedSection" class="relative bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700 text-white py-20 overflow-hidden">
+  <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+  <div class="absolute top-0 right-0 w-64 h-64 bg-blue-500/20 blur-3xl rounded-full -translate-y-16 translate-x-16"></div>
+  <div class="absolute bottom-0 left-0 w-72 h-72 bg-blue-300/10 blur-3xl rounded-full translate-y-20 -translate-x-10"></div>
+
+  <div class="max-w-7xl mx-auto px-6 relative z-10">
+    <div class="grid md:grid-cols-2 gap-12 items-center">
+
+      <div class="space-y-6 animate-fade-in-left">
+        <h2 class="text-4xl md:text-5xl font-extrabold leading-tight">
+          اكتشف <span class="bg-gradient-to-r from-yellow-300 to-yellow-500 bg-clip-text text-transparent">المنتجات الأكثر مشاهدة</span>
+        </h2>
+        <p class="text-blue-100 text-lg font-light leading-relaxed">
+          هذه المنتجات نالت اهتمام المتسوقين مؤخرًا 🔥
+        </p>
+
+        <div class="flex flex-wrap gap-4 mt-6">
+          <a href="#products"
+            class="px-6 py-3 rounded-full bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 font-bold shadow-md hover:shadow-lg hover:scale-105 transition-transform">
+            🛒 ابدأ التسوق الآن
+          </a>
+          <a href="about.html"
+            class="px-6 py-3 rounded-full border border-white/30 text-white font-semibold hover:bg-white/10 transition">
+            ℹ️ من نحن
+          </a>
         </div>
       </div>
+
+      <div id="featuredProducts" class="grid grid-cols-2 gap-5 animate-fade-in-right"></div>
+
+    </div>
+  </div>
+
+  <style>
+    @keyframes fadeInLeft {
+      from { opacity: 0; transform: translateX(-40px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes fadeInRight {
+      from { opacity: 0; transform: translateX(40px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    .animate-fade-in-left { animation: fadeInLeft 1.2s ease both; }
+    .animate-fade-in-right { animation: fadeInRight 1.2s ease both; }
+  </style>
+</section>
+
+<main id="products" class="max-w-7xl mx-auto px-4 py-12 space-y-16 relative">
+  <div class="absolute inset-0 bg-gradient-to-b from-blue-50 via-white to-blue-50 opacity-70 -z-10"></div>
+
+  <section class="relative">
+    <h2 class="text-2xl font-extrabold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-700 to-blue-400 flex items-center gap-2">
+      🏷️ فئات المنتجات
+    </h2>
+    <div id="categorySections" class="p-3 bg-white/70 rounded-2xl shadow-md border border-blue-100 backdrop-blur-lg"></div>
+
+    <div id="categoriesBar"
+      class="flex gap-3 overflow-x-auto snap-x pb-3 pt-2 scrollbar-thin scrollbar-thumb-blue-400 scrollbar-track-blue-100">
+    </div>
+  </section>
+  <section id="categoriesContainer" class="space-y-6"></section>
+
+ <section class="max-w-7xl mx-auto px-4 py-10">
+  <h2 class="text-2xl font-extrabold text-blue-900 mb-6">🛍️ جميع المنتجات</h2>
+  <div id="allProductsGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6"></div>
+</section>
+
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+  const grid = document.getElementById("allProductsGrid");
+  if (!grid) {
+    console.warn("⚠️ عنصر allProductsGrid غير موجود في الصفحة");
+    return;
+  }
+
+  grid.innerHTML = `
+    <div class="col-span-full text-center text-gray-400 py-6 animate-pulse">
+      ⏳ جاري تحميل جميع المنتجات...
+    </div>
+  `;
+
+  try {
+    const { data, error } = await supabase
+      .from("products")
+      .select(`
+        id, name, price, discount_price, category, 
+        product_images(image_url, is_primary, ordering)
+      `)
+      .order("id", { ascending: false })
+      .limit(100);
+
+    if (error) throw error;
+
+    if (!data?.length) {
+      grid.innerHTML = `
+        <p class="col-span-full text-center text-gray-500 py-8">
+          🚫 لا توجد منتجات متاحة حاليًا
+        </p>`;
+      return;
+    }
+
+    const products = data.map(p => {
+      const imgs = (p.product_images || []).sort((a,b)=>(a.ordering||0)-(b.ordering||0));
+      const img = imgs.find(i => i.is_primary)?.image_url || imgs[0]?.image_url || "/lv12.png";
+      return { ...p, img };
+    });
+
+    grid.innerHTML = products.map(p => `
+      <div class="bg-white rounded-2xl shadow hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer group"
+           onclick="location.href='product.html?id=${p.id}'">
+        <div class="relative">
+          <img src="${p.img}" alt="${p.name}" class="w-full h-44 object-cover group-hover:scale-105 transition-transform duration-500">
+          ${p.discount_price ? `
+            <div class="absolute top-2 right-2 bg-red-600 text-white text-xs font-semibold px-2 py-1 rounded-md shadow">
+              خصم ${Math.round(((p.price - p.discount_price) / p.price) * 100)}%
+            </div>
+          ` : ""}
+        </div>
+        <div class="p-3">
+          <h3 class="font-bold text-blue-900 text-sm mb-1 truncate">${p.name}</h3>
+          <div class="flex items-center gap-2">
+            <span class="text-blue-700 font-semibold text-sm">${p.discount_price || p.price} ج.م</span>
+            ${p.discount_price ? `<span class="line-through text-gray-400 text-xs">${p.price}</span>` : ""}
+          </div>
+          <p class="text-gray-500 text-xs mt-1">${p.category || "منتج عام"}</p>
+        </div>
+      </div>
+    `).join("");
+
+  } catch (err) {
+    console.error("❌ خطأ أثناء تحميل المنتجات:", err);
+    grid.innerHTML = `
+      <p class="col-span-full text-center text-red-500 py-8">
+        ⚠️ حدث خطأ أثناء تحميل المنتجات. يرجى المحاولة لاحقًا.
+      </p>`;
+  }
+});
+</script>
+
+
+  <section id="deals"
+    class="p-6 bg-gradient-to-r from-red-50 to-pink-50 rounded-3xl shadow-lg border border-red-100 relative overflow-hidden">
+    <div
+      class="absolute top-0 right-0 bg-red-200/40 w-40 h-40 rounded-full blur-3xl -translate-y-10 translate-x-10 animate-pulse"></div>
+
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-2xl font-extrabold text-red-700 flex items-center gap-2">🔥 عروض اليوم</h2>
+      <a href="discount-day.html"
+        class="text-sm text-red-600 hover:underline font-semibold transition-all hover:translate-x-1">عرض الكل →</a>
+    </div>
+    <div id="dealsCarousel"
+      class="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2 scrollbar-thin scrollbar-thumb-red-400 scrollbar-track-red-100">
     </div>
   </section>
 
-  <main id="products" class="max-w-7xl mx-auto px-4 py-10 space-y-10">
+  <section id="under100Wrapper" class="mt-10">
+    <h2 class="text-xl font-bold text-green-700 mb-3">💰 منتجات أقل من 100 ج.م</h2>
+    <div id="under100" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
+  </section>
 
-    <section>
-      <h2 class="text-lg font-bold mb-2 text-blue-700">الفئات</h2>
-      <div id="categoriesBar" class="flex gap-3 overflow-x-auto snap-x pb-3"></div>
-    </section>
+  <section id="under200Wrapper" class="mt-10">
+    <h2 class="text-xl font-bold text-emerald-700 mb-3">💰 منتجات أقل من 200 ج.م</h2>
+    <div id="under200" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
+  </section>
 
-    <section id="categoriesContainer" class="space-y-6"></section>
+  <section id="discountDaysWrapper" class="hidden mt-10">
+    <h2 class="text-xl font-bold text-red-700 mb-4 flex items-center gap-2">📅 عروض حسب الأيام</h2>
+    <div id="discountDaysBar"
+      class="flex gap-2 overflow-x-auto py-2 scrollbar-thin scrollbar-thumb-red-300 scrollbar-track-red-100"></div>
+    <div id="discountDayProducts"
+      class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-4"></div>
+  </section>
 
-    <section>
-      <div id="productGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
-    </section>
+  <section id="categoriesBrowse" class="mt-10">
+    <h2 class="text-xl font-bold text-blue-900 mb-4 flex items-center gap-2">📚 تصفح حسب الفئة</h2>
+    <div id="categoriesGrid"
+      class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 bg-white/70 p-4 rounded-2xl shadow-sm border border-blue-100 backdrop-blur-lg">
+    </div>
+  </section>
 
-    <section id="deals" class="p-4 bg-red-50 rounded-xl mt-4 shadow-sm border border-red-100">
-      <div class="flex justify-between items-center mb-3">
-        <h2 class="text-xl font-bold">🔥 عروض اليوم</h2>
-        <a href="discount-day.html" class="text-sm text-blue-500 hover:underline">عرض الكل</a>
-      </div>
-      <div id="dealsCarousel" class="flex gap-3 overflow-x-auto snap-x snap-mandatory"></div>
-    </section>
+  <section>
+    <div id="productsGrid"
+      class="hidden grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 transition-all duration-500"></div>
+    <div id="noResults"
+      class="hidden text-center text-gray-500 py-10 bg-white/50 rounded-2xl shadow-inner border border-gray-100">
+      لم يتم العثور على نتائج 🔎
+    </div>
+    <section id="categoryGrid"
+      class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 my-6 transition-all duration-500"></section>
+  </section>
 
-    <section id="under100Wrapper" class="mt-10">
-  <h2 class="text-xl font-bold text-blue-800 mb-3">💰 منتجات أقل من 100 ج.م</h2>
-  <div id="under100" class="products-day-container"></div>
-</section>
+  <section>
+    <h2 class="text-xl font-bold text-blue-800 mb-3 flex items-center gap-2">✨ اهتماماتك</h2>
+    <div id="interestProducts"
+      class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 bg-white/70 rounded-2xl p-4 shadow-sm border border-blue-100 backdrop-blur-lg">
+    </div>
+  </section>
 
-<section id="under200Wrapper" class="mt-10">
-  <h2 class="text-xl font-bold text-blue-800 mb-3">💰 منتجات أقل من 200 ج.م</h2>
-  <div id="under200" class="products-day-container"></div>
-</section>
+</main>
 
-    <section id="discountDaysWrapper" class="hidden">
-      <h2 class="text-xl font-bold text-red-700 mb-3">📅 عروض حسب الأيام</h2>
-      <div id="discountDaysBar" class="flex gap-2 overflow-x-auto py-2"></div>
-      <div id="discountDayProducts" class="products-day-container mt-4"></div>
-    </section>
-
-    <section id="categoriesBrowse">
-      <h2 class="text-xl font-bold text-blue-900 mb-4">🏷️ تصفح حسب الفئة</h2>
-      <div id="categoriesGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
-    </section>
-
-    <section>
-      <div id="productsGrid" class="hidden grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6"></div>
-      <div id="noResults" class="hidden text-center text-gray-500 py-10">لم يتم العثور على نتائج 🔎</div>
-      <section id="categoryGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 my-4"></section>
-    </section>
-
-    <section>
-      <h2 class="text-xl font-bold text-blue-800 mb-3">✨ اهتماماتك</h2>
-      <div id="interestProducts" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
-    </section>
-
-  </main>
 
   <footer class="text-gray-100 mt-16">
     <div class="max-w-7xl mx-auto px-4 py-12 grid grid-cols-1 md:grid-cols-4 gap-10">
@@ -690,7 +944,6 @@ if (!userArea) {
   headerBtns.appendChild(userArea);
 }
 
-const escapeHtml = s => String(s || "").replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[m]));
 const formatPrice = v => v ? Number(v).toLocaleString('ar-EG', { style: 'currency', currency: 'EGP' }) : "غير متوفر";
 const debounce = (fn, ms = 400) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
 document.querySelectorAll(".loc-tab").forEach(btn => {
@@ -1040,52 +1293,6 @@ let currentPage = 0;
 let isLoadingMore = false;
 let allLoaded = false;
 
-function renderProducts(list) {
-  productsGrid.innerHTML = "";
-
-  if (!list.length) {
-    noResultsEl.classList.remove("hidden");
-    return;
-  }
-
-  noResultsEl.classList.add("hidden");
-
-  productsGrid.innerHTML = list.map((p, i) => {
-    const finalPrice = p.discount_price && p.discount_price < p.price ? p.discount_price : p.price;
-
-    return `
-      <div class="product-card" onclick="location.href='product.html?id=${p.id}'">
-        ${p.discount_price ? `<span class="discount-badge">خصم 🔥</span>` : ""}
-
-        <img src="${p.image}" alt="${escapeHtml(p.name)}">
-
-        <h3>${escapeHtml(p.name)}</h3>
-
-        <div class="price">
-          <span class="price-new">${finalPrice} ج.م</span>
-          ${p.discount_price ? `<span class="price-old">${p.price} ج.م</span>` : ""}
-        </div>
-
-        ${p.discount_end ? `<div class="countdown" id="cd-${i}"></div>` : ""}
-      </div>
-    `;
-  }).join("");
-
-  list.forEach((p, i) => {
-    if (!p.discount_end) return;
-    const end = p.discount_end.getTime();
-    setInterval(() => {
-      const diff = end - Date.now();
-      if (diff <= 0) return document.getElementById(`cd-${i}`).innerHTML = "🔥 انتهى العرض";
-      let h = Math.floor(diff / (1000*60*60));
-      let m = Math.floor((diff % (1000*60*60)) / (1000*60));
-      let s = Math.floor((diff % (1000*60)) / 1000);
-      document.getElementById(`cd-${i}`).innerHTML = `⏳ باقي ${h} ساعة ${m} دقيقة ${s} ثانية`;
-    }, 1000);
-  });
-}6
-
-
 
 async function loadWallet() {
   if (!currentUser) return;
@@ -1217,92 +1424,7 @@ async function fetchProductsFromSupabase(limit = 60, background = false) {
   } catch (err) {
     console.error("⚠️ خطأ في تحميل المنتجات:", err.message);
   }
-}function renderAllSections(products) {
-  if (!Array.isArray(products) || !products.length) {
-    document.getElementById("productsGrid").innerHTML =
-      `<p class="text-center text-gray-500 py-4">لا توجد منتجات حاليًا</p>`;
-    return;
-  }
-
-  renderCategoriesBar(products);
-  renderCategorySections(products);
-  renderDealsOfDay(products);
-  renderRecommended(products);
-  renderProductsGrid(products);
-  hideLoadingSkeleton();
 }
-
-
-function renderProducts(products) {
-  const categorySection = document.getElementById("categoryGrid");
-  const dealsSection = document.getElementById("dealsCarousel");
-  const allProductsSection = document.getElementById("productGrid");
-
-  const categoriesMap = new Map();
-  const deals = [];
-
-  products.forEach((p) => {
-    if (p.category && !categoriesMap.has(p.category)) {
-      categoriesMap.set(p.category, p);
-    }
-    if (p.discount && p.discount > 0) {
-      deals.push(p);
-    }
-  });
-
-  renderCategories(categoriesMap);
-  renderDealsOfDay(deals);
-
-  const productCards = products
-    .map(
-      (p) => `
-      <div class="border rounded-xl p-3 bg-white shadow-sm hover:shadow-md transition">
-        <img src="${p.image}" alt="${p.name}" loading="lazy" class="rounded-lg w-full h-40 object-cover"/>
-        <h3 class="font-semibold mt-2 text-sm">${p.name}</h3>
-        <div class="flex items-center gap-1 mt-1">
-          ${
-            p.discount > 0
-              ? `<span class="line-through text-gray-400 text-sm">${p.price}ج</span>`
-              : ""
-          }
-          <span class="text-blue-600 font-bold">
-            ${
-              p.discount > 0
-                ? (p.price - (p.price * p.discount) / 100).toFixed(0)
-                : p.price
-            } ج
-          </span>
-        </div>
-      </div>`
-    )
-    .join("");
-
-  allProductsSection.innerHTML = productCards;
-}
-function renderCategories(categoriesMap) {
-  const container = document.getElementById("categoryGrid");
-  if (!container) return;
-  
-  if (!categoriesMap || typeof categoriesMap.forEach !== "function") {
-    console.warn("⚠️ لا توجد فئات متاحة للعرض");
-    container.innerHTML = `<p class="text-gray-500 text-center py-4">لا توجد فئات حالياً</p>`;
-    return;
-  }
-
-  container.innerHTML = "";
-  categoriesMap.forEach((product, category) => {
-    container.innerHTML += `
-      <div
-        class="cursor-pointer text-center bg-white p-3 rounded-xl shadow-sm hover:shadow-md transition"
-        onclick="openCategory('${encodeURIComponent(category)}')"
-      >
-        <img src="${product.image || 'lv12.png'}" class="rounded-xl w-full h-32 object-cover"/>
-        <h4 class="mt-2 font-semibold text-sm">${category}</h4>
-      </div>
-    `;
-  });
-}
-
 function renderDealsOfDay(products) {
   const container = document.getElementById("dealsCarousel");
   if (!container) return;
@@ -1354,6 +1476,10 @@ function renderRecommended(products) {
     )
     .join("");
 }
+
+
+
+
 async function renderRecommended() {
   try {
     const { data, error } = await supabase
@@ -1380,10 +1506,7 @@ async function renderRecommended() {
     console.error("⚠️ خطأ أثناء تحميل المنتجات المقترحة:", err.message);
   }
 }
-function openCategory(cat) {
-  localStorage.setItem("selectedCategory", cat);
-  window.location.href = "category.html";
-}
+
 
 function openProduct(id) {
   window.location.href = `product.html?id=${id}`;
@@ -1406,28 +1529,6 @@ window.addEventListener("scroll", () => {
   if (nearBottom) fetchProducts(false);
 });
 
-function renderProductsGrid(products) {
-  const grid = document.getElementById("productsGrid");
-  grid.innerHTML = products
-    .map(
-      p => `
-    <div class="bg-white rounded-xl p-3 shadow-sm hover:shadow-md transition cursor-pointer"
-         onclick="openProduct('${p.id}')">
-      ${p.discountActive ? `<span class="discount-badge">خصم 🔥</span>` : ""}
-      <img src="${p.mainImg}" alt="${p.name}" class="rounded-lg w-full h-44 object-cover">
-      <h3 class="font-semibold text-sm mt-2 truncate">${p.name}</h3>
-      <div class="mt-1">
-        ${
-          p.discountActive
-            ? `<span class="text-red-600 font-bold">${p.discount_price} ج.م</span>
-               <span class="text-gray-400 line-through text-sm">${p.price} ج.م</span>`
-            : `<span class="text-blue-700 font-bold">${p.price} ج.م</span>`
-        }
-      </div>
-    </div>`
-    )
-    .join("");
-}
 function renderTodayOffers() {
   try {
     const wrap = document.getElementById("todayOffers") || document.getElementById("dealsCarousel");
@@ -1750,31 +1851,7 @@ function safeParseJSON(raw) {
     return {};
   }
 }
-function groupByDiscountDay(products) {
-  const days = {
-    0: "السبت",
-    1: "الأحد",
-    2: "الاثنين",
-    3: "الثلاثاء",
-    4: "الأربعاء",
-    5: "الخميس",
-    6: "الجمعة"
-  };
 
-  const groups = {};
-
-  products.forEach(p => {
-    if (!p.discount_start) return; 
-
-    const dayIndex = new Date(p.discount_start).getDay();
-    const dayName = days[dayIndex];
-
-    if (!groups[dayName]) groups[dayName] = [];
-    groups[dayName].push(p);
-  });
-
-  return groups;
-}
 async function renderCategoryPage() {
   const params = new URLSearchParams(window.location.search);
   const category = params.get("name");
@@ -1814,66 +1891,6 @@ async function renderCategoryPage() {
     `
     )
     .join("");
-}
-function renderCategoriesBar(products) {
-  const container = document.getElementById("categoriesBar");
-  if (!container) return;
-
-  const grouped = {};
-  products.forEach(p => {
-    if (!p.category) return;
-    if (!grouped[p.category]) grouped[p.category] = [];
-    grouped[p.category].push(p);
-  });
-
-  container.innerHTML = Object.keys(grouped).map(cat => {
-    const first = grouped[cat][0];
-    const img = first.mainImg || first.image || "/lv12.png";
-    return `
-      <div class="min-w-[140px] bg-white rounded-xl shadow p-2 cursor-pointer snap-center hover:shadow-md transition"
-           onclick="openCategory('${encodeURIComponent(cat)}')">
-        <img src="${img}" class="w-full h-28 object-cover rounded-lg">
-        <p class="text-center text-sm mt-1 font-semibold text-blue-700 truncate">${cat}</p>
-        <p class="text-xs text-gray-500 text-center">${grouped[cat].length} منتج</p>
-      </div>
-    `;
-  }).join("");
-}
-
-
-function renderCategorySections(products) {
-  const container = document.getElementById("categoriesContainer");
-  if (!container) return;
-
-  const grouped = {};
-  products.forEach(p => {
-    if (!p.category) return;
-    if (!grouped[p.category]) grouped[p.category] = [];
-    grouped[p.category].push(p);
-  });
-
-  container.innerHTML = Object.keys(grouped).map(cat => {
-    const items = grouped[cat].slice(0, 6);
-    const cards = items.map(p => `
-      <div class="min-w-[150px] bg-white rounded-lg shadow-sm p-2 snap-center cursor-pointer"
-           onclick="openProduct('${p.id}')">
-        <img src="${p.mainImg || p.image}" class="w-full h-28 object-cover rounded-md mb-1">
-        <h4 class="text-sm font-medium truncate">${p.name}</h4>
-        <p class="text-blue-600 font-bold text-xs">${p.discount_price ?? p.price} ج.م</p>
-      </div>
-    `).join("");
-
-    return `
-      <section class="mb-6">
-        <div class="flex justify-between items-center px-2 mb-2">
-          <h2 class="text-lg font-bold text-blue-800">${cat}</h2>
-          <a href="category.html?name=${encodeURIComponent(cat)}"
-             class="text-blue-600 text-sm font-medium hover:underline">عرض الكل →</a>
-        </div>
-        <div class="flex gap-3 overflow-x-auto snap-x pb-3">${cards}</div>
-      </section>
-    `;
-  }).join("");
 }
 
 async function loadInterestProducts() {
@@ -1927,33 +1944,6 @@ function getDiscountDays(products) {
   return result;
 }
 
-function renderCategoriesBottom() {
-  const box = document.getElementById("categoriesBottom");
-  if (!box) return;
-
-  const groups = {};
-
-  allProducts.forEach(p => {
-    if (!groups[p.category]) groups[p.category] = [];
-    groups[p.category].push(p);
-  });
-
-  box.innerHTML = Object.keys(groups).map(cat => {
-    const first = groups[cat][0];
-
-    return `
-      <div class="bg-white rounded-xl border shadow-sm p-2 cursor-pointer hover:shadow-md transition"
-           onclick="openCategoryHorizontal('${cat}')">
-
-        <img src="${first.mainImg}" class="w-full h-36 object-cover rounded-md mb-2">
-
-        <h3 class="text-center text-blue-700 font-bold text-sm">${escapeHtml(cat)}</h3>
-        <p class="text-center text-gray-500 text-xs">${groups[cat].length} منتج</p>
-
-      </div>
-    `;
-  }).join("");
-}
 
 
 window.showCategoryProducts = function(cat) {
@@ -2013,75 +2003,6 @@ window.openCategoryHorizontal = function(cat) {
   `;
 };
 
-async function fetchProducts(initialLoad = false) {
-  try {
-    const { data, error } = await supabase.from("products").select(`
-      id, name, price, discount_price, discount_start, discount_end, category, stock,
-      product_images!product_images_product_id_fkey(image_url, is_primary, ordering)
-    `);
-
-    if (error) throw error;
-
-    allProducts = data.map(p => {
-      const imgs = (p.product_images || []).sort((a,b)=> (a.ordering||0)-(b.ordering||0));
-      const main = imgs.find(i=>i.is_primary)?.image_url || imgs[0]?.image_url || "/lv12.png";
-
-      const now = new Date();
-      const discountActive = p.discount_price && p.discount_start && p.discount_end &&
-        new Date(p.discount_start) <= now && new Date(p.discount_end) >= now;
-
-      return {
-        ...p,
-        mainImg: main,
-        discountActive
-      };
-    });
-
-    localStorage.setItem("LV12_PRODUCTS_CACHE", JSON.stringify({ data: allProducts, ts: Date.now() }));
-
-    renderProductsGrid(allProducts);
-    renderCategoriesBottom();
-    renderDiscountDaysBar();
-    renderCategories();
-
-    renderTodayOffers();
-    renderUnder100();
-    renderUnder200();
-
-  } catch (err) {
-    console.error("❌ خطأ تحميل:", err);
-  }
-}
-
-
-function renderCategoriesWithImages() {
-  const groups = {};
-
-  allProducts.forEach(p => {
-    if (!groups[p.category]) groups[p.category] = [];
-    groups[p.category].push(p);
-  });
-
-  categoriesNav.innerHTML = Object.keys(groups).map(cat => {
-    const first = groups[cat][0];
-    return `
-      <div class="category-card" onclick="openCategory('${cat}')">
-        <img src="${first.image}" class="cat-img">
-        <h3>${escapeHtml(cat)}</h3>
-        <p>${groups[cat].length} منتج</p>
-      </div>
-    `;
-  }).join("");
-}
-function openCategory(cat) {
-  const list = allProducts.filter(p => p.category === cat);
-  renderProducts(list);
-
-  window.scrollTo({
-    top: document.getElementById("products").offsetTop - 80,
-    behavior: "smooth"
-  });
-}
 
 
 function addToCart(id) {
@@ -2232,6 +2153,19 @@ resetFiltersBtn.addEventListener("click", () => {
 
 </script>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 <script>
 document.addEventListener("DOMContentLoaded", () => {
   const taskId = localStorage.getItem("activeTaskId");
@@ -2312,6 +2246,15 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 </script>
+
+
+
+
+
+
+
+
+
 <script>
 
 async function updateUserArea() {
@@ -2523,6 +2466,14 @@ window.addEventListener("DOMContentLoaded", async () => {
 
 document.addEventListener("DOMContentLoaded", renderUserInterests);
 </script>
+
+
+
+
+
+
+
+
 <script>
 document.addEventListener("DOMContentLoaded", async () => {
   try {
@@ -2687,6 +2638,20 @@ function fmtTimeLeft(sec) {
 document.addEventListener("DOMContentLoaded", restoreActiveTask);
 
 </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <script>
 async function loadNotifications() {
   const { data, error } = await supabase
@@ -2707,6 +2672,11 @@ async function loadNotifications() {
 }
 loadNotifications();
 </script>
+
+
+
+
+
 
 <script>
 async function loadAds() {
@@ -2739,6 +2709,414 @@ async function logUserActivity(type) {
 logUserActivity('زيارة المتجر');
 
 </script>
+
+
+
+
+
+
+
+
+
+<script>
+
+function ensureContainer(id) {
+  const el = document.getElementById(id);
+  if (!el) console.warn(`⚠️ العنصر ${id} غير موجود`);
+  return el;
+}
+
+function escapeHtml(text) {
+  if (!text) return "";
+  return text.replace(/[&<>"']/g, m =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[m])
+  );
+}
+
+
+
+function renderCategorySections(products) {
+  const container = ensureContainer("categorySections");
+  if (!container) return;
+
+  container.innerHTML = `
+    <div class="flex justify-center py-8">
+      <div class="loader border-t-4 border-blue-500 rounded-full w-8 h-8 animate-spin"></div>
+    </div>
+  `;
+
+  const grouped = {};
+  (products || []).forEach(p => {
+    const cat = p.category || "غير مصنف";
+    if (!grouped[cat]) grouped[cat] = [];
+    grouped[cat].push(p);
+  });
+
+  setTimeout(() => {
+    container.innerHTML = Object.keys(grouped).map(cat => {
+      const items = grouped[cat].slice(0, 6);
+      return `
+        <section class="mb-8">
+          <div class="flex justify-between items-center mb-3 px-2">
+            <h2 class="font-bold text-xl text-blue-800">${escapeHtml(cat)}</h2>
+            <button class="text-blue-600 text-sm font-semibold hover:underline"
+                    onclick="goToCategory('${encodeURIComponent(cat)}')">عرض الكل →</button>
+          </div>
+          <div class="flex gap-3 overflow-x-auto pb-3 snap-x">
+            ${items.map(p => `
+              <div class="min-w-[150px] bg-white rounded-2xl p-2 shadow-sm hover:shadow-md transition-all snap-center cursor-pointer transform hover:-translate-y-1"
+                   onclick="location.href='product.html?id=${p.id}'">
+                <img src="${escapeHtml(p.mainImg)}" class="w-full h-32 object-cover rounded-lg mb-1">
+                <p class="text-sm font-semibold text-gray-700 truncate">${escapeHtml(p.name)}</p>
+                <p class="text-xs text-blue-600 font-bold">
+                  ${p.discount_price && p.discount_price < p.price ? p.discount_price : p.price} ج.م
+                </p>
+              </div>
+            `).join("")}
+          </div>
+        </section>
+      `;
+    }).join("");
+  }, 300);
+}
+
+
+function goToCategory(cat) {
+  const decoded = decodeURIComponent(cat);
+  window.location.href = `category.html?name=${decoded}`;
+}
+
+
+document.addEventListener("DOMContentLoaded", () => {
+  fetchProducts();
+});
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+  const featuredBox = document.getElementById("featuredProducts");
+  if (!featuredBox) {
+    console.warn("⚠️ عنصر featuredProducts غير موجود في الصفحة.");
+    return;
+  }
+
+  featuredBox.innerHTML = `
+    <div class="text-center text-gray-400 py-6 animate-pulse">
+      ⏳ جاري تحميل المنتجات المميزة...
+    </div>
+  `;
+
+  try {
+    const { data, error } = await supabase
+      .from("products")
+      .select(`
+        id, name, price, discount_price, views, 
+        product_images(image_url, is_primary, ordering)
+      `)
+      .order("views", { ascending: false })
+      .limit(4);
+
+    if (error) throw error;
+
+    if (!data?.length) {
+      featuredBox.innerHTML = `<p class="text-center text-gray-500 py-6">🚫 لا توجد منتجات مميزة بعد</p>`;
+      return;
+    }
+
+    const processed = data.map(p => {
+      const imgs = (p.product_images || []).sort((a,b)=>(a.ordering||0)-(b.ordering||0));
+      const img = imgs.find(i => i.is_primary)?.image_url || imgs[0]?.image_url || "/lv12.png";
+      return { ...p, img };
+    });
+
+    featuredBox.innerHTML = `
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
+        ${processed.map(p => `
+          <div 
+            onclick="location.href='product.html?id=${p.id}'"
+            class="group relative overflow-hidden bg-gradient-to-br from-blue-800/60 to-blue-900/80 border border-blue-600/20 rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-500 cursor-pointer backdrop-blur-lg"
+          >
+            <img 
+              src="${p.img}" 
+              alt="${p.name}" 
+              class="w-full h-44 object-cover rounded-t-2xl transition-transform duration-700 group-hover:scale-110"
+            >
+            
+            <div class="p-3 text-white">
+              <h3 class="font-semibold text-sm sm:text-base mb-1 truncate">${p.name}</h3>
+
+              <div class="flex justify-between items-center">
+                <p class="text-yellow-300 font-bold text-sm sm:text-base">
+                  ${p.discount_price || p.price} ج.م
+                </p>
+
+                ${p.discount_price 
+                  ? `<span class="bg-red-600/80 text-xs px-2 py-0.5 rounded-lg shadow-md animate-pulse">خصم 🔥</span>` 
+                  : ""}
+              </div>
+            </div>
+
+            <div class="absolute inset-0 bg-blue-600/0 group-hover:bg-blue-600/10 transition-all duration-500"></div>
+          </div>
+        `).join("")}
+      </div>
+    `;
+
+  } catch (err) {
+    console.error("❌ خطأ أثناء تحميل المنتجات:", err);
+    featuredBox.innerHTML = `
+      <p class="text-center text-red-500 py-6">⚠️ حدث خطأ أثناء تحميل المنتجات. حاول مرة أخرى لاحقًا.</p>
+    `;
+  }
+});
+</script>
+
+
+
+
+
+<script>
+let isLoading = false;
+
+async function fetchProducts(page = 0, useCache = true) {
+  const CACHE_KEY = "LV12_PRODUCTS_CACHE_V7";
+  const CACHE_TTL = 10 * 60 * 1000;
+
+  if (allLoaded || isLoading) return;
+
+  isLoading = true;
+  showLoadingSpinner(true);
+
+  try {
+    if (page === 0 && useCache) {
+      const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || "{}");
+      if (cached.ts && Date.now() - cached.ts < CACHE_TTL && cached.data?.length) {
+        console.log("⚡ تحميل من الكاش المحلي");
+        window.allProducts = cached.data;
+        renderCategorySections(cached.data);
+        isLoading = false;
+        showLoadingSpinner(false);
+        return;
+      }
+    }
+
+    const from = page * PAGE_SIZE;
+    const to = from + PAGE_SIZE - 1;
+
+    const { data, error } = await supabase
+      .from("products")
+      .select(`
+        id, name, price, discount_price, discount_start, discount_end,
+        category, stock, views,
+        product_images(image_url, is_primary, ordering)
+      `)
+      .order("id", { ascending: false })
+      .range(from, to);
+
+    if (error) throw error;
+
+    const now = new Date();
+    const processed = (data || []).map(p => {
+      const imgs = (p.product_images || []).sort((a,b)=>(a.ordering||0)-(b.ordering||0));
+      const mainImg = imgs.find(i=>i.is_primary)?.image_url || imgs[0]?.image_url || "/lv12.png";
+      const discountActive = p.discount_price && new Date(p.discount_start) <= now && new Date(p.discount_end) >= now;
+      return { ...p, mainImg, discountActive, category: (p.category || "غير مصنف").trim() };
+    });
+
+    window.allProducts = (window.allProducts || []).concat(processed);
+    renderCategorySections(window.allProducts);
+
+    if (page === 0)
+      localStorage.setItem(CACHE_KEY, JSON.stringify({ data: window.allProducts, ts: Date.now() }));
+
+    if (!processed.length || processed.length < PAGE_SIZE) {
+      allLoaded = true;
+      console.log("✅ تم تحميل كل المنتجات.");
+    }
+
+  } catch (err) {
+    console.error("❌ خطأ أثناء تحميل المنتجات:", err);
+  } finally {
+    isLoading = false;
+    showLoadingSpinner(false);
+  }
+}
+
+window.addEventListener("scroll", () => {
+  if (isLoading || allLoaded) return;
+  const nearBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 400;
+  if (nearBottom) {
+    currentPage++;
+    fetchProducts(currentPage, false);
+  }
+});
+
+function showLoadingSpinner(show) {
+  let spinner = document.getElementById("scrollLoader");
+  if (!spinner) {
+    spinner = document.createElement("div");
+    spinner.id = "scrollLoader";
+    spinner.className = "text-center py-5 text-blue-600 font-semibold";
+    spinner.textContent = "⏳ جاري تحميل المزيد...";
+    document.body.appendChild(spinner);
+  }
+  spinner.style.display = show ? "block" : "none";
+}
+</script>
+
+
+
+
+
+
+
+
+
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+  try {
+    const { data, error } = await supabase
+      .from("products")
+      .select(`
+        id, name, price, discount_price, discount_start, discount_end,
+        product_images(image_url, is_primary, ordering)
+      `);
+
+    if (error) throw error;
+    if (!data?.length) {
+      console.warn("⚠️ لا توجد منتجات متاحة");
+      return;
+    }
+
+    const now = new Date();
+    const products = data.map(p => {
+      const imgs = (p.product_images || []).sort((a,b)=>(a.ordering||0)-(b.ordering||0));
+      const img = imgs.find(i => i.is_primary)?.image_url || imgs[0]?.image_url || "/lv12.png";
+
+      const discountActive =
+        p.discount_price &&
+        p.discount_start &&
+        p.discount_end &&
+        new Date(p.discount_start) <= now &&
+        new Date(p.discount_end) >= now;
+
+      return { ...p, img, discountActive };
+    });
+
+    const under100 = products.filter(p => (p.discount_price ?? p.price) <= 100);
+    renderProductSection("under100", under100);
+
+    const under200 = products.filter(p => {
+      const price = p.discount_price ?? p.price;
+      return price > 100 && price <= 200;
+    });
+    renderProductSection("under200", under200);
+
+    const discountDays = groupByDiscountDay(products.filter(p => p.discountActive));
+    renderDiscountDays(discountDays);
+
+  } catch (err) {
+    console.error("❌ خطأ أثناء تحميل الأقسام:", err);
+  }
+});
+
+
+function renderProductSection(id, list) {
+  const container = document.getElementById(id);
+  if (!container) return;
+
+  if (!list.length) {
+    container.innerHTML = `<p class="col-span-full text-center text-gray-400 py-6">🚫 لا توجد منتجات متاحة</p>`;
+    return;
+  }
+
+  container.innerHTML = list.map(p => `
+    <div class="bg-white rounded-2xl shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 overflow-hidden cursor-pointer"
+         onclick="location.href='product.html?id=${p.id}'">
+      <div class="relative">
+        <img src="${p.img}" alt="${p.name}" class="w-full h-40 object-cover">
+        ${p.discount_price ? `
+          <span class="absolute top-2 right-2 bg-red-600 text-white text-xs font-semibold px-2 py-1 rounded-md shadow">
+            خصم 🔥
+          </span>` : ""}
+      </div>
+      <div class="p-3">
+        <h3 class="font-semibold text-gray-800 text-sm truncate">${p.name}</h3>
+        <div class="flex items-center gap-2 mt-1">
+          <span class="text-blue-700 font-bold text-sm">${p.discount_price ?? p.price} ج.م</span>
+          ${p.discount_price ? `<span class="line-through text-gray-400 text-xs">${p.price}</span>` : ""}
+        </div>
+      </div>
+    </div>
+  `).join("");
+}
+
+
+function groupByDiscountDay(products) {
+  const days = ["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
+  const groups = {};
+  products.forEach(p => {
+    if (!p.discount_start) return;
+    const day = days[new Date(p.discount_start).getDay()];
+    if (!groups[day]) groups[day] = [];
+    groups[day].push(p);
+  });
+  return groups;
+}
+
+
+function renderDiscountDays(groups) {
+  const bar = document.getElementById("discountDaysBar");
+  const grid = document.getElementById("discountDayProducts");
+  const wrap = document.getElementById("discountDaysWrapper");
+
+  if (!wrap || !bar || !grid) return;
+  if (!Object.keys(groups).length) {
+    wrap.classList.add("hidden");
+    return;
+  }
+
+  wrap.classList.remove("hidden");
+  bar.innerHTML = "";
+  grid.innerHTML = "";
+
+  Object.keys(groups).forEach((day, i) => {
+    const btn = document.createElement("button");
+    btn.className = `px-3 py-1 rounded-full text-sm font-semibold transition ${
+      i === 0 ? "bg-red-600 text-white" : "bg-white border border-red-300 text-red-600 hover:bg-red-50"
+    }`;
+    btn.textContent = `${day} (${groups[day].length})`;
+
+    btn.addEventListener("click", () => {
+      document.querySelectorAll("#discountDaysBar button").forEach(b => b.className = 
+        "px-3 py-1 rounded-full text-sm font-semibold bg-white border border-red-300 text-red-600 hover:bg-red-50"
+      );
+      btn.className = "px-3 py-1 rounded-full text-sm font-semibold bg-red-600 text-white";
+      grid.innerHTML = groups[day].map(p => `
+        <div class="bg-white rounded-xl shadow hover:shadow-lg p-2 cursor-pointer transition hover:-translate-y-1"
+             onclick="location.href='product.html?id=${p.id}'">
+          <img src="${p.img}" class="w-full h-36 object-cover rounded-lg mb-2">
+          <h3 class="text-sm font-semibold text-gray-800 truncate">${p.name}</h3>
+          <p class="text-red-600 font-bold text-sm">${p.discount_price ?? p.price} ج.م</p>
+        </div>
+      `).join("");
+    });
+
+    bar.appendChild(btn);
+  });
+
+  const firstDay = Object.keys(groups)[0];
+  grid.innerHTML = groups[firstDay].map(p => `
+    <div class="bg-white rounded-xl shadow hover:shadow-lg p-2 cursor-pointer transition hover:-translate-y-1"
+         onclick="location.href='product.html?id=${p.id}'">
+      <img src="${p.img}" class="w-full h-36 object-cover rounded-lg mb-2">
+      <h3 class="text-sm font-semibold text-gray-800 truncate">${p.name}</h3>
+      <p class="text-red-600 font-bold text-sm">${p.discount_price ?? p.price} ج.م</p>
+    </div>
+  `).join("");
+}
+</script>
+
+
 
 
 </body>
