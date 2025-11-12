@@ -379,106 +379,286 @@ footer .border-t {
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <body class="antialiased">
-<div class="relative flex-1 order-3 sm:order-none w-full sm:w-auto mt-1 sm:mt-0">
-  <div id="searchWrapper" 
-       class="relative flex items-center w-full transition-all duration-500 ease-[cubic-bezier(.4,0,.2,1)]">
 
-    <span class="absolute right-4 text-blue-600 text-lg sm:text-xl pointer-events-none transition-all duration-300">
-      🔍
-    </span>
+<header id="userArea"
+  class="fixed top-0 w-full bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 text-white
+         shadow-[0_2px_12px_rgba(0,0,0,0.15)] z-[9999] flex items-center justify-between px-4 sm:px-8 py-2 sm:py-3">
 
-    <input id="searchInput" type="search" placeholder="ابحث عن منتج..."
-      class="w-full border border-blue-100 rounded-full pr-10 pl-12 py-2 bg-white/90 
-             focus:bg-white focus:ring-4 focus:ring-blue-400/40 text-sm sm:text-base shadow-inner 
-             placeholder:text-gray-400 outline-none transition-all duration-300" 
-      style="text-overflow: clip;" />
+  <div class="flex items-center gap-2">
+    <img src="/lv12.ico"
+         class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl border border-white/20 shadow-md object-cover"
+         alt="متجر التاجر" />
+    <h1 class="text-lg sm:text-xl font-extrabold tracking-wide">🛍️ متجر التاجر</h1>
+  </div>
 
-    <button id="clearSearch"
-      class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500 hidden transition text-lg sm:text-xl">
-      ✖
-    </button>
-
-    <div id="suggestionsBox"
-      class="hidden absolute top-[110%] left-0 w-full bg-white border border-blue-100 rounded-2xl shadow-2xl z-[999] overflow-hidden transition-all duration-300">
+  <div class="flex items-center gap-2 sm:gap-3">
+    <img id="userAvatar" src="lv12.png" alt="User"
+      class="w-8 h-8 sm:w-10 sm:h-10 rounded-full border border-white/30 shadow-md object-cover" />
+    <div class="hidden sm:block text-right">
+      <h3 id="userName" class="text-sm font-bold">المستخدم</h3>
+      <p class="text-[11px] opacity-80">مرحباً بك 👋</p>
     </div>
-  </div>
-
-  <div id="searchOverlay"
-       class="hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-[80] transition-opacity duration-300"></div>
-</div>
-
-<header id="mainHeader"
-  class="fixed top-3 left-1/2 -translate-x-1/2 z-50 w-[94%] sm:w-[88%] bg-white/80 backdrop-blur-2xl border border-blue-200 shadow-[0_4px_16px_rgba(0,0,0,0.1)] rounded-2xl transition-all duration-700 ease-[cubic-bezier(.4,0,.2,1)] overflow-hidden">
-
-  <div class="flex items-center justify-between px-4 py-2 gap-3 flex-wrap">
-
-    <a href="index.html" class="flex items-center gap-2 group">
-      <div class="relative">
-        <img src="/lv12.ico"
-          class="w-10 h-10 rounded-xl border border-blue-200 shadow-md transition-transform duration-500 group-hover:rotate-6 group-hover:scale-110"
-          alt="LV12 logo" />
-        <span class="absolute -bottom-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-white shadow-sm animate-pulse"></span>
-      </div>
-      <div>
-        <h1 class="text-sm font-extrabold text-blue-800 leading-tight group-hover:text-blue-900 transition-colors">
-          متجر LV12
-        </h1>
-        <p class="text-[10px] text-gray-500 font-medium">تسوق ذكي وسريع</p>
-      </div>
-    </a>
-  <div id="userArea" class="flex items-center gap-3"></div>
-
-
-
-  <div id="suggestionsBox"
-    class="hidden absolute top-[110%] left-0 w-full bg-white border border-blue-100 rounded-2xl shadow-xl z-50 overflow-hidden">
-  </div>
-</div>
-
-    <div class="flex items-center gap-2 sm:gap-3 flex-wrap justify-center mt-2 sm:mt-0">
-
-      <a href="cart.html"
-        class="relative flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-500 px-3 py-1.5 rounded-full shadow-md hover:shadow-lg hover:scale-[1.05] transition-all duration-300">
-        🛍️ <span>السلة</span>
-        <span id="cartBadge"
-          class="absolute -left-2 -top-2 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full hidden">0</span>
-      </a>
-
-      <a href="profile.html"
-        class="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-blue-800 border border-blue-200 bg-white/70 hover:bg-blue-50 px-3 py-1.5 rounded-full shadow-sm hover:shadow-md transition-all duration-300">
-        👤 <span>ملفي</span>
-      </a>
-  
-
-
-      <a href="wallet.html" id="walletBtn"
-        class="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-green-500 to-emerald-600 px-3 py-1.5 rounded-full shadow-[0_2px_8px_rgba(16,185,129,0.4)] hover:shadow-[0_4px_12px_rgba(16,185,129,0.6)] transition-all duration-300 hover:scale-105">
-        💰 <span id="walletAmount">125.50 ج.م</span>
-      </a>
-
-      <a href="my-orders.html"
-        class="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-gray-700 border border-gray-200 bg-white/70 hover:bg-gray-50 px-3 py-1.5 rounded-full shadow-sm hover:shadow-md transition-all duration-300">
-        📦 <span>طلباتي</span>
-      </a>
-    </div>
-  </div>
- 
-<div id="shopAdBanner"
-  class="hidden fixed top-0 left-1/2 -translate-x-1/2 w-[95%] sm:w-[80%] z-[9999]
-         text-white text-center px-5 py-3 rounded-b-3xl shadow-[0_4px_12px_rgba(0,0,0,0.2)]
-         backdrop-blur-md transition-all duration-700 ease-[cubic-bezier(.4,0,.2,1)]
-         opacity-0 -translate-y-full bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 border border-white/20">
-  <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
-    <span id="shopAdText" class="font-semibold text-sm sm:text-base leading-tight drop-shadow-md">
-      🤑 سجل الآن وابدأ الربح! ادعُ أصدقاءك واحصل على 5 جنيه عن كل صديق ينضم 🎁 بالإضافة إلى دخل إضافي يومي من تنفيذ المهام ومشاهدة المنتجات 🔥
-    </span>
-    <button id="closeShopAd"
-      class="bg-white/25 hover:bg-white/35 text-white px-2 py-1 rounded-full text-xs font-bold transition-all duration-300 shadow-sm">
-      ✖
+    <button id="logoutBtn"
+      class="text-xs sm:text-sm font-semibold border border-red-300 text-red-100 px-3 py-1 rounded-full bg-red-600/30 hover:bg-red-600/50 transition-all duration-300">
+      🔓 خروج
     </button>
   </div>
-</div>
 </header>
+
+
+<button id="floatingSearchBtn"
+  class="fixed bottom-20 right-5 sm:right-8 bg-gradient-to-r from-blue-600 to-indigo-600 text-white 
+         font-bold px-4 py-2 rounded-full shadow-lg hover:scale-105 transition-all duration-500 
+         animate-pulse z-[9999] flex items-center gap-2">
+  🔍 بحث عن منتج
+</button>
+
+<div id="searchOverlay"
+  class="hidden fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[10000] transition-opacity duration-300">
+  <div class="bg-white w-[90%] sm:w-[420px] rounded-2xl p-5 shadow-2xl border border-blue-200 relative animate-[fadeIn_0.4s_ease]">
+    <button id="closeSearchOverlay"
+      class="absolute top-2 left-2 text-red-500 text-lg hover:scale-125 transition">✖</button>
+    <h3 class="text-center text-blue-700 font-extrabold text-lg mb-3">ابحث عن منتج 🔍</h3>
+
+    <input type="search" id="popupSearchInput" placeholder="اكتب اسم المنتج هنا..."
+      class="w-full border border-blue-300 rounded-full px-4 py-2 text-gray-700 text-sm focus:ring-4 focus:ring-blue-300/40 focus:outline-none shadow-inner" />
+    
+    <div id="popupSuggestions"
+      class="hidden mt-2 bg-white border border-blue-100 rounded-2xl shadow-xl max-h-60 overflow-y-auto"></div>
+  </div>
+</div>
+
+<style>
+@keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+@keyframes fadeOut { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.9); } }
+.animate-fade-out { animation: fadeOut 0.3s ease forwards; }
+
+#floatingSearchBtn {
+  animation: glow 2.5s infinite ease-in-out;
+}
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 10px rgba(59,130,246,0.5), 0 0 20px rgba(99,102,241,0.3); }
+  50% { box-shadow: 0 0 25px rgba(59,130,246,0.9), 0 0 45px rgba(99,102,241,0.6); }
+}
+.suggestion-item {
+  padding: 10px 14px;
+  font-size: 14px;
+  color: #1e3a8a;
+  cursor: pointer;
+  border-bottom: 1px solid #f1f5f9;
+  transition: 0.2s;
+}
+.suggestion-item:hover {
+  background: #eff6ff;
+  color: #2563eb;
+}
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+
+const floatingBtn = document.getElementById("floatingSearchBtn");
+const overlay = document.getElementById("searchOverlay");
+const closeBtn = document.getElementById("closeSearchOverlay");
+const searchInput = document.getElementById("popupSearchInput");
+const suggestionsBox = document.getElementById("popupSuggestions");
+
+floatingBtn.addEventListener("click", () => {
+  overlay.classList.remove("hidden", "animate-fade-out");
+  overlay.classList.add("flex");
+  setTimeout(() => searchInput.focus(), 300);
+});
+closeBtn.addEventListener("click", closeSearch);
+overlay.addEventListener("click", (e) => { if (e.target === overlay) closeSearch(); });
+function closeSearch() {
+  overlay.classList.add("animate-fade-out");
+  setTimeout(() => overlay.classList.add("hidden"), 300);
+  suggestionsBox.classList.add("hidden");
+}
+
+function levenshtein(a, b) {
+  const m = a.length, n = b.length;
+  const dp = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
+  for (let i = 0; i <= m; i++) dp[i][0] = i;
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      dp[i][j] = Math.min(dp[i - 1][j] + 1, dp[i][j - 1] + 1, dp[i - 1][j - 1] + cost);
+    }
+  }
+  return dp[m][n];
+}
+
+searchInput.addEventListener("input", async () => {
+  const query = searchInput.value.trim().toLowerCase();
+  if (!query) { suggestionsBox.classList.add("hidden"); return; }
+
+  try {
+    const { data: products, error } = await supabase
+      .from("products")
+      .select("id, name, price, mainImg")
+      .ilike("name", `%${query}%`)
+      .limit(10);
+
+    if (error) throw error;
+
+    let results = products;
+    if (results.length === 0) {
+      const { data: fallback } = await supabase.from("products").select("id, name, price, mainImg");
+      results = fallback.filter(p => levenshtein(p.name.toLowerCase(), query) <= 2);
+    }
+
+    if (!results.length) {
+      suggestionsBox.innerHTML = `<div class="suggestion-item text-red-500">❌ لا توجد نتائج — هل قصدت "${query}"؟</div>`;
+    } else {
+      suggestionsBox.innerHTML = results.map(p => `
+        <div class="suggestion-item flex items-center gap-2" onclick="goToProduct(${p.id})">
+          <img src="${p.mainImg || 'no-image.png'}" class="w-8 h-8 rounded-md object-cover border">
+          <span>${p.name}</span>
+          <span class="ml-auto text-blue-700 font-bold text-xs">${p.price ?? ''} ج.م</span>
+        </div>
+      `).join("");
+    }
+
+    suggestionsBox.classList.remove("hidden");
+
+  } catch (err) {
+    console.error("❌ فشل جلب النتائج:", err);
+  }
+});
+
+function goToProduct(id) {
+  window.location.href = `product.html?id=${id}`;
+}
+</script>
+
+
+
+
+
+<nav id="mainNav"
+  class="fixed bottom-0 sm:top-[70px] sm:bottom-auto left-0 w-full bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 
+         text-white backdrop-blur-xl border-t sm:border-t-0 sm:border-b border-blue-300/20
+         shadow-[0_-4px_16px_rgba(0,0,0,0.15)] sm:shadow-[0_2px_12px_rgba(0,0,0,0.15)]
+         z-[9998] transition-all duration-500 ease-in-out">
+
+  <div class="max-w-6xl mx-auto flex justify-around sm:justify-between items-center px-4 py-2 sm:py-3 
+              text-[12px] sm:text-[14px] font-semibold select-none">
+
+    <!-- 🏠 الرئيسية -->
+    <a href="shop.html" id="nav-home"
+      class="nav-link flex flex-col sm:flex-row items-center sm:gap-2 transition-all duration-200">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor"
+           viewBox="0 0 24 24" class="w-6 h-6 mb-0.5 sm:mb-0">
+        <path d="M3 9.75L12 3l9 6.75V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1V9.75z"/>
+      </svg>
+      <span>الرئيسية</span>
+    </a>
+
+    <!-- 🛒 السلة -->
+    <a href="cart.html" id="nav-cart"
+      class="nav-link relative flex flex-col sm:flex-row items-center sm:gap-2 transition-all duration-200">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor"
+           viewBox="0 0 24 24" class="w-6 h-6 mb-0.5 sm:mb-0">
+        <path d="M7 4h-2l-1 2H1v2h2l3.6 7.59L5.24 17a2.992 2.992 0 0 0 2.76 4h10v-2H8l1.1-2h7.45a3 3 0 0 0 2.83-1.94L22 6H6.31l-.95-2z"/>
+      </svg>
+      <span>السلة</span>
+      <span id="cartBadge"
+        class="absolute top-0 right-2 sm:-top-1 sm:right-auto sm:left-5 bg-red-600 text-white text-[9px] font-bold px-1 py-0.5 rounded-full hidden">0</span>
+    </a>
+
+    <!-- 💰 المحفظة -->
+    <a href="wallet.html" id="nav-wallet"
+      class="nav-link flex flex-col sm:flex-row items-center sm:gap-2 transition-all duration-200 relative">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor"
+           viewBox="0 0 24 24" class="w-6 h-6 mb-0.5 sm:mb-0 transition-transform duration-300" id="walletIcon">
+        <path d="M21 7H5V5h16v2zm0 2v10H3V7h2v2h16zM7 15h8v2H7v-2z"/>
+      </svg>
+      <span>المحفظة</span>
+
+      <!-- 💵 الرصيد -->
+      <span id="walletBalance"
+        class="absolute -top-2 right-2 bg-green-400 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg animate-pulse">
+        0 ج.م
+      </span>
+    </a>
+
+    <!-- 📦 طلباتي -->
+    <a href="my-orders.html" id="nav-orders"
+      class="nav-link flex flex-col sm:flex-row items-center sm:gap-2 transition-all duration-200">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor"
+           viewBox="0 0 24 24" class="w-6 h-6 mb-0.5 sm:mb-0">
+        <path d="M3 6v14a2 2 0 0 0 2 2h14v-2H5V6H3zm17-2H8v12h12V4zm-2 8h-8V6h8v6z"/>
+      </svg>
+      <span>طلباتي</span>
+    </a>
+
+    <!-- 👤 ملفي -->
+    <a href="profile.html" id="nav-profile"
+      class="nav-link flex flex-col sm:flex-row items-center sm:gap-2 transition-all duration-200">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor"
+           viewBox="0 0 24 24" class="w-6 h-6 mb-0.5 sm:mb-0">
+        <path d="M12 12c2.67 0 8 1.34 8 4v4H4v-4c0-2.66 5.33-4 8-4zM12 2a4 4 0 1 1 0 8 4 4 0 0 1 0-8z"/>
+      </svg>
+      <span>ملفي</span>
+    </a>
+
+  </div>
+</nav>
+
+<!-- 🎨 تنسيق إضافي -->
+<style>
+  body { padding-bottom: 80px; }
+  @media (min-width: 640px) {
+    body { padding-top: 120px; padding-bottom: 0; }
+  }
+
+  .nav-link { opacity: 0.9; }
+  .nav-link:hover { opacity: 1; transform: translateY(-2px); }
+
+  .nav-link.active {
+    color: #ffe600;
+    text-shadow: 0 0 10px rgba(255,255,255,0.5);
+  }
+
+  .wallet-bounce {
+    animation: bounceWallet 0.6s ease;
+  }
+  @keyframes bounceWallet {
+    0%,100% { transform: translateY(0); }
+    30% { transform: translateY(-5px); }
+    60% { transform: translateY(3px); }
+  }
+</style>
+
+<!-- ⚙️ Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+
+
+// 🎯 عرض الرصيد
+async function showWalletMiniBalance() {
+  try {
+    const { data } = await supabase.auth.getSession();
+    const user = data?.session?.user;
+    if (!user) return;
+
+    const { data: wallet } = await supabase
+      .from('wallet')
+      .select('balance')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    const balance = wallet?.balance ?? 0;
+    const el = document.getElementById("walletBalance");
+    el.textContent = `${Number(balance).toFixed(2)} ج.م`;
+  } catch (err) {
+    console.error("❌ فشل تحميل رصيد المحفظة:", err);
+  }
+}
+document.addEventListener("DOMContentLoaded", showWalletMiniBalance);
+</script>
 
 <button id="toggleHeaderBtn"
   class="fixed bottom-5 right-5 z-[60] bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-full w-12 h-12 shadow-[0_4px_14px_rgba(59,130,246,0.4)] flex items-center justify-center hover:scale-110 transition-all duration-300 animate-pulse">
@@ -993,7 +1173,6 @@ const resetFiltersBtn = document.getElementById("resetFilters");
 const categoriesNav = document.getElementById("categoriesNav");
 const cartBadge = document.getElementById("cartBadge");
 
-let allProducts = [];
 let filteredProducts = [];
 let cart = JSON.parse(localStorage.getItem("cart") || "[]");
 const CACHE_KEY = "lv12shop_products_v4";
@@ -1251,7 +1430,6 @@ async function checkAuth() {
     user.user_metadata?.avatar_url ||
     `https://ui-avatars.com/api/?background=2563eb&color=fff&name=${encodeURIComponent(name)}`;
 
-  // ✅ عرض الصورة والاسم في الهيدر
   userArea.innerHTML = `
     <div class="flex items-center gap-3 bg-white px-3 py-1.5 rounded-xl shadow-sm border border-blue-200">
       <img src="${avatar}" alt="avatar" class="w-9 h-9 rounded-full border border-blue-300 object-cover ring-2 ring-blue-100">
@@ -2095,12 +2273,6 @@ function showError(msg) {
   loadingEl.textContent = msg;
 }
 
-searchInput.addEventListener("input", debounce(() => {
-  clearSearch.classList.toggle("hidden", !searchInput.value);
-  renderFiltered();
-}, 300));
-
-
 function levenshtein(a, b) {
   const m = a.length, n = b.length;
   const dp = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
@@ -2119,89 +2291,8 @@ function levenshtein(a, b) {
   return dp[m][n];
 }
 
-function renderSearchResults(list) {
-  if (!list.length) {
-    productsGrid.innerHTML = `<p class="text-center text-gray-500 col-span-full">لم يتم العثور على نتائج 🔍</p>`;
-    return;
-  }
-
-  productsGrid.innerHTML = list.map(p => `
-    <div class="bg-white rounded-xl shadow hover:shadow-md transition p-2 cursor-pointer"
-         onclick="location.href='product.html?id=${p.id}'">
-      <img src="${p.mainImg || p.image}" class="w-full h-40 object-cover rounded-lg mb-2">
-      <h3 class="font-semibold text-sm text-gray-800 truncate">${p.name}</h3>
-      <p class="text-blue-600 font-bold text-sm">${p.price} ج.م</p>
-    </div>
-  `).join("");
-}
 
 
-
-function showSearchSuggestions(query) {
-  if (!query || !allProducts.length) {
-    suggestionsBox.classList.add("hidden");
-    return;
-  }
-
-  const lowerQ = query.toLowerCase();
-  const matches = allProducts
-    .filter(p => p.name && p.name.toLowerCase().includes(lowerQ))
-    .slice(0, 5);
-
-  if (!matches.length) {
-    suggestionsBox.classList.add("hidden");
-    return;
-  }
-
-  const rect = searchInput.getBoundingClientRect();
-  suggestionsBox.style.left = `${rect.left}px`;
-  suggestionsBox.style.top = `${rect.bottom + window.scrollY}px`;
-  suggestionsBox.style.width = `${rect.width}px`;
-
-  suggestionsBox.innerHTML = matches.map(m => `
-    <div class="p-2 hover:bg-blue-100 cursor-pointer text-sm">${escapeHtml(m.name)}</div>
-  `).join("");
-
-  suggestionsBox.classList.remove("hidden");
-
-  Array.from(suggestionsBox.children).forEach((el, i) => {
-    el.addEventListener("click", () => {
-      searchInput.value = matches[i].name;
-      suggestionsBox.classList.add("hidden");
-      performSearch(); 
-    });
-  });
-}
-
-searchInput.addEventListener("input", debounce(() => {
-  const val = searchInput.value.trim();
-  clearSearch.classList.toggle("hidden", !val);
-  showSearchSuggestions(val);
-  performSearch();
-}, 300));
-
-document.addEventListener("click", e => {
-  if (!suggestionsBox.contains(e.target) && e.target !== searchInput) {
-    suggestionsBox.classList.add("hidden");
-  }
-});
-
-clearSearch.addEventListener("click", () => {
-  searchInput.value = "";
-  clearSearch.classList.add("hidden");
-  suggestionsBox.classList.add("hidden");
-  renderFiltered();
-});
-
-
-applyFiltersBtn.addEventListener("click", renderFiltered);
-resetFiltersBtn.addEventListener("click", () => {
-  [searchInput, priceMin, priceMax].forEach(i => i.value = "");
-  categoryFilter.value = "";
-  stockFilter.value = "";
-  clearSearch.classList.add("hidden");
-  renderFiltered();
-});
 (async function init() {
   document.getElementById("yearFooter").textContent = new Date().getFullYear();
   updateCartUI();
@@ -3717,6 +3808,41 @@ document.addEventListener("DOMContentLoaded", () => {
     renderAllSections(gridFiltered);
   });
 });
+</script>
+<script>
+
+
+async function loadUserProfile() {
+  try {
+    const { data: session } = await supabase.auth.getSession();
+    const user = session?.session?.user;
+    if (!user) return;
+
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('full_name, avatar_url')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    if (error) throw error;
+
+    const avatar = document.getElementById("userAvatar");
+    const nameEl = document.getElementById("userName");
+
+    if (profile) {
+      nameEl.textContent = profile.full_name || "مستخدم";
+      if (profile.avatar_url) {
+        avatar.src = profile.avatar_url.startsWith("http")
+          ? profile.avatar_url
+          : `${supabaseUrl}/storage/v1/object/public/avatars/${profile.avatar_url}`;
+      }
+    }
+  } catch (err) {
+    console.error("❌ فشل تحميل بيانات المستخدم:", err.message);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", loadUserProfile);
 </script>
 
 </body>
