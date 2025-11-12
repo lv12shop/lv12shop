@@ -3160,14 +3160,78 @@ function renderDiscountDays(groups) {
 <script>
 (async () => {
   try {
-    const res = await fetch("https://ipwho.is/");
-    const data = await res.json();
+    const userCheckKey = "vpn_checked_today";
+    const lastCheck = localStorage.getItem(userCheckKey);
+    const now = Date.now();
 
-    const isBlocked =
-      data.security?.vpn ||
-      data.security?.proxy ||
-      data.security?.tor ||
-      false;
+    if (lastCheck && now - parseInt(lastCheck) < 6 * 60 * 60 * 1000) return;
+
+    let data = null;
+    let isBlocked = false;
+    let provider = "unknown";
+
+    const fetchIpData = async (url, name) => {
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`${name} API failed`);
+        const json = await res.json();
+        return { ok: true, data: json, name };
+      } catch {
+        return { ok: false, data: null, name };
+      }
+    };
+
+    const sources = [
+      { url: "https://ipwho.is/", name: "ipwhois" },
+      { url: "https://ipapi.co/json/", name: "ipapi" },
+      { url: "https://ipdata.co?api-key=test", name: "ipdata" } 
+    ];
+
+    for (const src of sources) {
+      const r = await fetchIpData(src.url, src.name);
+      if (r.ok) {
+        data = r.data;
+        provider = r.name;
+        break;
+      }
+    }
+
+    if (!data) throw new Error("❌ فشل جلب بيانات IP من جميع المصادر");
+
+    const sec = data.security || data.threat || {};
+    const isp = (data.connection?.isp || data.org || "").toLowerCase();
+    const hosting = data.connection?.type === "hosting" || isp.includes("cloud") || isp.includes("vps");
+    const vpnFlags = [
+      sec.vpn,
+      sec.proxy,
+      sec.tor,
+      data.security?.anonymous,
+      data.security?.hosting
+    ].filter(Boolean);
+
+    isBlocked =
+      vpnFlags.length > 0 ||
+      hosting ||
+      isp.includes("vpn") ||
+      isp.includes("proxy") ||
+      isp.includes("digitalocean") ||
+      isp.includes("aws") ||
+      isp.includes("google cloud");
+
+    try {
+      if (typeof supabase !== "undefined") {
+        const user = JSON.parse(localStorage.getItem("lv12_user") || "{}");
+        await supabase.from("user_activity").insert({
+          user_id: user.id || null,
+          user_display: user.name || "زائر",
+          type: "vpn_check",
+          description: `IP: ${data.ip} | Provider: ${provider} | Blocked: ${isBlocked}`,
+          created_at: new Date().toISOString()
+        });
+      }
+    } catch (e) {
+      console.warn("❌ فشل تسجيل فحص VPN في Supabase:", e);
+    }
 
     if (isBlocked) {
       document.documentElement.innerHTML = `
@@ -3185,12 +3249,13 @@ function renderDiscountDays(groups) {
           padding:20px;
           z-index:999999;
         ">
-          <div style="max-width:500px;">
-            <h2 style="font-size:26px;margin-bottom:12px;">⚠️ خطأ في الخدمة</h2>
+          <div style="max-width:480px;">
+            <h2 style="font-size:28px;margin-bottom:12px;">🚫 تم حظر الوصول</h2>
             <p style="font-size:16px;line-height:1.8;">
-              تم حظر الوصول إلى الموقع مؤقتًا.<br>
-              يبدو أنك تستخدم شبكة VPN أو Proxy.<br><br>
-              يرجى إيقافها والمحاولة مرة أخرى.
+              تم اكتشاف اتصال غير مسموح به (VPN / Proxy / سيرفر سحابي).<br>
+              يرجى إيقاف أي VPN أو خادم وكيل وإعادة المحاولة.<br><br>
+              عنوانك الحالي: <b>${data.ip}</b><br>
+              الدولة: <b>${data.country || data.country_name || "غير معروف"}</b>
             </p>
             <button onclick="location.reload()"
               style="margin-top:25px;background:#2563eb;color:white;
@@ -3201,13 +3266,312 @@ function renderDiscountDays(groups) {
           </div>
         </div>
       `;
-
-      throw new Error("Blocked: VPN or Proxy detected");
+      throw new Error("⛔ Blocked connection (VPN/Proxy detected)");
     }
+
+    localStorage.setItem(userCheckKey, now.toString());
+    console.log(`✅ VPN check passed (${provider}) | IP: ${data.ip}`);
+
   } catch (err) {
-    console.warn("VPN check failed:", err);
+    console.warn("⚠️ فشل فحص VPN:", err.message);
   }
 })();
+</script>
+
+
+<script>
+const _timers = {};
+
+function formatLocalTime(dateMs) {
+  return new Date(dateMs).toLocaleString("ar-EG", {
+    timeZone: userTimeZone,
+    hour12: true
+  });
+}
+let serverOffset = 0; 
+let userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+function getNow() {
+  try {
+    return Date.now() + (serverOffset || 0);
+  } catch {
+    return Date.now();
+  }
+}
+async function syncServerTime() {
+  try {
+    const { data, error } = await supabase.rpc("server_now");
+    if (error || !data) throw error;
+
+    const serverUtc = new Date(data);
+    const deviceNow = new Date();
+
+    serverOffset = serverUtc.getTime() - deviceNow.getTime();
+
+    userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+    const localTimeStr = serverUtc.toLocaleString("ar-EG", {
+      timeZone: userTimeZone,
+      hour12: true,
+    });
+
+    console.log(`🕓 تم مزامنة وقت السيرفر بدقة: ${localTimeStr}`);
+    console.log("🌍 المنطقة الزمنية للمستخدم:", userTimeZone);
+    console.log(
+      `📏 فرق الوقت بين الجهاز والسيرفر: ${(serverOffset / 1000).toFixed(1)} ثانية`
+    );
+
+    const offsetDiff = Math.abs(serverOffset);
+    if (offsetDiff > 2 * 60 * 1000) {
+      toast("⚠️ يبدو أن وقت جهازك مختلف عن السيرفر، يرجى ضبط الساعة.", false);
+    }
+  } catch (err) {
+    console.warn("⚠️ فشل مزامنة وقت السيرفر، سيتم استخدام وقت الجهاز.", err);
+    serverOffset = 0;
+  }
+}
+
+async function loadDailyTasks() {
+  try {
+    const container = document.getElementById("tasksList");
+    container.innerHTML = `<div class="loader"></div>`;
+
+    const { data: tasks, error: tErr } = await supabase
+      .from("daily_tasks")
+      .select("*")
+      .eq("active", true)
+      .order("id");
+    if (tErr) throw tErr;
+
+    const { data: userTasks } = await supabase
+      .from("user_daily_tasks")
+      .select("*")
+      .eq("user_id", currentUser.id)
+      .order("started_at", { ascending: false });
+
+    const map = {};
+    (userTasks || []).forEach(t => {
+      map[t.task_id] = map[t.task_id] || [];
+      map[t.task_id].push(t);
+    });
+
+    const now = getNow();
+
+    container.innerHTML = tasks.map(task => {
+      const attempts = map[task.id] || [];
+      const maxRepeat = task.repeat_per_day || 1;
+      const used = attempts.filter(a => ["running", "pending"].includes(a.status)).length;
+      const remaining = Math.max(0, maxRepeat - used);
+      const disabled = remaining <= 0 ? "disabled" : "";
+
+      return `
+        <div class="task-card ${disabled ? "opacity-50" : ""}">
+          <div class="task-info">
+            <div class="task-title">${escapeHtml(task.title)}</div>
+            <div class="task-desc">${escapeHtml(task.description || "")}</div>
+            <div class="task-reward">💰 المكافأة: ${task.reward} ج.م</div>
+            <div class="text-xs text-gray-400">⏱️ المدة: ${task.duration_minutes} دقيقة</div>
+            <div class="text-xs text-gray-300">♻️ الباقي: ${remaining}</div>
+          </div>
+          <div class="flex flex-col items-center gap-2">
+            <button id="taskBtn-${task.id}" class="task-btn" ${disabled}>▶️ ابدأ</button>
+            <div id="taskCountdown-${task.id}" class="text-xs text-yellow-400 mt-1"></div>
+          </div>
+        </div>`;
+    }).join("");
+
+    bindTasksUI(tasks);
+  } catch (err) {
+    console.error("❌ loadDailyTasks error:", err);
+    toast("⚠️ فشل تحميل المهام", false);
+  }
+}
+
+
+async function handleTaskStart(task) {
+  try {
+    if (!currentUser?.id) 
+      return toast("⚠️ يجب تسجيل الدخول أولًا", false);
+
+    const ipRes = await fetch("https://api.ipify.org?format=json");
+    const ipData = await ipRes.json();
+    const userIP = ipData?.ip || "غير معروف";
+
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const todayIso = todayStart.toISOString();
+
+    const { data: attempts, error: attemptsErr } = await supabase
+      .from("user_daily_tasks")
+      .select("id, started_at, status")
+      .eq("user_id", currentUser.id)
+      .eq("task_id", task.id)
+      .gte("started_at", todayIso);
+
+    if (attemptsErr) throw attemptsErr;
+
+    const maxRepeat = task.repeat_per_day || 1;
+    const activeAttempts = attempts?.filter(a => ["running", "pending"].includes(a.status)) || [];
+
+    if (activeAttempts.length >= maxRepeat) {
+      return toast("🚫 تجاوزت الحد المسموح لتكرار هذه المهمة اليوم", false);
+    }
+
+    const { data: running } = await supabase
+      .from("user_daily_tasks")
+      .select("id")
+      .eq("user_id", currentUser.id)
+      .eq("status", "running");
+
+    if (running?.length)
+      return toast("🚫 لديك مهمة قيد التنفيذ حاليًا", false);
+
+    const startUtcMs = getNow();
+    const startIso = new Date(startUtcMs).toISOString();
+    const durationMs = (task.duration_minutes || 1) * 60 * 1000;
+    const endUtcMs = startUtcMs + durationMs;
+    const endIso = new Date(endUtcMs).toISOString();
+
+    const { data, error } = await supabase
+      .from("user_daily_tasks")
+      .insert([{
+        user_id: currentUser.id,
+        task_id: task.id,
+        status: "running",
+        started_at: startIso,
+        expected_end_at: endIso,
+        ip_address: userIP
+      }])
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    const startLocal = new Date(startUtcMs).toLocaleString("ar-EG", {
+      timeZone: userTimeZone,
+      hour12: true
+    });
+    const endLocal = new Date(endUtcMs).toLocaleString("ar-EG", {
+      timeZone: userTimeZone,
+      hour12: true
+    });
+
+    console.log(`⏱️ مهمة "${task.title}" بدأت: ${startLocal} — تنتهي: ${endLocal}`);
+    console.log("🌍 المنطقة الزمنية للمستخدم:", userTimeZone);
+    console.log("🌐 عنوان IP:", userIP);
+
+    localStorage.setItem("activeAttempt", JSON.stringify({
+      attemptId: data.id,
+      taskId: task.id,
+      startUtc: startUtcMs,
+      endUtc: endUtcMs
+    }));
+
+    if (task.link && task.link.trim()) window.open(task.link, "_blank");
+
+    disableTaskButton(task.id, true);
+    startCountdown(task.id, data.id, startUtcMs, endUtcMs);
+
+    toast(`🚀 بدأت المهمة "${task.title}" — المدة ${task.duration_minutes} دقيقة`, true);
+
+  } catch (err) {
+    console.error("❌ handleTaskStart error:", err);
+    toast("⚠️ فشل بدء المهمة", false);
+  }
+}
+
+
+
+function startCountdown(taskId, attemptId, startUtc, endUtc) {
+  if (_timers[attemptId]) clearInterval(_timers[attemptId]);
+
+  const tick = async () => {
+    const now = getNow();
+    const secLeft = Math.ceil((endUtc - now) / 1000);
+
+    if (secLeft > 0) {
+      renderCountdownForTask(taskId, secLeft);
+      return;
+    }
+
+    clearInterval(_timers[attemptId]);
+    localStorage.removeItem("activeAttempt");
+    renderCountdownForTask(taskId, 0);
+
+    try {
+      await supabase
+        .from("user_daily_tasks")
+        .update({ 
+          status: "pending",
+          completed_at: new Date().toISOString()
+        })
+        .eq("id", attemptId);
+      toast("✅ انتهت المهمة — بانتظار مراجعة الأدمن", true);
+      loadDailyTasks();
+    } catch (e) {
+      console.error("❌ تحديث المهمة فشل:", e);
+    }
+  };
+
+  tick();
+  _timers[attemptId] = setInterval(tick, 1000);
+}
+
+function disableTaskButton(id, disabled = true) {
+  const btn = document.getElementById(`taskBtn-${id}`);
+  if (!btn) return;
+  btn.disabled = disabled;
+  btn.classList.toggle("opacity-50", disabled);
+}
+
+function renderCountdownForTask(id, sec) {
+  const el = document.getElementById(`taskCountdown-${id}`);
+  if (!el) return;
+  el.textContent = sec <= 0
+    ? "⏳ انتهت — بانتظار مراجعة الأدمن"
+    : `⏳ متبقي: ${fmtTimeLeft(sec)}`;
+}
+
+async function bindTasksUI(tasks) {
+  for (const task of tasks) {
+    const btn = document.getElementById(`taskBtn-${task.id}`);
+    if (btn) btn.onclick = () => handleTaskStart(task);
+  }
+
+  const saved = localStorage.getItem("activeAttempt");
+  if (saved) {
+    const { taskId, attemptId, startUtc, endUtc } = JSON.parse(saved);
+    const now = getNow();
+    if (now < endUtc) {
+      disableTaskButton(taskId, true);
+      startCountdown(taskId, attemptId, startUtc, endUtc);
+    } else {
+      localStorage.removeItem("activeAttempt");
+    }
+  }
+}
+window.addEventListener("DOMContentLoaded", async () => {
+  await syncServerTime();
+  await loadDailyTasks();
+
+  const saved = localStorage.getItem("activeAttempt");
+  if (saved) {
+    const { taskId, attemptId, startUtc, endUtc } = JSON.parse(saved);
+    const now = getNow();
+    if (now < endUtc) {
+      disableTaskButton(taskId, true);
+      startCountdown(taskId, attemptId, startUtc, endUtc);
+    } else {
+      localStorage.removeItem("activeAttempt");
+    }
+  }
+
+  const diff = Math.abs(serverOffset);
+  if (diff > 60_000) {
+    toast("⚠️ يبدو أن وقت جهازك غير دقيق، يرجى ضبط الساعة لعرض العد التنازلي الصحيح.", false);
+  }
+});
+
 </script>
 
 

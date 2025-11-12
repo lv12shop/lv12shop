@@ -689,6 +689,8 @@ async function claimReferralBonus(){
   }catch(err){ console.error('claimReferralBonus', err); toast('فشل أثناء المطالبة', false); }
 }
 function escapeJs(s=''){ return s.replace(/'/g, "\\'").replace(/\n/g,' '); }
+
+
 async function loadInviteCodeAndProgress() {
   try {
     let inviteCode = null;
@@ -966,95 +968,7 @@ async function getUserIP() {
   }
 }
 
-function fmtTimeLeft(seconds) {
-  if (seconds <= 0) return "0s";
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = seconds % 60;
-  if (h > 0) return `${h}س ${m}د ${s}ث`;
-  return `${m}د ${s}ث`;
-}
 
-async function loadDailyTasks() {
-  try {
-    const container = document.getElementById("tasksList");
-    container.innerHTML = `<div class="loader"></div>`;
-
-    const { data: tasks, error: tasksErr } = await supabase
-      .from("daily_tasks")
-      .select("*")
-      .eq("active", true)
-      .order("id", { ascending: true });
-    if (tasksErr) throw tasksErr;
-
-    const todayStart = new Date();
-    todayStart.setHours(0,0,0,0);
-    const todayISO = todayStart.toISOString();
-
-    const { data: userTasks, error: uErr } = await supabase
-      .from("user_daily_tasks")
-      .select("id,task_id,created_at,completed_at,status")
-      .eq("user_id", currentUser.id)
-      .gte("created_at", todayISO);
-    if (uErr) throw uErr;
-
-    const todayCounts = {};
-    const lastCompletedAt = {}; 
-    (userTasks || []).forEach(r => {
-      todayCounts[r.task_id] = (todayCounts[r.task_id] || 0) + 1;
-      if (r.completed_at) {
-        const ts = new Date(r.completed_at).getTime();
-        if (!lastCompletedAt[r.task_id] || ts > lastCompletedAt[r.task_id]) lastCompletedAt[r.task_id] = ts;
-      }
-    });
-
-    container.innerHTML = (tasks || []).map(task => {
-      const maxRepeat = Number(task.repeat_per_day || 1);
-      const usedToday = Number(todayCounts[task.id] || 0);
-      const remainingRepeats = Math.max(0, maxRepeat - usedToday);
-
-      let nextAvailableText = "";
-      if (lastCompletedAt[task.id]) {
-        const expiresHours = Number(task.expires_in_hours || 24);
-        const nextAvailableTs = lastCompletedAt[task.id] + expiresHours * 3600 * 1000;
-        const nowTs = Date.now();
-        const diffSec = Math.ceil((nextAvailableTs - nowTs) / 1000);
-        if (diffSec > 0) {
-          nextAvailableText = `⏳ متاح بعد: ${fmtTimeLeft(diffSec)}`;
-        }
-      }
-
-      let statusBadge = "";
-      if (remainingRepeats <= 0 && !nextAvailableText) statusBadge = `<div class="text-xs text-red-400 mt-1">🚫 انتهت محاولات اليوم</div>`;
-      if (nextAvailableText) statusBadge = `<div class="text-xs text-yellow-400 mt-1">${nextAvailableText}</div>`;
-
-      return `
-        <div class="task-card ${remainingRepeats <= 0 || nextAvailableText ? 'opacity-70' : ''}">
-          <div class="task-info">
-            <div class="task-title">${escapeHtml(task.title)}</div>
-            ${task.description ? `<div class="task-desc">${escapeHtml(task.description)}</div>` : ""}
-            <div class="task-reward">💰 المكافأة: ${task.reward} ج.م</div>
-            <div class="text-xs text-gray-400 mt-1">⏱️ المدة: ${task.duration_minutes || 1} دقيقة · تكرار يومي: ${maxRepeat}</div>
-            <div class="text-xs text-gray-300 mt-1">♻️ متبقي اليوم: <b class="text-white">${remainingRepeats}</b></div>
-            ${statusBadge}
-          </div>
-
-          <div class="flex flex-col items-center gap-2">
-            <button id="taskBtn-${task.id}" class="task-btn" ${ (remainingRepeats<=0 || nextAvailableText) ? 'disabled' : '' }
-              onclick="handleTaskStart(${task.id}, '${escapeJs(task.title)}', ${task.reward}, ${task.duration_minutes || 1}, '${escapeJs(task.link || 'shop.html')}')">
-              ▶️ ابدأ
-            </button>
-            <div class="text-xs text-gray-400 mt-1">#${task.id}</div>
-          </div>
-        </div>
-      `;
-    }).join("");
-
-  } catch (err) {
-    console.error("❌ loadDailyTasks error:", err);
-    toast("⚠️ فشل تحميل المهام", false);
-  }
-}
 
 function escapeJs(s=''){ return String(s).replace(/'/g, "\\'").replace(/\n/g,' '); }
 function escapeHtml(s=''){ return String(s)
@@ -1122,104 +1036,6 @@ function startCountdown(taskId, totalSeconds, startTime, userTaskRowId = null) {
   }, 1000);
 }
 
-async function handleTaskStart(taskId, taskTitle, reward = 0, minutes = 2, link = "shop.html") {
-  try {
-    const { data: session } = await supabase.auth.getSession();
-    const user = session?.session?.user;
-    if (!user) return toast("🔒 من فضلك سجل الدخول أولاً", false);
-
-    const userId = user.id;
-
-    const { data: active } = await supabase
-      .from("user_daily_tasks")
-      .select("id, expected_end_at")
-      .eq("user_id", userId)
-      .eq("status", "in_progress")
-      .order("created_at", { ascending: false })
-      .limit(1);
-
-    if (active?.length && new Date(active[0].expected_end_at) > new Date()) {
-      toast("⚠️ لديك مهمة جارية بالفعل — أكملها أولاً", false);
-      return;
-    }
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const { data: attempts } = await supabase
-      .from("user_daily_tasks")
-      .select("id, status, created_at")
-      .eq("user_id", userId)
-      .eq("task_id", taskId)
-      .gte("created_at", today.toISOString());
-
-    const completedCount = (attempts || []).filter(r =>
-      ["completed", "approved"].includes(r.status)
-    ).length;
-
-    const { data: task } = await supabase
-      .from("daily_tasks")
-      .select("repeat_per_day")
-      .eq("id", taskId)
-      .maybeSingle();
-
-    const maxRepeat = task?.repeat_per_day || 1;
-
-    if (completedCount >= maxRepeat) {
-      toast(`🚫 لقد أنجزت الحد الأقصى (${maxRepeat}) من هذه المهمة اليوم`, false);
-      return;
-    }
-
-    const ip = await fetch("https://api.ipify.org?format=json")
-      .then(r => r.json())
-      .then(d => d.ip)
-      .catch(() => "unknown");
-
-    const { data: profile } = await supabase
-      .from("user_profiles")
-      .select("wallet_number, full_name")
-      .eq("user_id", userId)
-      .maybeSingle();
-
-    const walletNum = profile?.wallet_number || "N/A";
-    const fullName = profile?.full_name || user.user_metadata?.full_name || user.email;
-
-    const startTime = new Date();
-    const endTime = new Date(startTime.getTime() + minutes * 60 * 1000);
-
-    const { data: inserted, error: insertErr } = await supabase
-      .from("user_daily_tasks")
-      .insert([{
-        user_id: userId,
-        task_id: taskId,
-        status: "in_progress",
-        created_at: startTime.toISOString(),
-        expected_end_at: endTime.toISOString(),
-        attempt_number: completedCount + 1,
-        ip_address: ip,
-        username: fullName,
-        wallet_number: walletNum
-      }])
-      .select()
-      .maybeSingle();
-
-    if (insertErr) throw insertErr;
-
-    localStorage.setItem("activeTaskId", taskId);
-    localStorage.setItem("activeUserTaskRowId", inserted.id);
-    localStorage.setItem("taskStartTime", startTime.getTime());
-    localStorage.setItem("taskDuration", minutes * 60);
-    localStorage.setItem("activeTaskTitle", taskTitle);
-    localStorage.setItem("activeTaskReward", reward);
-    localStorage.setItem("taskExpectedEnd", endTime.getTime());
-
-    window.location.href = link;
-
-  } catch (err) {
-    console.error("❌ handleTaskStart error:", err);
-    toast("⚠️ فشل بدء المهمة", false);
-  }
-}
 
 
 async function loadTodaysReferrals() {
@@ -1515,6 +1331,561 @@ async function logUserActivity(type) {
 logUserActivity('زيارة المتجر');
 
 </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script>
+function fmtTimeLeft(totalSeconds) {
+  if (totalSeconds <= 0) return "0ث";
+  const hrs = Math.floor(totalSeconds / 3600);
+  const mins = Math.floor((totalSeconds % 3600) / 60);
+  const secs = totalSeconds % 60;
+  if (hrs) return `${hrs}س ${mins}د ${secs}ث`;
+  if (mins) return `${mins}د ${secs}ث`;
+  return `${secs}ث`;
+}
+
+async function loadDailyTasks() {
+  try {
+    const container = document.getElementById("tasksList");
+    container.innerHTML = `<div class="loader"></div>`;
+
+    const { data: tasks, error: tasksErr } = await supabase
+      .from("daily_tasks")
+      .select("*")
+      .eq("active", true)
+      .order("id", { ascending: true });
+    if (tasksErr) throw tasksErr;
+
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const todayIso = todayStart.toISOString();
+
+    const { data: userTasks = [], error: userErr } = await supabase
+      .from("user_daily_tasks")
+      .select("*")
+      .eq("user_id", currentUser.id)
+      .gte("started_at", todayIso);
+
+    if (userErr) throw userErr;
+
+    const attemptsMap = {};
+    userTasks.forEach(a => {
+      attemptsMap[a.task_id] = attemptsMap[a.task_id] || [];
+      attemptsMap[a.task_id].push(a);
+    });
+
+    const now = Date.now();
+
+    container.innerHTML = tasks.map(task => {
+      const attempts = attemptsMap[task.id] || [];
+      const maxRepeat = task.repeat_per_day || 1;
+      const expiresMs = (task.expires_in_hours || 24) * 3600 * 1000;
+
+      let used = 0;
+      let nextAvailable = 0;
+
+      attempts.forEach(a => {
+        const startTs = new Date(a.started_at).getTime();
+        const expireTs = startTs + expiresMs;
+        if (["running", "pending"].includes(a.status) && now < expireTs) {
+          used++;
+          if (expireTs > nextAvailable) nextAvailable = expireTs;
+        }
+      });
+
+      const remaining = Math.max(0, maxRepeat - used);
+
+      let status = "";
+      if (remaining <= 0 && nextAvailable > now) {
+        const sec = Math.ceil((nextAvailable - now) / 1000);
+        status = `<div class="text-xs text-yellow-400 mt-1">⏳ متاح بعد: ${fmtTimeLeft(sec)}</div>`;
+      } else if (remaining <= 0) {
+        status = `<div class="text-xs text-red-400 mt-1">🚫 انتهت محاولات اليوم</div>`;
+      }
+
+      const disabledAttr = remaining <= 0 ? "disabled" : "";
+
+      return `
+        <div class="task-card ${disabledAttr ? "opacity-60" : ""}">
+          <div class="task-info">
+            <div class="task-title">${escapeHtml(task.title)}</div>
+            <div class="task-desc">${escapeHtml(task.description || "")}</div>
+            <div class="task-reward">💰 المكافأة: ${task.reward} ج.م</div>
+            <div class="text-xs text-gray-400">⏱️ مدة: ${task.duration_minutes} دقيقة</div>
+            <div class="text-xs text-gray-300">♻️ باقي: ${remaining}</div>
+            ${status}
+          </div>
+          <div class="flex flex-col items-center gap-2">
+            <button id="taskBtn-${task.id}" class="task-btn" ${disabledAttr}>▶️ ابدأ</button>
+            <div id="taskCountdown-${task.id}" class="text-xs text-yellow-400 mt-1"></div>
+          </div>
+        </div>`;
+    }).join("");
+
+    bindTasksUI(tasks);
+
+  } catch (err) {
+    console.error("❌ loadDailyTasks error:", err);
+    toast("⚠️ فشل تحميل المهام", false);
+  }
+}
+
+</script>
+
+<script>
+const _timers = {};
+
+function formatLocalTime(dateMs) {
+  return new Date(dateMs).toLocaleString("ar-EG", {
+    timeZone: userTimeZone,
+    hour12: true
+  });
+}
+let serverOffset = 0; 
+let userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+function getNow() {
+  try {
+    return Date.now() + (serverOffset || 0);
+  } catch {
+    return Date.now();
+  }
+}
+async function syncServerTime() {
+  try {
+    const { data, error } = await supabase.rpc("server_now");
+    if (error || !data) throw error;
+
+    const serverUtc = new Date(data);
+    const deviceNow = new Date();
+
+    serverOffset = serverUtc.getTime() - deviceNow.getTime();
+
+    userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+    const localTimeStr = serverUtc.toLocaleString("ar-EG", {
+      timeZone: userTimeZone,
+      hour12: true,
+    });
+
+    console.log(`🕓 تم مزامنة وقت السيرفر بدقة: ${localTimeStr}`);
+    console.log("🌍 المنطقة الزمنية للمستخدم:", userTimeZone);
+    console.log(
+      `📏 فرق الوقت بين الجهاز والسيرفر: ${(serverOffset / 1000).toFixed(1)} ثانية`
+    );
+
+    const offsetDiff = Math.abs(serverOffset);
+    if (offsetDiff > 2 * 60 * 1000) {
+      toast("⚠️ يبدو أن وقت جهازك مختلف عن السيرفر، يرجى ضبط الساعة.", false);
+    }
+  } catch (err) {
+    console.warn("⚠️ فشل مزامنة وقت السيرفر، سيتم استخدام وقت الجهاز.", err);
+    serverOffset = 0;
+  }
+}
+
+async function loadDailyTasks() {
+  try {
+    const container = document.getElementById("tasksList");
+    container.innerHTML = `<div class="loader"></div>`;
+
+    const { data: tasks, error: tErr } = await supabase
+      .from("daily_tasks")
+      .select("*")
+      .eq("active", true)
+      .order("id");
+    if (tErr) throw tErr;
+
+    const { data: userTasks } = await supabase
+      .from("user_daily_tasks")
+      .select("*")
+      .eq("user_id", currentUser.id)
+      .order("started_at", { ascending: false });
+
+    const map = {};
+    (userTasks || []).forEach(t => {
+      map[t.task_id] = map[t.task_id] || [];
+      map[t.task_id].push(t);
+    });
+
+    const now = getNow();
+
+    container.innerHTML = tasks.map(task => {
+      const attempts = map[task.id] || [];
+      const maxRepeat = task.repeat_per_day || 1;
+      const used = attempts.filter(a => ["running", "pending"].includes(a.status)).length;
+      const remaining = Math.max(0, maxRepeat - used);
+      const disabled = remaining <= 0 ? "disabled" : "";
+
+      return `
+        <div class="task-card ${disabled ? "opacity-50" : ""}">
+          <div class="task-info">
+            <div class="task-title">${escapeHtml(task.title)}</div>
+            <div class="task-desc">${escapeHtml(task.description || "")}</div>
+            <div class="task-reward">💰 المكافأة: ${task.reward} ج.م</div>
+            <div class="text-xs text-gray-400">⏱️ المدة: ${task.duration_minutes} دقيقة</div>
+            <div class="text-xs text-gray-300">♻️ الباقي: ${remaining}</div>
+          </div>
+          <div class="flex flex-col items-center gap-2">
+            <button id="taskBtn-${task.id}" class="task-btn" ${disabled}>▶️ ابدأ</button>
+            <div id="taskCountdown-${task.id}" class="text-xs text-yellow-400 mt-1"></div>
+          </div>
+        </div>`;
+    }).join("");
+
+    bindTasksUI(tasks);
+  } catch (err) {
+    console.error("❌ loadDailyTasks error:", err);
+    toast("⚠️ فشل تحميل المهام", false);
+  }
+}
+
+
+async function handleTaskStart(task) {
+  try {
+    if (!currentUser?.id) 
+      return toast("⚠️ يجب تسجيل الدخول أولًا", false);
+
+    const ipRes = await fetch("https://api.ipify.org?format=json");
+    const ipData = await ipRes.json();
+    const userIP = ipData?.ip || "غير معروف";
+
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const todayIso = todayStart.toISOString();
+
+    const { data: attempts, error: attemptsErr } = await supabase
+      .from("user_daily_tasks")
+      .select("id, started_at, status")
+      .eq("user_id", currentUser.id)
+      .eq("task_id", task.id)
+      .gte("started_at", todayIso);
+
+    if (attemptsErr) throw attemptsErr;
+
+    const maxRepeat = task.repeat_per_day || 1;
+    const activeAttempts = attempts?.filter(a => ["running", "pending"].includes(a.status)) || [];
+
+    if (activeAttempts.length >= maxRepeat) {
+      return toast("🚫 تجاوزت الحد المسموح لتكرار هذه المهمة اليوم", false);
+    }
+
+    const { data: running } = await supabase
+      .from("user_daily_tasks")
+      .select("id")
+      .eq("user_id", currentUser.id)
+      .eq("status", "running");
+
+    if (running?.length)
+      return toast("🚫 لديك مهمة قيد التنفيذ حاليًا", false);
+
+    const startUtcMs = getNow();
+    const startIso = new Date(startUtcMs).toISOString();
+    const durationMs = (task.duration_minutes || 1) * 60 * 1000;
+    const endUtcMs = startUtcMs + durationMs;
+    const endIso = new Date(endUtcMs).toISOString();
+
+    const { data, error } = await supabase
+      .from("user_daily_tasks")
+      .insert([{
+        user_id: currentUser.id,
+        task_id: task.id,
+        status: "running",
+        started_at: startIso,
+        expected_end_at: endIso,
+        ip_address: userIP
+      }])
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    const startLocal = new Date(startUtcMs).toLocaleString("ar-EG", {
+      timeZone: userTimeZone,
+      hour12: true
+    });
+    const endLocal = new Date(endUtcMs).toLocaleString("ar-EG", {
+      timeZone: userTimeZone,
+      hour12: true
+    });
+
+    console.log(`⏱️ مهمة "${task.title}" بدأت: ${startLocal} — تنتهي: ${endLocal}`);
+    console.log("🌍 المنطقة الزمنية للمستخدم:", userTimeZone);
+    console.log("🌐 عنوان IP:", userIP);
+
+    localStorage.setItem("activeAttempt", JSON.stringify({
+      attemptId: data.id,
+      taskId: task.id,
+      startUtc: startUtcMs,
+      endUtc: endUtcMs
+    }));
+
+    if (task.link && task.link.trim()) window.open(task.link, "_blank");
+
+    disableTaskButton(task.id, true);
+    startCountdown(task.id, data.id, startUtcMs, endUtcMs);
+
+    toast(`🚀 بدأت المهمة "${task.title}" — المدة ${task.duration_minutes} دقيقة`, true);
+
+  } catch (err) {
+    console.error("❌ handleTaskStart error:", err);
+    toast("⚠️ فشل بدء المهمة", false);
+  }
+}
+
+
+
+function startCountdown(taskId, attemptId, startUtc, endUtc) {
+  if (_timers[attemptId]) clearInterval(_timers[attemptId]);
+
+  const tick = async () => {
+    const now = getNow();
+    const secLeft = Math.ceil((endUtc - now) / 1000);
+
+    if (secLeft > 0) {
+      renderCountdownForTask(taskId, secLeft);
+      return;
+    }
+
+    clearInterval(_timers[attemptId]);
+    localStorage.removeItem("activeAttempt");
+    renderCountdownForTask(taskId, 0);
+
+    try {
+      await supabase
+        .from("user_daily_tasks")
+        .update({ 
+          status: "pending",
+          completed_at: new Date().toISOString()
+        })
+        .eq("id", attemptId);
+      toast("✅ انتهت المهمة — بانتظار مراجعة الأدمن", true);
+      loadDailyTasks();
+    } catch (e) {
+      console.error("❌ تحديث المهمة فشل:", e);
+    }
+  };
+
+  tick();
+  _timers[attemptId] = setInterval(tick, 1000);
+}
+
+function disableTaskButton(id, disabled = true) {
+  const btn = document.getElementById(`taskBtn-${id}`);
+  if (!btn) return;
+  btn.disabled = disabled;
+  btn.classList.toggle("opacity-50", disabled);
+}
+
+function renderCountdownForTask(id, sec) {
+  const el = document.getElementById(`taskCountdown-${id}`);
+  if (!el) return;
+  el.textContent = sec <= 0
+    ? "⏳ انتهت — بانتظار مراجعة الأدمن"
+    : `⏳ متبقي: ${fmtTimeLeft(sec)}`;
+}
+
+async function bindTasksUI(tasks) {
+  for (const task of tasks) {
+    const btn = document.getElementById(`taskBtn-${task.id}`);
+    if (btn) btn.onclick = () => handleTaskStart(task);
+  }
+
+  const saved = localStorage.getItem("activeAttempt");
+  if (saved) {
+    const { taskId, attemptId, startUtc, endUtc } = JSON.parse(saved);
+    const now = getNow();
+    if (now < endUtc) {
+      disableTaskButton(taskId, true);
+      startCountdown(taskId, attemptId, startUtc, endUtc);
+    } else {
+      localStorage.removeItem("activeAttempt");
+    }
+  }
+}
+window.addEventListener("DOMContentLoaded", async () => {
+  await syncServerTime();
+  await loadDailyTasks();
+// 🧹 فحص المهام القديمة التي انتهى وقتها
+try {
+  const { data: runningTasks } = await supabase
+    .from("user_daily_tasks")
+    .select("id, started_at, task_id, status")
+    .eq("user_id", currentUser.id)
+    .eq("status", "running");
+
+  const now = getNow();
+  for (const task of runningTasks || []) {
+    const taskInfo = JSON.parse(localStorage.getItem("activeAttempt") || "{}");
+    const endUtc = taskInfo?.endUtc || 0;
+    if (now > endUtc) {
+      await supabase
+        .from("user_daily_tasks")
+        .update({
+          status: "pending",
+          completed_at: new Date().toISOString()
+        })
+        .eq("id", task.id);
+      localStorage.removeItem("activeAttempt");
+      console.log(`🧹 تم تحديث مهمة منتهية (${task.id}) إلى pending`);
+    }
+  }
+} catch (e) {
+  console.warn("cleanup running tasks error:", e);
+}
+
+  const saved = localStorage.getItem("activeAttempt");
+  if (saved) {
+    const { taskId, attemptId, startUtc, endUtc } = JSON.parse(saved);
+    const now = getNow();
+    if (now < endUtc) {
+      disableTaskButton(taskId, true);
+      startCountdown(taskId, attemptId, startUtc, endUtc);
+    } else {
+      localStorage.removeItem("activeAttempt");
+    }
+  }
+
+  const diff = Math.abs(serverOffset);
+  if (diff > 60_000) {
+    toast("⚠️ يبدو أن وقت جهازك غير دقيق، يرجى ضبط الساعة لعرض العد التنازلي الصحيح.", false);
+  }
+});
+
+</script>
+<script>
+(async () => {
+  try {
+    const userCheckKey = "vpn_checked_today";
+    const lastCheck = localStorage.getItem(userCheckKey);
+    const now = Date.now();
+
+    if (lastCheck && now - parseInt(lastCheck) < 6 * 60 * 60 * 1000) return;
+
+    let data = null;
+    let isBlocked = false;
+    let provider = "unknown";
+
+    const fetchIpData = async (url, name) => {
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`${name} API failed`);
+        const json = await res.json();
+        return { ok: true, data: json, name };
+      } catch {
+        return { ok: false, data: null, name };
+      }
+    };
+
+    const sources = [
+      { url: "https://ipwho.is/", name: "ipwhois" },
+      { url: "https://ipapi.co/json/", name: "ipapi" },
+      { url: "https://ipdata.co?api-key=test", name: "ipdata" } 
+    ];
+
+    for (const src of sources) {
+      const r = await fetchIpData(src.url, src.name);
+      if (r.ok) {
+        data = r.data;
+        provider = r.name;
+        break;
+      }
+    }
+
+    if (!data) throw new Error("❌ فشل جلب بيانات IP من جميع المصادر");
+
+    const sec = data.security || data.threat || {};
+    const isp = (data.connection?.isp || data.org || "").toLowerCase();
+    const hosting = data.connection?.type === "hosting" || isp.includes("cloud") || isp.includes("vps");
+    const vpnFlags = [
+      sec.vpn,
+      sec.proxy,
+      sec.tor,
+      data.security?.anonymous,
+      data.security?.hosting
+    ].filter(Boolean);
+
+    isBlocked =
+      vpnFlags.length > 0 ||
+      hosting ||
+      isp.includes("vpn") ||
+      isp.includes("proxy") ||
+      isp.includes("digitalocean") ||
+      isp.includes("aws") ||
+      isp.includes("google cloud");
+
+    try {
+      if (typeof supabase !== "undefined") {
+        const user = JSON.parse(localStorage.getItem("lv12_user") || "{}");
+        await supabase.from("user_activity").insert({
+          user_id: user.id || null,
+          user_display: user.name || "زائر",
+          type: "vpn_check",
+          description: `IP: ${data.ip} | Provider: ${provider} | Blocked: ${isBlocked}`,
+          created_at: new Date().toISOString()
+        });
+      }
+    } catch (e) {
+      console.warn("❌ فشل تسجيل فحص VPN في Supabase:", e);
+    }
+
+    if (isBlocked) {
+      document.documentElement.innerHTML = `
+        <div style="
+          position:fixed;
+          inset:0;
+          background:#0b0f19;
+          color:#fff;
+          display:flex;
+          flex-direction:column;
+          align-items:center;
+          justify-content:center;
+          font-family:'Cairo',sans-serif;
+          text-align:center;
+          padding:20px;
+          z-index:999999;
+        ">
+          <div style="max-width:480px;">
+            <h2 style="font-size:28px;margin-bottom:12px;">🚫 تم حظر الوصول</h2>
+            <p style="font-size:16px;line-height:1.8;">
+              تم اكتشاف اتصال غير مسموح به (VPN / Proxy / سيرفر سحابي).<br>
+              يرجى إيقاف أي VPN أو خادم وكيل وإعادة المحاولة.<br><br>
+              عنوانك الحالي: <b>${data.ip}</b><br>
+              الدولة: <b>${data.country || data.country_name || "غير معروف"}</b>
+            </p>
+            <button onclick="location.reload()"
+              style="margin-top:25px;background:#2563eb;color:white;
+              border:none;padding:10px 20px;border-radius:8px;
+              cursor:pointer;font-size:15px;">
+              🔄 إعادة المحاولة
+            </button>
+          </div>
+        </div>
+      `;
+      throw new Error("⛔ Blocked connection (VPN/Proxy detected)");
+    }
+
+    localStorage.setItem(userCheckKey, now.toString());
+    console.log(`✅ VPN check passed (${provider}) | IP: ${data.ip}`);
+
+  } catch (err) {
+    console.warn("⚠️ فشل فحص VPN:", err.message);
+  }
+})();
+</script>
+
 
 </body>
 </html>

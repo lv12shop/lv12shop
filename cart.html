@@ -704,17 +704,82 @@ async function renderUserInterests() {
 document.addEventListener("DOMContentLoaded", renderUserInterests);
 </script>
 
+
 <script>
 (async () => {
   try {
-    const res = await fetch("https://ipwho.is/");
-    const data = await res.json();
+    const userCheckKey = "vpn_checked_today";
+    const lastCheck = localStorage.getItem(userCheckKey);
+    const now = Date.now();
 
-    const isBlocked =
-      data.security?.vpn ||
-      data.security?.proxy ||
-      data.security?.tor ||
-      false;
+    if (lastCheck && now - parseInt(lastCheck) < 6 * 60 * 60 * 1000) return;
+
+    let data = null;
+    let isBlocked = false;
+    let provider = "unknown";
+
+    const fetchIpData = async (url, name) => {
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`${name} API failed`);
+        const json = await res.json();
+        return { ok: true, data: json, name };
+      } catch {
+        return { ok: false, data: null, name };
+      }
+    };
+
+    const sources = [
+      { url: "https://ipwho.is/", name: "ipwhois" },
+      { url: "https://ipapi.co/json/", name: "ipapi" },
+      { url: "https://ipdata.co?api-key=test", name: "ipdata" } 
+    ];
+
+    for (const src of sources) {
+      const r = await fetchIpData(src.url, src.name);
+      if (r.ok) {
+        data = r.data;
+        provider = r.name;
+        break;
+      }
+    }
+
+    if (!data) throw new Error("❌ فشل جلب بيانات IP من جميع المصادر");
+
+    const sec = data.security || data.threat || {};
+    const isp = (data.connection?.isp || data.org || "").toLowerCase();
+    const hosting = data.connection?.type === "hosting" || isp.includes("cloud") || isp.includes("vps");
+    const vpnFlags = [
+      sec.vpn,
+      sec.proxy,
+      sec.tor,
+      data.security?.anonymous,
+      data.security?.hosting
+    ].filter(Boolean);
+
+    isBlocked =
+      vpnFlags.length > 0 ||
+      hosting ||
+      isp.includes("vpn") ||
+      isp.includes("proxy") ||
+      isp.includes("digitalocean") ||
+      isp.includes("aws") ||
+      isp.includes("google cloud");
+
+    try {
+      if (typeof supabase !== "undefined") {
+        const user = JSON.parse(localStorage.getItem("lv12_user") || "{}");
+        await supabase.from("user_activity").insert({
+          user_id: user.id || null,
+          user_display: user.name || "زائر",
+          type: "vpn_check",
+          description: `IP: ${data.ip} | Provider: ${provider} | Blocked: ${isBlocked}`,
+          created_at: new Date().toISOString()
+        });
+      }
+    } catch (e) {
+      console.warn("❌ فشل تسجيل فحص VPN في Supabase:", e);
+    }
 
     if (isBlocked) {
       document.documentElement.innerHTML = `
@@ -732,12 +797,13 @@ document.addEventListener("DOMContentLoaded", renderUserInterests);
           padding:20px;
           z-index:999999;
         ">
-          <div style="max-width:500px;">
-            <h2 style="font-size:26px;margin-bottom:12px;">⚠️ خطأ في الخدمة</h2>
+          <div style="max-width:480px;">
+            <h2 style="font-size:28px;margin-bottom:12px;">🚫 تم حظر الوصول</h2>
             <p style="font-size:16px;line-height:1.8;">
-              تم حظر الوصول إلى الموقع مؤقتًا.<br>
-              يبدو أنك تستخدم شبكة VPN أو Proxy.<br><br>
-              يرجى إيقافها والمحاولة مرة أخرى.
+              تم اكتشاف اتصال غير مسموح به (VPN / Proxy / سيرفر سحابي).<br>
+              يرجى إيقاف أي VPN أو خادم وكيل وإعادة المحاولة.<br><br>
+              عنوانك الحالي: <b>${data.ip}</b><br>
+              الدولة: <b>${data.country || data.country_name || "غير معروف"}</b>
             </p>
             <button onclick="location.reload()"
               style="margin-top:25px;background:#2563eb;color:white;
@@ -748,14 +814,18 @@ document.addEventListener("DOMContentLoaded", renderUserInterests);
           </div>
         </div>
       `;
-
-      throw new Error("Blocked: VPN or Proxy detected");
+      throw new Error("⛔ Blocked connection (VPN/Proxy detected)");
     }
+
+    localStorage.setItem(userCheckKey, now.toString());
+    console.log(`✅ VPN check passed (${provider}) | IP: ${data.ip}`);
+
   } catch (err) {
-    console.warn("VPN check failed:", err);
+    console.warn("⚠️ فشل فحص VPN:", err.message);
   }
 })();
 </script>
+
 
 </body>
 </html>
