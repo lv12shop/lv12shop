@@ -1671,7 +1671,7 @@ function startCountdown(taskId, attemptId, startUtc, endUtc) {
           completed_at: new Date().toISOString()
         })
         .eq("id", attemptId);
-      toast("✅ انتهت المهمة — بانتظار مراجعة الأدمن", true);
+      toast("✅ انتهت المهمة — بانتظار مراجعة الأدارة", true);
       loadDailyTasks();
     } catch (e) {
       console.error("❌ تحديث المهمة فشل:", e);
@@ -1693,7 +1693,7 @@ function renderCountdownForTask(id, sec) {
   const el = document.getElementById(`taskCountdown-${id}`);
   if (!el) return;
   el.textContent = sec <= 0
-    ? "⏳ انتهت — بانتظار مراجعة الأدمن"
+    ? "⏳ انتهت — بانتظار مراجعة الأدارة"
     : `⏳ متبقي: ${fmtTimeLeft(sec)}`;
 }
 

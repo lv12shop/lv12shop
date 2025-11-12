@@ -1,0 +1,564 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>🛍️ لوحة التاجر — LV12</title>
+
+  <link rel="icon" type="image/png" href="/lv12.png" sizes="32x32">
+  <link rel="apple-touch-icon" href="/lv12.png">
+  <meta name="theme-color" content="#2563eb">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+
+  <style>
+    body {
+      font-family: "Cairo", sans-serif;
+      background: linear-gradient(180deg, #f9fafb 0%, #f3f4f6 100%);
+      min-height: 100vh;
+    }
+
+    .btn {
+      background: linear-gradient(90deg, #2563eb, #1d4ed8);
+      color: #fff;
+      padding: 10px 16px;
+      border-radius: 10px;
+      font-weight: 600;
+      transition: all .2s ease-in-out;
+      box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+    }
+    .btn:hover {
+      transform: scale(1.03);
+      box-shadow: 0 4px 10px rgba(37, 99, 235, 0.35);
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.05);
+      transition: all .2s ease-in-out;
+    }
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    }
+
+    h1, h2, h3 {
+      font-weight: 700;
+      color: #1e40af;
+    }
+
+    .footer {
+      text-align: center;
+      font-size: 0.85rem;
+      color: #6b7280;
+      margin-top: 40px;
+      padding: 10px 0;
+    }
+  </style>
+</head>
+
+<body class="p-4 sm:p-6">
+<main class="max-w-6xl mx-auto">
+
+    <header class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 bg-gradient-to-r from-blue-50 to-blue-100 rounded-2xl shadow p-5 border border-blue-200">
+  <div class="flex items-center gap-4">
+    <div class="relative">
+      <img src="https://cdn-icons-png.flaticon.com/512/891/891462.png" class="w-12 h-12 rounded-full ring-2 ring-blue-400 shadow-sm" alt="logo" />
+      <span class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></span>
+    </div>
+    <div>
+      <h1 class="text-2xl font-extrabold text-blue-800 flex items-center gap-2">
+        🛍️ <span id="storeName">متجر التاجر</span>
+      </h1>
+      <p class="text-sm text-gray-600 mt-0.5">إدارة المنتجات والمبيعات بسهولة 🚀</p>
+    </div>
+  </div>
+
+  <div class="flex flex-wrap items-center justify-end gap-3 text-sm">
+    <div class="flex flex-col text-right">
+      <span id="userName" class="font-semibold text-gray-800">...</span>
+      <span class="text-gray-500 text-xs">تاجر مسجّل</span>
+    </div>
+
+    <div class="hidden sm:block h-8 border-l border-gray-300 mx-2"></div>
+
+    <div class="bg-white border border-blue-200 rounded-xl px-4 py-2 text-center shadow-sm hover:shadow-md transition">
+      <div class="text-blue-700 font-bold text-lg" id="storeProductsCount">0</div>
+      <div class="text-xs text-gray-500">عدد المنتجات</div>
+    </div>
+
+    <a href="shop.html" target="_blank"
+      class="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-4 py-2 rounded-lg flex items-center gap-1 hover:scale-[1.03] transition font-semibold shadow">
+      🏪 زيارة المتجر
+    </a>
+
+    <button id="logoutBtn"
+      class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg flex items-center gap-1 transition">
+      🚪 خروج
+    </button>
+  </div>
+</header>
+
+
+
+  <section class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+    <div class="bg-white shadow-sm border rounded-xl p-4 text-center">
+      <div class="text-blue-500 text-2xl">📦</div>
+      <div class="font-bold text-lg" id="statTotal">0</div>
+      <div class="text-sm text-gray-500">إجمالي المنتجات</div>
+    </div>
+    <div class="bg-white shadow-sm border rounded-xl p-4 text-center">
+      <div class="text-green-500 text-2xl">✅</div>
+      <div class="font-bold text-lg" id="statApproved">0</div>
+      <div class="text-sm text-gray-500">تمت الموافقة</div>
+    </div>
+    <div class="bg-white shadow-sm border rounded-xl p-4 text-center">
+      <div class="text-yellow-500 text-2xl">🕓</div>
+      <div class="font-bold text-lg" id="statPending">0</div>
+      <div class="text-sm text-gray-500">قيد المراجعة</div>
+    </div>
+    <div class="bg-white shadow-sm border rounded-xl p-4 text-center">
+      <div class="text-red-500 text-2xl">❌</div>
+      <div class="font-bold text-lg" id="statRejected">0</div>
+      <div class="text-sm text-gray-500">مرفوضة</div>
+    </div>
+  </section>
+
+  <section class="grid lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-2 bg-white shadow-sm border rounded-xl p-5">
+      <h2 class="font-semibold text-lg text-blue-700 mb-4 flex items-center gap-2">
+        <span>📋</span> منتجاتي
+      </h2>
+      <div id="myProductsList" class="grid sm:grid-cols-2 gap-4 text-sm">
+        <div class="col-span-2 text-center text-gray-500 p-4">⏳ جاري تحميل منتجاتك...</div>
+      </div>
+    </div>
+
+    <aside class="bg-white shadow-sm border rounded-xl p-5">
+      <div class="flex flex-col items-center text-center mb-4">
+        <img src="https://cdn-icons-png.flaticon.com/512/891/891462.png" class="w-16 mb-2" alt="add-icon" />
+        <h2 class="text-xl font-bold text-blue-700">إضافة منتج جديد</h2>
+        <p class="text-gray-500 text-sm">املأ التفاصيل أدناه لإرسال منتج للمراجعة</p>
+      </div>
+
+      <form id="productForm" class="space-y-4">
+        <input id="productName" type="text" placeholder="اسم المنتج" class="w-full border rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500" />
+
+        <div class="grid grid-cols-2 gap-2">
+          <input id="productPrice" type="number" placeholder="السعر (ج.م)" class="border rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500" />
+          <input id="productQuantity" type="number" placeholder="الكمية" class="border rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500" />
+        </div>
+
+        <select id="productCategory" class="w-full border rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500">
+          <option>🔄 جاري تحميل الفئات...</option>
+        </select>
+
+        <textarea id="productDesc" rows="4" placeholder="وصف المنتج" class="w-full border rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500"></textarea>
+
+        <div>
+          <label class="text-sm font-semibold text-gray-700 mb-1 block">📸 صور المنتج (حتى 5 صور)</label>
+          <input id="productImages" type="file" accept="image/*" multiple class="w-full border-dashed border-2 border-gray-300 rounded-lg p-3 text-sm bg-gray-50 hover:bg-gray-100 transition" />
+          <div id="imagesPreview" class="mt-3 flex gap-2 overflow-x-auto"></div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <input id="productDiscountPercent" type="number" min="0" max="100" placeholder="نسبة خصم (%)" class="border rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500" />
+          <input id="productDiscountFixed" type="number" min="0" step="0.01" placeholder="السعر بعد الخصم" class="border rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500" />
+        </div>
+
+        <div class="flex gap-2 mt-4">
+          <button id="previewBtn" type="button" class="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200">👁️ معاينة</button>
+          <button id="addProductBtn" type="button" class="flex-1 bg-gradient-to-r from-blue-600 to-blue-500 text-white py-2 rounded-lg hover:scale-[1.02] transition">📤 إرسال</button>
+        </div>
+      </form>
+    </aside>
+  </section>
+</main>
+
+<script>
+const SUPABASE_URL = "https://nszhzfysitppxssplqfb.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zemh6ZnlzaXRwcHhzc3BscWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA4OTcsImV4cCI6MjA3MzgwNjg5N30.5KvK4bhqkZ_GpIfED4qecIMfeubAJYwSFJslULwOp-w";
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+
+const el = id => document.getElementById(id);
+function log(...args){ console.log("[merchant-dashboard]", ...args); }
+function toast(msg, ok=true, ttl=3000){
+  const d=document.createElement('div');
+  d.textContent = msg;
+  d.style.cssText = `position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:${ok? '#16a34a':'#dc2626'};color:#fff;padding:10px 14px;border-radius:8px;z-index:9999;`;
+  document.body.appendChild(d);
+  setTimeout(()=>d.remove(), ttl);
+}
+
+let currentUser = null;
+
+async function loadCategories(){
+  const sel = el("productCategory");
+  if(!sel) return;
+  sel.innerHTML = `<option>🔄 جاري تحميل الفئات...</option>`;
+  try{
+    const [{ data: prodCats = [] }, { data: pendingCats = [] }] = await Promise.all([
+      supabase.from("products").select("category").not("category","is",null),
+      supabase.from("pending_products").select("category").not("category","is",null)
+    ]);
+
+    const combined = [...(prodCats||[]), ...(pendingCats||[])].map(r => r.category).filter(Boolean);
+    const unique = [...new Set(combined)];
+
+    if(!unique.length){
+      sel.innerHTML = `<option value="">⚠️ لا توجد فئات متاحة</option>`;
+      return;
+    }
+    sel.innerHTML = `<option value="">🗂️ اختر الفئة</option>` + unique.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
+  }catch(err){
+    console.error("فشل تحميل الفئات:", err);
+    sel.innerHTML = `<option value="">⚠️ فشل تحميل الفئات</option>`;
+  }
+}
+
+async function uploadImageToStorage(file, targetPath){
+  try{
+    const { data, error } = await supabase.storage.from("products").upload(targetPath, file, { cacheControl: '3600', upsert: false });
+    if(error) throw error;
+    const { data: urlData } = supabase.storage.from("products").getPublicUrl(targetPath);
+    return urlData?.publicUrl || null;
+  }catch(err){
+    console.error("خطأ رفع صورة:", err);
+    return null;
+  }
+}
+async function addProduct(e) {
+  if (e && e.preventDefault) e.preventDefault();
+
+  if (!currentUser || !currentUser.id) {
+    toast("⚠️ لم يتم التعرف على حسابك — يرجى إعادة تسجيل الدخول", false);
+    return;
+  }
+
+  const name = el("productName").value.trim();
+  const price = parseFloat(el("productPrice").value || 0);
+  const quantity = parseInt(el("productQuantity").value || 0);
+  const desc = el("productDesc").value.trim();
+  const category = el("productCategory").value;
+  const files = Array.from(el("productImages").files || []);
+
+  const discountPercent = parseFloat(el("productDiscountPercent")?.value || 0);
+  const discountFixed = parseFloat(el("productDiscountFixed")?.value || 0);
+
+  if (!name || !price || !category) {
+    toast("⚠️ الرجاء إدخال الاسم والسعر واختيار الفئة", false);
+    return;
+  }
+
+  let discount_price = null;
+  let discount = null;
+  if (discountPercent && discountPercent > 0) {
+    discount = discountPercent;
+    discount_price = +(price - (price * (discountPercent / 100))).toFixed(2);
+  } else if (discountFixed && discountFixed > 0) {
+    discount_price = +discountFixed.toFixed(2);
+  }
+
+  const uploadedUrls = [];
+  try {
+    for (const f of files.slice(0, 5)) {
+      const safeName = `${Date.now()}-${sanitizeFileName(f.name)}`;
+      const filePath = `pending/${currentUser.id}/${safeName}`;
+
+      const { data: upData, error: upErr } = await supabase
+        .storage
+        .from("products")
+        .upload(filePath, f, { cacheControl: "3600", upsert: false });
+
+      if (upErr) {
+        console.error("فشل رفع الصورة:", upErr);
+        toast("❌ فشل رفع صورة واحدة أو أكثر", false);
+        continue;
+      }
+
+      const { data: urlData } = supabase.storage
+        .from("products")
+        .getPublicUrl(filePath);
+      const publicUrl = urlData?.publicUrl || urlData?.publicURL || null;
+      if (publicUrl) uploadedUrls.push(publicUrl);
+    }
+  } catch (err) {
+    console.error("❌ خطأ أثناء رفع الصور:", err);
+    toast("فشل رفع الصور", false);
+    return;
+  }
+
+  const payload = {
+    owner_id: currentUser.id,
+    name,
+    description: desc || null,
+    price,
+    quantity: quantity || 0,
+    category: category || null,
+    images: uploadedUrls,
+    discount,
+    discount_price,
+    status: "pending",
+    created_at: new Date().toISOString()
+  };
+
+  try {
+    const { error } = await supabase.from("pending_products").insert([payload]);
+    if (error) {
+      console.error("فشل إدخال المنتج:", error);
+      toast("❌ فشل إرسال المنتج للمراجعة", false);
+      return;
+    }
+
+    toast("✅ تم إرسال المنتج للمراجعة بنجاح");
+    el("productForm").reset();
+    el("imagesPreview").innerHTML = "";
+    await loadMyProducts();
+  } catch (err) {
+    console.error("❌ خطأ نهائي أثناء إدخال المنتج:", err);
+    toast("حدث خطأ أثناء الإرسال", false);
+  }
+}
+function sanitizeFileName(n) {
+  return n.replace(/[^a-z0-9\.\-_]/gi, "_");
+}
+
+function toast(msg, ok = true) {
+  const d = document.createElement("div");
+  d.textContent = msg;
+  d.style.cssText = `
+    position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+    background:${ok ? "#16a34a" : "#dc2626"};
+    color:white;padding:10px 14px;border-radius:8px;z-index:9999;
+  `;
+  document.body.appendChild(d);
+  setTimeout(() => d.remove(), 3000);
+}
+async function loadMyProducts() {
+  const list = el("myProductsList");
+  list.innerHTML = `<div class="p-3 text-gray-500">⏳ جاري تحميل منتجاتك...</div>`;
+
+  try {
+    const { data: approvedData, error: approvedError } = await supabase
+      .from("products")
+      .select("*")
+      .eq("owner_id", currentUser?.id)
+      .order("created_at", { ascending: false });
+
+    if (approvedError) console.error("⚠️ خطأ تحميل approved:", approvedError);
+
+    const { data: pendingData, error: pendingError } = await supabase
+      .from("pending_products")
+      .select("*")
+      .eq("owner_id", currentUser?.id)
+      .order("created_at", { ascending: false });
+
+    if (pendingError) {
+      console.error("❌ الخطأ الكامل:", pendingError);
+      list.innerHTML = `<div class="p-3 text-red-500">⚠️ فشل تحميل المنتجات<br>${pendingError.message}</div>`;
+      return;
+    }
+
+    if ((!approvedData || !approvedData.length) && (!pendingData || !pendingData.length)) {
+      list.innerHTML = `<div class="p-3 text-gray-500 text-center">لا توجد منتجات بعد</div>`;
+      return;
+    }
+
+    const approved = approvedData || [];
+    const rejected = (pendingData || []).filter(p => p.status === "rejected");
+    const pending = (pendingData || []).filter(p => !p.status || p.status === "pending");
+
+    const buildCard = (p, color, showReason = false) => {
+      const imgs = Array.isArray(p.images) && p.images.length
+        ? `<div class="flex gap-2 mt-1">${p.images.slice(0,3).map(u =>
+            `<img src="${escapeHtml(u)}" class="w-12 h-12 object-cover rounded border" />`
+          ).join("")}</div>`
+        : "";
+
+      const discountInfo = (p.discount && p.discount > 0)
+        ? `<div class="text-xs text-green-600 mt-1">خصم ${p.discount}% — بعد الخصم ${Number(p.discount_price||0).toFixed(2)} ج.م</div>`
+        : "";
+
+      const reason = showReason && p.reject_reason
+        ? `<div class="text-xs text-red-600 mt-1">📝 سبب الرفض: ${escapeHtml(p.reject_reason)}</div>`
+        : "";
+
+      const viewsInfo = `<div class="text-xs text-gray-600 mt-1" id="views-${p.id}">👁️ المشاهدات: —</div>`;
+      const salesInfo = `<div class="text-xs text-gray-600" id="sales-${p.id}">🛒 المبيعات: —</div>`;
+
+      loadViewsCount(p.id);
+      loadSalesCount(p.id);
+
+      return `
+        <div class="border rounded-xl p-3 bg-white shadow-sm hover:shadow-md transition">
+          <div class="font-semibold text-${color}-700">${escapeHtml(p.name)}</div>
+          <div class="text-sm text-gray-500">${Number(p.price).toFixed(2)} ج.م — ${escapeHtml(p.category || "—")}</div>
+          ${discountInfo}
+          ${reason}
+          ${imgs}
+          ${viewsInfo}
+          ${salesInfo}
+        </div>
+      `;
+    };
+
+    const approvedSection = `
+      <section class="mb-8">
+        <h3 class="text-lg font-bold text-green-700 mb-3">✅ منتجات تمت الموافقة عليها (${approved.length})</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          ${approved.length
+            ? approved.map(p => buildCard(p, "green")).join("")
+            : `<div class="text-gray-500 text-sm">لا توجد منتجات مقبولة بعد</div>`}
+        </div>
+      </section>
+    `;
+
+    const rejectedSection = `
+      <section class="mb-8">
+        <h3 class="text-lg font-bold text-red-700 mb-3">❌ منتجات مرفوضة (${rejected.length})</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          ${rejected.length
+            ? rejected.map(p => buildCard(p, "red", true)).join("")
+            : `<div class="text-gray-500 text-sm">لا توجد منتجات مرفوضة</div>`}
+        </div>
+      </section>
+    `;
+
+    const pendingSection = `
+      <section>
+        <h3 class="text-lg font-bold text-gray-700 mb-3">🕓 منتجات قيد المراجعة (${pending.length})</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          ${pending.length
+            ? pending.map(p => buildCard(p, "gray")).join("")
+            : `<div class="text-gray-500 text-sm">لا توجد منتجات قيد المراجعة</div>`}
+        </div>
+      </section>
+    `;
+
+    list.innerHTML = approvedSection + rejectedSection + pendingSection;
+
+  } catch (err) {
+    console.error("فشل تحميل منتجاتي:", err);
+    list.innerHTML = `<div class="p-3 text-red-500">⚠️ خطأ بتحميل المنتجات</div>`;
+  }
+}
+
+async function loadViewsCount(prodId) {
+  try {
+    const { count, error } = await supabase
+      .from('page_visits')
+      .select('id', { count: 'exact', head: true })
+      .eq('product_id', prodId);
+
+    if (!error) {
+      const el = document.getElementById(`views-${prodId}`);
+      if (el) el.textContent = `👁️ المشاهدات: ${count || 0}`;
+    }
+  } catch (err) {
+    console.warn("⚠️ خطأ تحميل المشاهدات:", err);
+  }
+}
+
+async function loadSalesCount(prodId) {
+  try {
+    const { count, error } = await supabase
+      .from('orders')
+      .select('id', { count: 'exact', head: true })
+      .eq('product_id', prodId);
+
+    if (!error) {
+      const el = document.getElementById(`sales-${prodId}`);
+      if (el) el.textContent = `🛒 المبيعات: ${count || 0}`;
+    }
+  } catch (err) {
+    console.warn("⚠️ خطأ تحميل المبيعات:", err);
+  }
+}
+
+
+async function checkUser(){
+  try{
+    const { data } = await supabase.auth.getSession();
+    const user = data?.session?.user;
+    if(!user){ window.location.href = "shop-login.html"; return; }
+
+    const { data: profile, error } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+    if(error){ console.error("فشل جلب profile:", error); toast("❌ فشل جلب ملفك الشخصي", false); return; }
+
+    currentUser = profile;
+    el("userName").textContent = profile.full_name || profile.email || shortId(profile.id);
+
+    if(!profile.is_seller){
+      toast("🚫 حسابك ليس تاجرًا بعد — لا يمكنك إضافة منتجات", false);
+      el("productForm").classList.add("opacity-50","pointer-events-none");
+      return;
+    }
+
+    await loadCategories();
+    await loadMyProducts();
+  }catch(err){
+    console.error("checkUser error:", err);
+  }
+}
+
+
+function escapeHtml(s=''){ return String(s||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#039;"}[m])); }
+function sanitizeFileName(n){ return n.replace(/[^a-z0-9\.\-_]/gi,'_'); }
+function shortId(u){ return (u||'').toString().slice(0,8); }
+
+document.addEventListener("DOMContentLoaded", () => {
+  if(!supabase) return console.error("supabase غير مُهيأ — ضع مفتاح anon الصحيح");
+
+  if(!el("productDiscountPercent")){
+    const wrapper = el("productForm");
+    const discountBlock = document.createElement("div");
+    discountBlock.className = "grid grid-cols-2 gap-2";
+    discountBlock.innerHTML = `
+      <input id="productDiscountPercent" type="number" min="0" max="100" placeholder="نسبة خصم (%)" class="border rounded-xl p-3 text-sm" />
+      <input id="productDiscountFixed" type="number" min="0" step="0.01" placeholder="سعر بعد الخصم (ج.م)" class="border rounded-xl p-3 text-sm" />
+    `;
+    const buttons = el("addProductBtn").parentElement;
+    buttons.parentElement.insertBefore(discountBlock, buttons);
+  }
+
+  el("productImages").addEventListener("change", () => {
+    const preview = el("imagesPreview");
+    preview.innerHTML = "";
+    Array.from(el("productImages").files).forEach(f => {
+      const url = URL.createObjectURL(f);
+      preview.innerHTML += `<img src="${escapeHtml(url)}" class="w-20 h-20 object-cover rounded border" />`;
+    });
+  });
+
+  el("addProductBtn").addEventListener("click", addProduct);
+  el("previewBtn").addEventListener("click", (ev) => {
+    ev.preventDefault();
+    const data = {
+      name: el("productName").value,
+      price: el("productPrice").value,
+      qty: el("productQuantity").value,
+      category: el("productCategory").value,
+      desc: el("productDesc").value,
+      imagesCount: (el("productImages").files || []).length,
+      discountPercent: el("productDiscountPercent")?.value,
+      discountFixed: el("productDiscountFixed")?.value
+    };
+    console.table(data);
+    toast("🔎 معاينة (انظر الـ Console)");
+  });
+
+  checkUser();
+});
+</script>
+
+
+</body>
+</html>

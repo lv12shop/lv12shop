@@ -379,6 +379,34 @@ footer .border-t {
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <body class="antialiased">
+<div class="relative flex-1 order-3 sm:order-none w-full sm:w-auto mt-1 sm:mt-0">
+  <div id="searchWrapper" 
+       class="relative flex items-center w-full transition-all duration-500 ease-[cubic-bezier(.4,0,.2,1)]">
+
+    <span class="absolute right-4 text-blue-600 text-lg sm:text-xl pointer-events-none transition-all duration-300">
+      🔍
+    </span>
+
+    <input id="searchInput" type="search" placeholder="ابحث عن منتج..."
+      class="w-full border border-blue-100 rounded-full pr-10 pl-12 py-2 bg-white/90 
+             focus:bg-white focus:ring-4 focus:ring-blue-400/40 text-sm sm:text-base shadow-inner 
+             placeholder:text-gray-400 outline-none transition-all duration-300" 
+      style="text-overflow: clip;" />
+
+    <button id="clearSearch"
+      class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500 hidden transition text-lg sm:text-xl">
+      ✖
+    </button>
+
+    <div id="suggestionsBox"
+      class="hidden absolute top-[110%] left-0 w-full bg-white border border-blue-100 rounded-2xl shadow-2xl z-[999] overflow-hidden transition-all duration-300">
+    </div>
+  </div>
+
+  <div id="searchOverlay"
+       class="hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-[80] transition-opacity duration-300"></div>
+</div>
+
 <header id="mainHeader"
   class="fixed top-3 left-1/2 -translate-x-1/2 z-50 w-[94%] sm:w-[88%] bg-white/80 backdrop-blur-2xl border border-blue-200 shadow-[0_4px_16px_rgba(0,0,0,0.1)] rounded-2xl transition-all duration-700 ease-[cubic-bezier(.4,0,.2,1)] overflow-hidden">
 
@@ -398,15 +426,14 @@ footer .border-t {
         <p class="text-[10px] text-gray-500 font-medium">تسوق ذكي وسريع</p>
       </div>
     </a>
+  <div id="userArea" class="flex items-center gap-3"></div>
 
-    <div class="flex-1 order-3 sm:order-none w-full sm:w-auto">
-      <div class="relative">
-        <input id="searchInput" type="search" placeholder="🔍 ابحث عن منتج..."
-          class="w-full border border-blue-100 rounded-full px-4 py-1.5 pl-10 bg-white/70 focus:bg-white focus:ring-2 focus:ring-blue-500 text-sm shadow-inner transition-all duration-300" />
-        <button id="clearSearch"
-          class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500 hidden transition">✖</button>
-      </div>
-    </div>
+
+
+  <div id="suggestionsBox"
+    class="hidden absolute top-[110%] left-0 w-full bg-white border border-blue-100 rounded-2xl shadow-xl z-50 overflow-hidden">
+  </div>
+</div>
 
     <div class="flex items-center gap-2 sm:gap-3 flex-wrap justify-center mt-2 sm:mt-0">
 
@@ -421,6 +448,8 @@ footer .border-t {
         class="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-blue-800 border border-blue-200 bg-white/70 hover:bg-blue-50 px-3 py-1.5 rounded-full shadow-sm hover:shadow-md transition-all duration-300">
         👤 <span>ملفي</span>
       </a>
+  
+
 
       <a href="wallet.html" id="walletBtn"
         class="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-green-500 to-emerald-600 px-3 py-1.5 rounded-full shadow-[0_2px_8px_rgba(16,185,129,0.4)] hover:shadow-[0_4px_12px_rgba(16,185,129,0.6)] transition-all duration-300 hover:scale-105">
@@ -758,8 +787,33 @@ document.addEventListener("DOMContentLoaded", async () => {
       <div>
         <h4 class="font-semibold mb-3 text-white">تابعنا</h4>
         <div class="flex gap-3">
-          <a href="#" class="text-blue-400 hover:text-white">Facebook</a>
-          <a href="#" class="text-pink-400 hover:text-white">Instagram</a>
+<div class="flex items-center justify-center gap-4 mt-4 text-sm font-semibold">
+  <a href="https://www.facebook.com/share/1KEzAxHzzS/" target="_blank"
+     class="flex items-center gap-1 text-blue-600 hover:text-blue-800 transition-all duration-300">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" class="w-5 h-5">
+      <path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 5.003 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.463h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.891h-2.33v6.987C18.343 21.128 22 17.003 22 12z"/>
+    </svg>
+    Facebook
+  </a>
+
+  <a href="https://www.tiktok.com/@lv12shop1?_r=1&_t=ZS-91JONZZLeZJ" target="_blank"
+     class="flex items-center gap-1 text-gray-800 hover:text-black transition-all duration-300">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" class="w-5 h-5">
+      <path d="M16.5 3a5.5 5.5 0 0 0 5.5 5.5V11a8.5 8.5 0 0 1-8.5-8.5h3zM9 8a5 5 0 1 0 5 5V4h3v9a8 8 0 1 1-8-8h3v3H9z"/>
+    </svg>
+    TikTok
+  </a>
+
+  <a href="https://www.instagram.com/lv12.shop?igsh=MTQxc3lsM24wb2Fmdg==" target="_blank"
+     class="flex items-center gap-1 text-pink-600 hover:text-pink-700 transition-all duration-300">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" class="w-5 h-5">
+      <path d="M7 2C4.243 2 2 4.243 2 7v10c0 2.757 2.243 5 5 5h10c2.757 0 5-2.243 5-5V7c0-2.757-2.243-5-5-5H7zm0 2h10c1.654 0 3 1.346 3 3v10c0 1.654-1.346 3-3 3H7c-1.654 0-3-1.346-3-3V7c0-1.654 1.346-3 3-3zm5 2a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0 2a3 3 0 1 1 0 6 3 3 0 0 1 0-6zm4.5-1a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
+    </svg>
+    Instagram
+  </a>
+</div>
+
+        
         </div>
       </div>
     </div>
@@ -1179,35 +1233,52 @@ async function checkAuth() {
   try {
     const { data } = await supabase.auth.getSession();
     const user = data?.session?.user || null;
+    const userArea = document.getElementById("userArea");
+    if (!userArea) return;
 
     if (user) {
-      currentUser = user; 
+      const { data: profile, error } = await supabase
+        .from("profiles")
+        .select("full_name, avatar_url, is_seller, seller_verified")
+        .eq("id", user.id)
+        .maybeSingle();
 
-      const name = user.user_metadata?.full_name || user.email.split("@")[0];
-      const avatar = user.user_metadata?.avatar_url ||
-        `https://ui-avatars.com/api/?background=2563eb&color=fff&name=${encodeURIComponent(name)}`;
+      if (error) console.warn("Profile load error:", error);
+
+      const name = profile?.full_name || user.user_metadata?.full_name || user.email.split("@")[0];
+      const avatar =
+  profile?.avatar_url ||
+  user.user_metadata?.avatar_url ||
+  `https://ui-avatars.com/api/?background=2563eb&color=fff&name=${encodeURIComponent(name)}`;
+
+
+      console.log("👤 ملف المستخدم:", profile);
 
       userArea.innerHTML = `
         <div class="flex items-center gap-3 bg-white px-2 py-1 rounded-lg shadow-sm">
-
-          <a href="wallet.html" id="walletBtn" class="bg-yellow-400 hover:bg-yellow-500 text-black text-xs px-2 py-1 rounded hidden">
-            💰 <span id="walletAmount">0 ج.م</span>
-          </a>
-
-          <img src="${avatar}" alt="avatar" class="w-8 h-8 rounded-full border border-gray-200">
-          <span class="text-gray-700 text-sm font-medium">${escapeHtml(name)}</span>
-
+          <img src="${avatar}" alt="avatar" class="w-8 h-8 rounded-full border border-gray-200 object-cover">
+          <span class="text-gray-700 text-sm font-medium">${name}</span>
           <button id="logoutBtn" class="text-red-500 hover:underline text-xs">تسجيل خروج</button>
         </div>
       `;
 
-      document.getElementById("logoutBtn").onclick = async () => {
-        await supabase.auth.signOut();
-        showToast("تم تسجيل الخروج بنجاح");
-        location.reload();
-      };
+      const logoutBtn = document.getElementById("logoutBtn");
+      if (logoutBtn) {
+        logoutBtn.addEventListener("click", async () => {
+          await supabase.auth.signOut();
+          showToast("تم تسجيل الخروج بنجاح");
+          location.reload();
+        });
+      }
 
-      await loadWallet(); 
+      if (profile?.is_seller === true) {
+        const sellerLink = document.createElement("a");
+        sellerLink.href = "merchant-dashboard.html";
+        sellerLink.textContent = "🛍️ متجري";
+        sellerLink.className =
+          "ml-2 text-sm text-indigo-600 hover:underline font-semibold";
+        userArea.querySelector("div")?.appendChild(sellerLink);
+      }
 
     } else {
       userArea.innerHTML = `
@@ -1219,6 +1290,8 @@ async function checkAuth() {
     console.error("Auth error:", err);
   }
 }
+
+
 function getPriceHTML(product) {
   if (product.discount_price && product.discount_price < product.price) {
     return `
@@ -1358,33 +1431,19 @@ function openDiscountDayFromShop(day) {
   location.href = "discount-day.html";
 }
 
-async function loadProducts(limit = 60) {
-  try {
-    showLoadingSkeleton();
-
-    const CACHE_KEY = "LV12_PRODUCTS_CACHE";
-    const CACHE_DURATION = 3 * 60 * 60 * 1000; 
-    const cached = localStorage.getItem(CACHE_KEY);
-
-    if (cached) {
-      const { data, ts } = JSON.parse(cached);
-      if (data && Date.now() - ts < CACHE_DURATION) {
-        console.log("⚡ تم تحميل المنتجات من الكاش");
-        window.allProducts = data;
-        renderAllSections(data);
-        hideLoadingSkeleton();
-        fetchProductsFromSupabase(limit, true);
-        return;
-      }
+  function renderSearchResults(filtered) {
+    if (!filtered.length) {
+      productsGrid.innerHTML = `<p class="text-center text-gray-500 col-span-full">😔 لا توجد نتائج مطابقة</p>`;
+      return;
     }
-
-    await fetchProductsFromSupabase(limit, false);
-
-  } catch (err) {
-    console.error("❌ خطأ أثناء تحميل المنتجات:", err.message);
-    hideLoadingSkeleton();
+    renderAllSections(filtered); 
   }
-}
+
+  searchInput.addEventListener("input", e => {
+    const query = e.target.value;
+    const filtered = filterProducts(query);
+    renderSearchResults(filtered);
+  });
 async function fetchProductsFromSupabase(limit = 60, background = false) {
   try {
     const { data, error } = await supabase
@@ -1641,7 +1700,9 @@ function normalizeText(text) {
     .replace(/ة/g, "ه")
     .replace(/ى/g, "ي")
     .trim();
-}const searchInput = document.getElementById("searchInput");
+}
+
+
 const clearSearch = document.getElementById("clearSearch");
 const allSections = Array.from(document.querySelectorAll("main > section"));
 
@@ -2077,10 +2138,6 @@ function renderSearchResults(list) {
 }
 
 
-const suggestionsBox = document.createElement("div");
-suggestionsBox.id = "search-suggestions";
-suggestionsBox.className = "absolute bg-white border rounded shadow-md mt-1 max-h-48 overflow-auto hidden z-50";
-document.body.appendChild(suggestionsBox);
 
 function showSearchSuggestions(query) {
   if (!query || !allProducts.length) {
@@ -2507,7 +2564,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     if (activeTask.status === "pending") {
-      showStatusBar("⏳ المهمة قيد المراجعة من الأدمن...");
+      showStatusBar("⏳ المهمة قيد المراجعة من الأدارة...");
       return;
     }
 
@@ -3323,7 +3380,6 @@ async function loadDailyTasks() {
 
     bindTasksUI(tasks);
   } catch (err) {
-    console.error("❌ loadDailyTasks error:", err);
     toast("⚠️ فشل تحميل المهام", false);
   }
 }
@@ -3447,7 +3503,7 @@ function startCountdown(taskId, attemptId, startUtc, endUtc) {
           completed_at: new Date().toISOString()
         })
         .eq("id", attemptId);
-      toast("✅ انتهت المهمة — بانتظار مراجعة الأدمن", true);
+      toast("✅ انتهت المهمة — بانتظار مراجعة الأدارة", true);
       loadDailyTasks();
     } catch (e) {
       console.error("❌ تحديث المهمة فشل:", e);
@@ -3469,7 +3525,7 @@ function renderCountdownForTask(id, sec) {
   const el = document.getElementById(`taskCountdown-${id}`);
   if (!el) return;
   el.textContent = sec <= 0
-    ? "⏳ انتهت — بانتظار مراجعة الأدمن"
+    ? "⏳ انتهت — بانتظار مراجعة الأدارة"
     : `⏳ متبقي: ${fmtTimeLeft(sec)}`;
 }
 
@@ -3515,6 +3571,155 @@ window.addEventListener("DOMContentLoaded", async () => {
 
 </script>
 
+<script>
+window.addEventListener("DOMContentLoaded", async () => {
+  console.log("🚀 DOM جاهز - بدء checkAuth");
+
+  const { data } = await supabase.auth.getSession();
+  const user = data?.session?.user || null;
+  const userArea = document.getElementById("userArea");
+
+  if (!userArea) {
+    console.warn("⚠️ العنصر userArea غير موجود في الصفحة.");
+    return;
+  }
+
+  if (user) {
+    console.log("✅ تم تسجيل الدخول:", user.email);
+
+    const name = user.user_metadata?.full_name || user.email.split("@")[0];
+    const avatar =
+      user.user_metadata?.avatar_url ||
+      `https://ui-avatars.com/api/?background=2563eb&color=fff&name=${encodeURIComponent(name)}`;
+
+    userArea.innerHTML = `
+      <div class="flex items-center gap-3 bg-white px-2 py-1 rounded-lg shadow-sm">
+        <img src="${avatar}" alt="avatar" class="w-8 h-8 rounded-full border border-gray-200">
+        <span class="text-gray-700 text-sm font-medium">${name}</span>
+        <button id="logoutBtn" class="text-red-500 hover:underline text-xs">تسجيل خروج</button>
+      </div>
+    `;
+
+    const logoutBtn = document.getElementById("logoutBtn");
+    logoutBtn?.addEventListener("click", async () => {
+      await supabase.auth.signOut();
+      console.log("🚪 تم تسجيل الخروج");
+      location.reload();
+    });
+
+    try {
+      const { data: profile, error } = await supabase
+        .from("profiles")
+        .select("is_seller, seller_verified")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error("❌ خطأ أثناء جلب الملف الشخصي:", error);
+        return;
+      }
+
+      console.log("👤 ملف المستخدم:", profile);
+
+      if (profile?.is_seller) {
+        console.log("🟢 المستخدم تاجر ✅");
+        const sellerLink = document.createElement("a");
+        sellerLink.href = "merchant-dashboard.html";
+        sellerLink.textContent = "🛍️ متجري";
+        sellerLink.className =
+          "bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-2 py-1 rounded transition ml-2";
+        userArea.appendChild(sellerLink);
+      } else {
+        console.log("🔴 المستخدم ليس تاجرًا");
+      }
+    } catch (e) {
+      console.error("🔥 فشل التحقق من حالة التاجر:", e);
+    }
+
+  } else {
+    console.log("⚪ لم يتم تسجيل الدخول.");
+    userArea.innerHTML = `
+      <a href="shop-login.html" class="text-blue-700 font-medium hover:underline text-sm">
+        تسجيل الدخول
+      </a>
+    `;
+  }
+});
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const searchInput = document.getElementById("searchInput");
+  const productsGrid = document.getElementById("productsGrid");
+
+  const suggestionsBox = document.createElement("div");
+  suggestionsBox.id = "suggestionsBox";
+  suggestionsBox.className = `
+    absolute bg-white border border-gray-200 rounded-xl shadow-lg 
+    mt-1 max-h-72 overflow-auto w-full z-50 hidden
+  `;
+  searchInput.parentElement.appendChild(suggestionsBox);
+
+  function filterProducts(query) {
+    const all = window.allProducts || [];
+    if (!query) return [];
+    query = query.trim().toLowerCase();
+    return all
+      .filter(p => p.name && p.name.toLowerCase().includes(query))
+      .slice(0, 8); 
+  }
+
+  function showSuggestions(list) {
+    if (!list.length) {
+      suggestionsBox.innerHTML = `<p class="text-gray-400 text-sm px-4 py-2">😕 لا توجد نتائج</p>`;
+      suggestionsBox.classList.remove("hidden");
+      return;
+    }
+
+    suggestionsBox.innerHTML = list
+      .map(
+        p => `
+        <div class="flex items-center gap-3 p-2 hover:bg-blue-50 cursor-pointer rounded-lg transition"
+             data-id="${p.id}">
+          <img src="${p.images?.[0] || '/lv12.jpg'}" class="w-10 h-10 rounded-md object-cover" />
+          <div>
+            <p class="text-sm font-semibold text-gray-800">${p.name}</p>
+            <p class="text-xs text-blue-600 font-medium">${p.price} ج.م</p>
+          </div>
+        </div>
+      `
+      )
+      .join("");
+    suggestionsBox.classList.remove("hidden");
+  }
+
+  searchInput.addEventListener("blur", () => {
+    setTimeout(() => suggestionsBox.classList.add("hidden"), 200);
+  });
+
+  suggestionsBox.addEventListener("click", (e) => {
+    const item = e.target.closest("[data-id]");
+    if (!item) return;
+    const id = item.getAttribute("data-id");
+    window.location.href = `product.html?id=${id}`;
+  });
+
+  searchInput.addEventListener("input", (e) => {
+    const query = e.target.value.trim();
+    if (!query) {
+      suggestionsBox.classList.add("hidden");
+      renderAllSections(window.allProducts || []);
+      return;
+    }
+    const filtered = filterProducts(query);
+    showSuggestions(filtered);
+
+    const gridFiltered = (window.allProducts || []).filter(p =>
+      p.name?.toLowerCase().includes(query)
+    );
+    renderAllSections(gridFiltered);
+  });
+});
+</script>
 
 </body>
 </html>
