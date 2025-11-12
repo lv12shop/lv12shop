@@ -50,29 +50,191 @@
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
+
   <style>
-    body { font-family: 'Cairo', sans-serif; background: #f1f5f9; }
-    .field { border: 1px solid #e5e7eb; padding: .75rem; border-radius: .5rem; width: 100%; }
+    body {
+      font-family: 'Cairo', sans-serif;
+      background: radial-gradient(circle at top left, #0f172a, #1e293b);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      color: #e2e8f0;
+    }
+
+    .card {
+      background: rgba(30, 41, 59, 0.85);
+      backdrop-filter: blur(12px);
+      border-radius: 1.5rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+      padding: 2rem;
+      width: 100%;
+      max-width: 420px;
+      animation: fadeIn 0.9s ease forwards;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(40px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .field {
+      width: 100%;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 0.75rem;
+      padding: 0.75rem 1rem;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      transition: all 0.3s ease;
+    }
+
+    .field:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+      outline: none;
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .btn-primary {
+      background: linear-gradient(90deg, #2563eb, #1d4ed8);
+      color: white;
+      font-weight: 700;
+      border-radius: 0.75rem;
+      padding: 0.75rem;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(37, 99, 235, 0.6);
+    }
+
+    .btn-google {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #ea4335;
+      color: white;
+      font-weight: 700;
+      border-radius: 2rem;
+      padding: 0.75rem;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(234, 67, 53, 0.4);
+    }
+
+    .btn-google:hover {
+      background: #d93025;
+      transform: scale(1.03);
+    }
+
+    #avatar-preview {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      border: 3px solid #3b82f6;
+      object-fit: cover;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+    }
+
+    #avatar-preview:hover {
+      transform: scale(1.05);
+    }
+
+    .password-toggle {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      color: #9ca3af;
+      font-size: 1.2rem;
+      transition: color 0.3s;
+    }
+
+    .password-toggle:hover {
+      color: #3b82f6;
+    }
   </style>
 </head>
 
-<body class="flex items-center justify-center h-screen">
-  <div class="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md">
-    <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">✨ إنشاء حساب جديد</h2>
+<body>
 
+  <div class="card">
+    <h2 class="text-2xl font-bold mb-6 text-center text-blue-400">🛡️ إنشاء حساب جديد</h2>
+
+    <!-- صورة المستخدم -->
+    <div class="flex justify-center mb-5">
+      <label for="avatar" class="cursor-pointer relative group">
+        <img id="avatar-preview" src="https://www.svgrepo.com/show/382106/profile-user.svg" alt="Avatar Preview">
+        <input type="file" id="avatar" accept="image/*" class="hidden" />
+        <div class="absolute bottom-0 right-0 bg-blue-600 text-white rounded-full p-1.5 shadow-md text-xs opacity-0 group-hover:opacity-100 transition">
+          📷
+        </div>
+      </label>
+    </div>
+
+    <!-- نموذج التسجيل -->
     <form id="signup-form" class="space-y-4">
-      <input type="text" id="full_name" placeholder="الاسم الكامل" class="field" required>
-      <input type="text" id="phone" placeholder="رقم الهاتف" class="field" required>
-      <input type="email" id="email" placeholder="البريد الإلكتروني" class="field" required>
-      <input type="password" id="password" placeholder="كلمة المرور" class="field" required>
-      <input type="text" id="referral_code" placeholder="كود الدعوة (اختياري)" class="w-full border p-3 rounded">
-      <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded hover:bg-blue-700 transition">تسجيل</button>
+      <input type="text" id="full_name" placeholder="👤 الاسم الكامل" class="field" required />
+      <input type="text" id="phone" placeholder="📱 رقم الهاتف" class="field" required />
+      <input type="email" id="email" placeholder="📧 البريد الإلكتروني" class="field" required />
+
+      <div class="relative">
+        <input type="password" id="password" placeholder="🔒 كلمة المرور" class="field pr-10" required />
+        <span id="togglePassword" class="password-toggle">👁️</span>
+      </div>
+
+      <input type="text" id="referral_code" placeholder="🎟️ كود الدعوة (اختياري)" class="field uppercase" />
+
+      <button type="submit" class="btn-primary w-full">🚀 إنشاء الحساب</button>
     </form>
 
-    <p class="text-center text-sm mt-4">
-      عندك حساب بالفعل؟
-      <a href="shop-login.html" class="text-blue-600 hover:underline">سجّل دخول</a>
+    <p class="text-center text-sm mt-4 text-gray-300">
+      عندك حساب؟ <a href="shop-login.html" class="text-blue-400 hover:underline">سجّل دخول</a>
     </p>
+
+    <div class="mt-4">
+      <button id="googleLoginBtn" class="btn-google w-full">
+        <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" class="w-5 h-5 mr-2" />
+        التسجيل باستخدام Google
+      </button>
+    </div>
+
+    <p id="message" class="text-center text-sm mt-4 text-gray-400"></p>
+  </div>
+
+  <!-- ✅ JavaScript -->
+  <script>
+    // عرض/إخفاء كلمة المرور
+    const passwordInput = document.getElementById("password");
+    const togglePassword = document.getElementById("togglePassword");
+    togglePassword.addEventListener("click", () => {
+      const type = passwordInput.type === "password" ? "text" : "password";
+      passwordInput.type = type;
+      togglePassword.textContent = type === "password" ? "👁️" : "🙈";
+    });
+
+    // معاينة الصورة
+    const avatarInput = document.getElementById("avatar");
+    const avatarPreview = document.getElementById("avatar-preview");
+    avatarInput.addEventListener("change", () => {
+      const file = avatarInput.files[0];
+      if (file) avatarPreview.src = URL.createObjectURL(file);
+    });
+
+    // تسجيل بحساب Google
+    document.getElementById("googleLoginBtn").addEventListener("click", async () => {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: window.location.origin + '/shop.html' }
+      });
+      if (error) console.error("❌ فشل تسجيل الدخول بجوجل:", error);
+    });
+  </script>
 
     <p id="message" class="text-center mt-4 text-sm"></p>
   </div>
@@ -97,29 +259,28 @@ function getDeviceFingerprint() {
   return fp;
 }
 
+async function getIP() {
+  try {
+    const res = await fetch("https://api.ipify.org?format=json");
+    const data = await res.json();
+    return data.ip;
+  } catch {
+    return "unknown";
+  }
+}
+
 async function getCountryCode() {
   try {
-    const res = await fetch("https://cloudflare.com/cdn-cgi/trace");
-    const text = await res.text();
-    const country = text.match(/loc=([A-Z]+)/);
-    if (country && country[1]) {
-      const map = { EG: "Egypt" };
-      return map[country[1]] || "Unknown";
-    }
-    return "Unknown";
+    const res = await fetch("https://ipapi.co/json/");
+    const data = await res.json();
+    return data.country_name || "Unknown";
   } catch {
     return "Unknown";
   }
 }
 
-async function getIP() {
-  try {
-    const res = await fetch("https://api64.ipify.org?format=json");
-    const data = await res.json();
-    return data.ip;
-  } catch {
-    return "Unknown";
-  }
+function getDeviceFingerprint() {
+  return btoa(navigator.userAgent + screen.width + screen.height);
 }
 
 form.addEventListener("submit", async (e) => {
@@ -130,6 +291,7 @@ form.addEventListener("submit", async (e) => {
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value.trim();
   const referral_code = document.getElementById("referral_code").value.trim().toUpperCase();
+  const avatarFile = document.getElementById("avatar").files[0];
   const device_fp = getDeviceFingerprint();
   const ip_address = await getIP();
 
@@ -184,67 +346,53 @@ form.addEventListener("submit", async (e) => {
     return;
   }
 
+  let avatar_url = null;
+  if (avatarFile) {
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from("avatars")
+      .upload(`profiles/${newUserId}.jpg`, avatarFile, { upsert: true });
+
+    if (!uploadError) {
+      avatar_url = `https://nszhzfysitppxssplqfb.supabase.co/storage/v1/object/public/avatars/${uploadData.path}`;
+    }
+  }
+
   const inviteCode = newUserId.slice(0, 6).toUpperCase();
-  await supabase
-    .from("profiles")
-    .upsert({ id: newUserId, invite_code: inviteCode }, { onConflict: "id" });
+
+  await supabase.from("profiles").upsert({
+    id: newUserId,
+    full_name,
+    phone,
+    avatar_url,
+    invite_code: inviteCode,
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    ip_address,
+    is_seller: false,
+    seller_verified: false,
+    store_name: null,
+    created_at: new Date().toISOString()
+  });
 
   if (referral_code) {
-    console.log("🔍 البحث عن كود الدعوة:", referral_code);
-    const { data: inviter, error: inviterErr } = await supabase
+    const { data: inviter } = await supabase
       .from("profiles")
       .select("id, invite_code")
       .ilike("invite_code", referral_code)
       .maybeSingle();
 
-    console.log("📋 نتيجة البحث:", inviter, inviterErr);
-
     if (inviter?.id) {
-      console.log("✅ الكود صالح - جاري انتظار إنشاء profile للمستخدم الجديد...");
-      let retries = 0;
-      let newProfile = null;
-
-      while (retries < 5) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("id")
-          .eq("id", newUserId)
-          .maybeSingle();
-
-        if (profile) {
-          newProfile = profile;
-          break;
-        }
-        retries++;
-        await new Promise((r) => setTimeout(r, 1000)); 
-      }
-
-      if (newProfile) {
-        const { error: insertErr } = await supabase.from("referrals").insert([
-          {
-            inviter_id: inviter.id,
-            invitee_id: newUserId,
-            referral_code,
-            device_fp,
-            ip_address,
-            reward: 0,
-            status: "pending",
-            created_at: new Date().toISOString(),
-          },
-        ]);
-
-        if (insertErr) {
-          console.error("❌ Referral insert error:", insertErr);
-        } else {
-          console.log("✅ تم تسجيل الدعوة لصالح:", inviter.id);
-        }
-      } else {
-        console.warn("⚠️ لم يتم العثور على profile للمستخدم الجديد بعد.");
-      }
-    } else {
-      console.warn("⚠️ كود الدعوة غير صالح أو غير موجود:", referral_code);
-      message.textContent = `⚠️ كود الدعوة غير صالح (${referral_code})`;
-      message.className = "text-center mt-4 text-sm text-yellow-600";
+      await supabase.from("referrals").insert([
+        {
+          inviter_id: inviter.id,
+          invitee_id: newUserId,
+          referral_code,
+          device_fp,
+          ip_address,
+          reward: 0,
+          status: "pending",
+          created_at: new Date().toISOString(),
+        },
+      ]);
     }
   }
 
@@ -255,6 +403,8 @@ form.addEventListener("submit", async (e) => {
     window.location.href = "shop-login.html";
   }, 2000);
 });
+
+
 async function logUserActivity(type) {
   const user = JSON.parse(localStorage.getItem('lv12_user') || '{}');
   await supabase.from('user_activity').insert({
@@ -267,6 +417,11 @@ async function logUserActivity(type) {
 logUserActivity('زيارة المتجر');
 
 </script>
+
+
+
+
+
 
 <script>
 (async () => {
