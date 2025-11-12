@@ -355,47 +355,55 @@ form.addEventListener("submit", async (e) => {
     seller_verified: false,
     created_at: new Date().toISOString(),
   });
+if (referral_code) {
+  try {
+    const { data: inviter } = await supabase
+      .from("profiles")
+      .select("id, invite_code")
+      .eq("invite_code", referral_code.toUpperCase())
+      .maybeSingle();
 
-  // ✅ التعامل مع كود الدعوة (إن وُجد)
-  if (referral_code) {
-    try {
-      const { data: inviter } = await supabase
-        .from("profiles")
-        .select("id, invite_code")
-        .ilike("invite_code", referral_code)
+    if (!inviter) {
+      message.textContent = `⚠️ كود الدعوة غير صالح (${referral_code})`;
+      message.className = "text-center mt-4 text-sm text-yellow-600";
+    } else {
+      const { data: existing } = await supabase
+        .from("referrals")
+        .select("id")
+        .or(`device_fp.eq.${device_fp},ip_address.eq.${ip_address}`)
         .maybeSingle();
 
-      if (!inviter) {
-        message.textContent = `⚠️ كود الدعوة غير صالح (${referral_code})`;
+      if (existing) {
+        message.textContent = "⚠️ تم استخدام كود دعوة بالفعل من هذا الجهاز أو الشبكة.";
         message.className = "text-center mt-4 text-sm text-yellow-600";
       } else {
-        const { data: existing } = await supabase
-          .from("referrals")
-          .select("id")
-          .or(`device_fp.eq.${device_fp},ip_address.eq.${ip_address}`)
-          .maybeSingle();
-
-        if (existing) {
-          message.textContent = "⚠️ تم استخدام كود دعوة بالفعل من هذا الجهاز أو الشبكة.";
-          message.className = "text-center mt-4 text-sm text-yellow-600";
-        } else {
-          const { error: refError } = await supabase.from("referrals").insert([{
+        const { error: refError } = await supabase.from("referrals").insert([
+          {
             inviter_id: inviter.id,
             invitee_id: newUserId,
-            referral_code,
+            referral_code: referral_code.toUpperCase(),
             device_fp,
             ip_address,
             reward: 0,
             status: "pending",
             created_at: new Date().toISOString(),
-          }]);
-          if (refError) console.error("❌ خطأ أثناء حفظ الدعوة:", refError);
+          },
+        ]);
+
+        if (refError) {
+          console.error("❌ خطأ أثناء حفظ الدعوة:", refError);
+          message.textContent = "❌ فشل إضافة الدعوة.";
+          message.className = "text-center mt-4 text-sm text-red-600";
+        } else {
+          console.log("✅ تمت إضافة الدعوة بنجاح!");
         }
       }
-    } catch (err) {
-      console.error("❌ خطأ أثناء التعامل مع كود الدعوة:", err);
     }
+  } catch (err) {
+    console.error("❌ خطأ أثناء التعامل مع كود الدعوة:", err);
   }
+}
+
 
   message.textContent = "✅ تم التسجيل بنجاح! تحقق من بريدك الإلكتروني لتفعيل الحساب.";
   message.className = "text-center mt-4 text-sm text-green-600";
