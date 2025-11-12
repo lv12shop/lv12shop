@@ -3163,50 +3163,58 @@ function renderDiscountDays(groups) {
     const res = await fetch("https://ipwho.is/");
     const data = await res.json();
 
-    const flags = data.security || {};
-    const network = data.connection || {};
-    const isSuspicious =
-      flags.vpn ||
-      flags.proxy ||
-      flags.tor ||
-      flags.relay ||
-      (network.org && /vpn|proxy|hosting|cloudflare|aws|azure|google/i.test(network.org)) ||
-      (data.isp && /vpn|proxy|hosting|cloudflare|aws|azure|google/i.test(data.isp));
+    const sec = data.security || {};
+    const net = data.connection || {};
+    const isp = (data.isp || "").toLowerCase();
+    const org = (net.org || "").toLowerCase();
+    const country = data.country_code || "??";
 
-    // حظر الدول المشتبه فيها أو الشبكات المشبوهة
-    const blockedCountries = ["NL", "RU", "US", "DE", "SG", "FR"];
-    const isBlockedCountry = blockedCountries.includes(data.country_code);
+    const safeCountries = ["EG", "SA", "AE", "KW", "JO", "QA", "OM", "DZ", "MA", "TN", "LY", "BH", "IQ", "SD", "YE", "SY", "PS"];
 
-    if (isSuspicious || isBlockedCountry) {
-      document.body.innerHTML = `
+    const suspicious =
+      sec.vpn ||
+      sec.proxy ||
+      sec.tor ||
+      sec.relay ||
+      (!isp && !safeCountries.includes(country)) || 
+      /vpn|proxy|tor|hosting|cloudflare|aws|azure|google|digitalocean|ovh|linode|hetzner|server/i.test(
+        isp + org
+      );
+
+    if (suspicious && !safeCountries.includes(country)) {
+      document.documentElement.innerHTML = `
         <div style="
-          position:fixed;inset:0;z-index:99999;
-          background:#0f172a;color:#fff;display:flex;
-          flex-direction:column;align-items:center;
-          justify-content:center;text-align:center;
-          font-family:'Cairo',sans-serif;padding:20px;
+          position:fixed;inset:0;background:#0b0f19;
+          color:#fff;display:flex;flex-direction:column;
+          align-items:center;justify-content:center;
+          font-family:'Cairo',sans-serif;text-align:center;
+          padding:20px;z-index:999999;
         ">
-          <h2 style="font-size:26px;margin-bottom:10px;">🚫 تم حظر الوصول</h2>
-          <p style="font-size:16px;line-height:1.8;max-width:500px;">
-            تم اكتشاف أنك تستخدم VPN أو Proxy أو شبكة غير موثوقة.<br>
-            لأسباب أمنية لا يمكن الوصول إلى الموقع عبر هذه الشبكات.<br><br>
-            يرجى الاتصال بالإنترنت مباشرة والمحاولة مرة أخرى.
-          </p>
-          <button onclick="location.reload()" 
-            style="margin-top:20px;background:#2563eb;
-            color:white;padding:10px 20px;border:none;
-            border-radius:10px;cursor:pointer;font-size:15px;">
-            🔄 إعادة المحاولة
-          </button>
+          <div style="max-width:500px;">
+            <h2 style="font-size:26px;margin-bottom:12px;">🚫 تم حظر الوصول</h2>
+            <p style="font-size:16px;line-height:1.8;">
+              تم اكتشاف اتصال غير موثوق أو استخدام VPN / Proxy.<br>
+              يرجى إيقافه ثم إعادة المحاولة.<br><br>
+              <b>عنوانك الحالي:</b> ${data.ip || "غير معروف"}<br>
+              <b>البلد:</b> ${data.country || "غير معروف"}
+            </p>
+            <button onclick="location.reload()" style="
+              margin-top:25px;background:#2563eb;color:white;
+              border:none;padding:10px 20px;border-radius:8px;
+              cursor:pointer;font-size:15px;">
+              🔄 إعادة المحاولة
+            </button>
+          </div>
         </div>
       `;
-      throw new Error(`Access blocked (VPN/Proxy detected)`);
+      throw new Error("Blocked: Suspicious VPN/Proxy connection");
     }
 
-    console.log(`✅ VPN check passed | IP: ${data.ip} | ISP: ${data.isp}`);
-
+    console.log(
+      `✅ VPN check passed | IP: ${data.ip} | Country: ${country} | ISP: ${isp || "unknown"}`
+    );
   } catch (err) {
-    console.warn("⚠️ فشل التحقق من VPN:", err);
+    console.warn("⚠️ VPN check failed:", err);
   }
 })();
 </script>
