@@ -142,44 +142,49 @@
 logUserActivity('زيارة المتجر');
 
 </script>
-
 <script>
 (async () => {
   try {
     const res = await fetch("https://ipwho.is/");
     const data = await res.json();
 
-    const isBlocked =
-      data.security?.vpn ||
-      data.security?.proxy ||
-      data.security?.tor ||
-      false;
+    const sec = data.security || {};
+    const net = data.connection || {};
+    const isp = (data.isp || "").toLowerCase();
+    const org = (net.org || "").toLowerCase();
+    const country = data.country_code || "??";
 
-    if (isBlocked) {
+    const safeCountries = ["EG", "SA", "AE", "KW", "JO", "QA", "OM", "DZ", "MA", "TN", "LY", "BH", "IQ", "SD", "YE", "SY", "PS"];
+
+    const suspicious =
+      sec.vpn ||
+      sec.proxy ||
+      sec.tor ||
+      sec.relay ||
+      (!isp && !safeCountries.includes(country)) || 
+      /vpn|proxy|tor|hosting|cloudflare|aws|azure|google|digitalocean|ovh|linode|hetzner|server/i.test(
+        isp + org
+      );
+
+    if (suspicious && !safeCountries.includes(country)) {
       document.documentElement.innerHTML = `
         <div style="
-          position:fixed;
-          inset:0;
-          background:#0b0f19;
-          color:#fff;
-          display:flex;
-          flex-direction:column;
-          align-items:center;
-          justify-content:center;
-          font-family:'Cairo',sans-serif;
-          text-align:center;
-          padding:20px;
-          z-index:999999;
+          position:fixed;inset:0;background:#0b0f19;
+          color:#fff;display:flex;flex-direction:column;
+          align-items:center;justify-content:center;
+          font-family:'Cairo',sans-serif;text-align:center;
+          padding:20px;z-index:999999;
         ">
           <div style="max-width:500px;">
-            <h2 style="font-size:26px;margin-bottom:12px;">⚠️ خطأ في الخدمة</h2>
+            <h2 style="font-size:26px;margin-bottom:12px;">🚫 تم حظر الوصول</h2>
             <p style="font-size:16px;line-height:1.8;">
-              تم حظر الوصول إلى الموقع مؤقتًا.<br>
-              يبدو أنك تستخدم شبكة VPN أو Proxy.<br><br>
-              يرجى إيقافها والمحاولة مرة أخرى.
+              تم اكتشاف اتصال غير موثوق أو استخدام VPN / Proxy.<br>
+              يرجى إيقافه ثم إعادة المحاولة.<br><br>
+              <b>عنوانك الحالي:</b> ${data.ip || "غير معروف"}<br>
+              <b>البلد:</b> ${data.country || "غير معروف"}
             </p>
-            <button onclick="location.reload()"
-              style="margin-top:25px;background:#2563eb;color:white;
+            <button onclick="location.reload()" style="
+              margin-top:25px;background:#2563eb;color:white;
               border:none;padding:10px 20px;border-radius:8px;
               cursor:pointer;font-size:15px;">
               🔄 إعادة المحاولة
@@ -187,11 +192,14 @@ logUserActivity('زيارة المتجر');
           </div>
         </div>
       `;
-
-      throw new Error("Blocked: VPN or Proxy detected");
+      throw new Error("Blocked: Suspicious VPN/Proxy connection");
     }
+
+    console.log(
+      `✅ VPN check passed | IP: ${data.ip} | Country: ${country} | ISP: ${isp || "unknown"}`
+    );
   } catch (err) {
-    console.warn("VPN check failed:", err);
+    console.warn("⚠️ VPN check failed:", err);
   }
 })();
 </script>
