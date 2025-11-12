@@ -282,7 +282,6 @@ async function getCountryCode() {
 function getDeviceFingerprint() {
   return btoa(navigator.userAgent + screen.width + screen.height);
 }
-
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -302,7 +301,6 @@ form.addEventListener("submit", async (e) => {
   }
 
   message.textContent = "⏳ جاري التحقق من الموقع...";
-  message.className = "text-center mt-4 text-sm text-gray-600";
   const country = await getCountryCode();
   if (country !== "Egypt") {
     message.textContent = `❌ نظام الدعوات متاح فقط داخل مصر (البلد الحالي: ${country})`;
@@ -310,23 +308,8 @@ form.addEventListener("submit", async (e) => {
     return;
   }
 
-  if (referral_code) {
-    const { data: existing } = await supabase
-      .from("referrals")
-      .select("id")
-      .or(`device_fp.eq.${device_fp},ip_address.eq.${ip_address}`)
-      .maybeSingle();
-
-    if (existing) {
-      message.textContent = "⚠️ تم استخدام كود دعوة بالفعل من هذا الجهاز أو الشبكة.";
-      message.className = "text-center mt-4 text-sm text-yellow-600";
-      return;
-    }
-  }
-
+  // ✅ إنشاء الحساب
   message.textContent = "⏳ جاري إنشاء الحساب...";
-  message.className = "text-center mt-4 text-sm text-gray-600";
-
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
@@ -346,6 +329,7 @@ form.addEventListener("submit", async (e) => {
     return;
   }
 
+  // ✅ رفع الصورة إن وُجدت
   let avatar_url = null;
   if (avatarFile) {
     const { data: uploadData, error: uploadError } = await supabase.storage
@@ -357,8 +341,8 @@ form.addEventListener("submit", async (e) => {
     }
   }
 
+  // ✅ إنشاء البروفايل
   const inviteCode = newUserId.slice(0, 6).toUpperCase();
-
   await supabase.from("profiles").upsert({
     id: newUserId,
     full_name,
@@ -369,41 +353,55 @@ form.addEventListener("submit", async (e) => {
     ip_address,
     is_seller: false,
     seller_verified: false,
-    store_name: null,
-    created_at: new Date().toISOString()
+    created_at: new Date().toISOString(),
   });
 
+  // ✅ التعامل مع كود الدعوة (إن وُجد)
   if (referral_code) {
-    const { data: inviter } = await supabase
-      .from("profiles")
-      .select("id, invite_code")
-      .ilike("invite_code", referral_code)
-      .maybeSingle();
+    try {
+      const { data: inviter } = await supabase
+        .from("profiles")
+        .select("id, invite_code")
+        .ilike("invite_code", referral_code)
+        .maybeSingle();
 
-    if (inviter?.id) {
-      await supabase.from("referrals").insert([
-        {
-          inviter_id: inviter.id,
-          invitee_id: newUserId,
-          referral_code,
-          device_fp,
-          ip_address,
-          reward: 0,
-          status: "pending",
-          created_at: new Date().toISOString(),
-        },
-      ]);
+      if (!inviter) {
+        message.textContent = `⚠️ كود الدعوة غير صالح (${referral_code})`;
+        message.className = "text-center mt-4 text-sm text-yellow-600";
+      } else {
+        const { data: existing } = await supabase
+          .from("referrals")
+          .select("id")
+          .or(`device_fp.eq.${device_fp},ip_address.eq.${ip_address}`)
+          .maybeSingle();
+
+        if (existing) {
+          message.textContent = "⚠️ تم استخدام كود دعوة بالفعل من هذا الجهاز أو الشبكة.";
+          message.className = "text-center mt-4 text-sm text-yellow-600";
+        } else {
+          const { error: refError } = await supabase.from("referrals").insert([{
+            inviter_id: inviter.id,
+            invitee_id: newUserId,
+            referral_code,
+            device_fp,
+            ip_address,
+            reward: 0,
+            status: "pending",
+            created_at: new Date().toISOString(),
+          }]);
+          if (refError) console.error("❌ خطأ أثناء حفظ الدعوة:", refError);
+        }
+      }
+    } catch (err) {
+      console.error("❌ خطأ أثناء التعامل مع كود الدعوة:", err);
     }
   }
 
   message.textContent = "✅ تم التسجيل بنجاح! تحقق من بريدك الإلكتروني لتفعيل الحساب.";
   message.className = "text-center mt-4 text-sm text-green-600";
 
-  setTimeout(() => {
-    window.location.href = "shop-login.html";
-  }, 2000);
+  setTimeout(() => window.location.href = "shop-login.html", 2000);
 });
-
 
 async function logUserActivity(type) {
   const user = JSON.parse(localStorage.getItem('lv12_user') || '{}');
