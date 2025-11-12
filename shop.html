@@ -1236,51 +1236,49 @@ async function checkAuth() {
     const userArea = document.getElementById("userArea");
     if (!userArea) return;
 
-    if (user) {
-      const { data: profile, error } = await supabase
-        .from("profiles")
-        .select("full_name, avatar_url, is_seller, seller_verified")
-        .eq("id", user.id)
-        .maybeSingle();
+  if (user) {
+  const { data: profile, error } = await supabase
+    .from("profiles")
+    .select("full_name, avatar_url, is_seller, seller_verified")
+    .eq("id", user.id)
+    .maybeSingle();
 
-      if (error) console.warn("Profile load error:", error);
+  if (error) console.warn("Profile load error:", error);
 
-      const name = profile?.full_name || user.user_metadata?.full_name || user.email.split("@")[0];
-      const avatar =
-  profile?.avatar_url ||
-  user.user_metadata?.avatar_url ||
-  `https://ui-avatars.com/api/?background=2563eb&color=fff&name=${encodeURIComponent(name)}`;
+  const name = profile?.full_name || user.user_metadata?.full_name || user.email.split("@")[0];
+  const avatar =
+    profile?.avatar_url ||
+    user.user_metadata?.avatar_url ||
+    `https://ui-avatars.com/api/?background=2563eb&color=fff&name=${encodeURIComponent(name)}`;
 
+  // ✅ عرض الصورة والاسم في الهيدر
+  userArea.innerHTML = `
+    <div class="flex items-center gap-3 bg-white px-3 py-1.5 rounded-xl shadow-sm border border-blue-200">
+      <img src="${avatar}" alt="avatar" class="w-9 h-9 rounded-full border border-blue-300 object-cover ring-2 ring-blue-100">
+      <span class="text-gray-800 text-sm font-semibold">${name}</span>
+      <button id="logoutBtn" class="text-red-500 hover:text-red-700 text-xs font-semibold ml-2">تسجيل خروج</button>
+    </div>
+  `;
 
-      console.log("👤 ملف المستخدم:", profile);
+  const logoutBtn = document.getElementById("logoutBtn");
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", async () => {
+      await supabase.auth.signOut();
+      showToast("تم تسجيل الخروج بنجاح");
+      location.reload();
+    });
+  }
 
-      userArea.innerHTML = `
-        <div class="flex items-center gap-3 bg-white px-2 py-1 rounded-lg shadow-sm">
-          <img src="${avatar}" alt="avatar" class="w-8 h-8 rounded-full border border-gray-200 object-cover">
-          <span class="text-gray-700 text-sm font-medium">${name}</span>
-          <button id="logoutBtn" class="text-red-500 hover:underline text-xs">تسجيل خروج</button>
-        </div>
-      `;
-
-      const logoutBtn = document.getElementById("logoutBtn");
-      if (logoutBtn) {
-        logoutBtn.addEventListener("click", async () => {
-          await supabase.auth.signOut();
-          showToast("تم تسجيل الخروج بنجاح");
-          location.reload();
-        });
-      }
-
-      if (profile?.is_seller === true) {
-        const sellerLink = document.createElement("a");
-        sellerLink.href = "merchant-dashboard.html";
-        sellerLink.textContent = "🛍️ متجري";
-        sellerLink.className =
-          "ml-2 text-sm text-indigo-600 hover:underline font-semibold";
-        userArea.querySelector("div")?.appendChild(sellerLink);
-      }
-
-    } else {
+  if (profile?.is_seller === true) {
+    const sellerLink = document.createElement("a");
+    sellerLink.href = "merchant-dashboard.html";
+    sellerLink.textContent = "🛍️ متجري";
+    sellerLink.className =
+      "text-indigo-600 text-xs font-semibold hover:underline ml-2";
+    userArea.querySelector("div")?.appendChild(sellerLink);
+  }
+}
+ else {
       userArea.innerHTML = `
         <a href="shop-login.html" class="text-blue-700 font-medium hover:underline text-sm">تسجيل الدخول</a>
       `;
