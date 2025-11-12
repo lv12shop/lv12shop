@@ -165,8 +165,6 @@
 
   <div class="card">
     <h2 class="text-2xl font-bold mb-6 text-center text-blue-400">🛡️ إنشاء حساب جديد</h2>
-
-    <!-- صورة المستخدم -->
     <div class="flex justify-center mb-5">
       <label for="avatar" class="cursor-pointer relative group">
         <img id="avatar-preview" src="https://www.svgrepo.com/show/382106/profile-user.svg" alt="Avatar Preview">
@@ -177,7 +175,6 @@
       </label>
     </div>
 
-    <!-- نموذج التسجيل -->
     <form id="signup-form" class="space-y-4">
       <input type="text" id="full_name" placeholder="👤 الاسم الكامل" class="field" required />
       <input type="text" id="phone" placeholder="📱 رقم الهاتف" class="field" required />
@@ -207,9 +204,7 @@
     <p id="message" class="text-center text-sm mt-4 text-gray-400"></p>
   </div>
 
-  <!-- ✅ JavaScript -->
   <script>
-    // عرض/إخفاء كلمة المرور
     const passwordInput = document.getElementById("password");
     const togglePassword = document.getElementById("togglePassword");
     togglePassword.addEventListener("click", () => {
@@ -218,7 +213,6 @@
       togglePassword.textContent = type === "password" ? "👁️" : "🙈";
     });
 
-    // معاينة الصورة
     const avatarInput = document.getElementById("avatar");
     const avatarPreview = document.getElementById("avatar-preview");
     avatarInput.addEventListener("change", () => {
@@ -226,14 +220,12 @@
       if (file) avatarPreview.src = URL.createObjectURL(file);
     });
 
-    // تسجيل بحساب Google
-    document.getElementById("googleLoginBtn").addEventListener("click", async () => {
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: { redirectTo: window.location.origin + '/shop.html' }
-      });
-      if (error) console.error("❌ فشل تسجيل الدخول بجوجل:", error);
-    });
+    const googleBtn = document.getElementById("googleLoginBtn");
+
+googleBtn.addEventListener("click", () => {
+  message.textContent = "🚧 قريبًا سيتم تفعيل تسجيل الدخول باستخدام Google!";
+  message.className = "text-center mt-4 text-sm text-yellow-400 font-semibold animate-pulse";
+});
   </script>
 
     <p id="message" class="text-center mt-4 text-sm"></p>
@@ -259,29 +251,31 @@ function getDeviceFingerprint() {
   return fp;
 }
 
-async function getIP() {
-  try {
-    const res = await fetch("https://api.ipify.org?format=json");
-    const data = await res.json();
-    return data.ip;
-  } catch {
-    return "unknown";
-  }
-}
-
 async function getCountryCode() {
   try {
-    const res = await fetch("https://ipapi.co/json/");
-    const data = await res.json();
-    return data.country_name || "Unknown";
+    const res = await fetch("https://cloudflare.com/cdn-cgi/trace");
+    const text = await res.text();
+    const country = text.match(/loc=([A-Z]+)/);
+    if (country && country[1]) {
+      const map = { EG: "Egypt" };
+      return map[country[1]] || "Unknown";
+    }
+    return "Unknown";
   } catch {
     return "Unknown";
   }
 }
 
-function getDeviceFingerprint() {
-  return btoa(navigator.userAgent + screen.width + screen.height);
+async function getIP() {
+  try {
+    const res = await fetch("https://api64.ipify.org?format=json");
+    const data = await res.json();
+    return data.ip;
+  } catch {
+    return "Unknown";
+  }
 }
+
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -290,7 +284,6 @@ form.addEventListener("submit", async (e) => {
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value.trim();
   const referral_code = document.getElementById("referral_code").value.trim().toUpperCase();
-  const avatarFile = document.getElementById("avatar").files[0];
   const device_fp = getDeviceFingerprint();
   const ip_address = await getIP();
 
@@ -301,6 +294,7 @@ form.addEventListener("submit", async (e) => {
   }
 
   message.textContent = "⏳ جاري التحقق من الموقع...";
+  message.className = "text-center mt-4 text-sm text-gray-600";
   const country = await getCountryCode();
   if (country !== "Egypt") {
     message.textContent = `❌ نظام الدعوات متاح فقط داخل مصر (البلد الحالي: ${country})`;
@@ -308,8 +302,23 @@ form.addEventListener("submit", async (e) => {
     return;
   }
 
-  // ✅ إنشاء الحساب
+  if (referral_code) {
+    const { data: existing } = await supabase
+      .from("referrals")
+      .select("id")
+      .or(`device_fp.eq.${device_fp},ip_address.eq.${ip_address}`)
+      .maybeSingle();
+
+    if (existing) {
+      message.textContent = "⚠️ تم استخدام كود دعوة بالفعل من هذا الجهاز أو الشبكة.";
+      message.className = "text-center mt-4 text-sm text-yellow-600";
+      return;
+    }
+  }
+
   message.textContent = "⏳ جاري إنشاء الحساب...";
+  message.className = "text-center mt-4 text-sm text-gray-600";
+
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
@@ -329,59 +338,47 @@ form.addEventListener("submit", async (e) => {
     return;
   }
 
-  // ✅ رفع الصورة إن وُجدت
-  let avatar_url = null;
-  if (avatarFile) {
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from("avatars")
-      .upload(`profiles/${newUserId}.jpg`, avatarFile, { upsert: true });
-
-    if (!uploadError) {
-      avatar_url = `https://nszhzfysitppxssplqfb.supabase.co/storage/v1/object/public/avatars/${uploadData.path}`;
-    }
-  }
-
-  // ✅ إنشاء البروفايل
   const inviteCode = newUserId.slice(0, 6).toUpperCase();
-  await supabase.from("profiles").upsert({
-    id: newUserId,
-    full_name,
-    phone,
-    avatar_url,
-    invite_code: inviteCode,
-    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-    ip_address,
-    is_seller: false,
-    seller_verified: false,
-    created_at: new Date().toISOString(),
-  });
-if (referral_code) {
-  try {
-    const { data: inviter } = await supabase
+  await supabase
+    .from("profiles")
+    .upsert({ id: newUserId, invite_code: inviteCode }, { onConflict: "id" });
+
+  if (referral_code) {
+    console.log("🔍 البحث عن كود الدعوة:", referral_code);
+    const { data: inviter, error: inviterErr } = await supabase
       .from("profiles")
       .select("id, invite_code")
-      .eq("invite_code", referral_code.toUpperCase())
+      .ilike("invite_code", referral_code)
       .maybeSingle();
 
-    if (!inviter) {
-      message.textContent = `⚠️ كود الدعوة غير صالح (${referral_code})`;
-      message.className = "text-center mt-4 text-sm text-yellow-600";
-    } else {
-      const { data: existing } = await supabase
-        .from("referrals")
-        .select("id")
-        .or(`device_fp.eq.${device_fp},ip_address.eq.${ip_address}`)
-        .maybeSingle();
+    console.log("📋 نتيجة البحث:", inviter, inviterErr);
 
-      if (existing) {
-        message.textContent = "⚠️ تم استخدام كود دعوة بالفعل من هذا الجهاز أو الشبكة.";
-        message.className = "text-center mt-4 text-sm text-yellow-600";
-      } else {
-        const { error: refError } = await supabase.from("referrals").insert([
+    if (inviter?.id) {
+      console.log("✅ الكود صالح - جاري انتظار إنشاء profile للمستخدم الجديد...");
+      let retries = 0;
+      let newProfile = null;
+
+      while (retries < 5) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("id", newUserId)
+          .maybeSingle();
+
+        if (profile) {
+          newProfile = profile;
+          break;
+        }
+        retries++;
+        await new Promise((r) => setTimeout(r, 1000)); 
+      }
+
+      if (newProfile) {
+        const { error: insertErr } = await supabase.from("referrals").insert([
           {
             inviter_id: inviter.id,
             invitee_id: newUserId,
-            referral_code: referral_code.toUpperCase(),
+            referral_code,
             device_fp,
             ip_address,
             reward: 0,
@@ -390,27 +387,28 @@ if (referral_code) {
           },
         ]);
 
-        if (refError) {
-          console.error("❌ خطأ أثناء حفظ الدعوة:", refError);
-          message.textContent = "❌ فشل إضافة الدعوة.";
-          message.className = "text-center mt-4 text-sm text-red-600";
+        if (insertErr) {
+          console.error("❌ Referral insert error:", insertErr);
         } else {
-          console.log("✅ تمت إضافة الدعوة بنجاح!");
+          console.log("✅ تم تسجيل الدعوة لصالح:", inviter.id);
         }
+      } else {
+        console.warn("⚠️ لم يتم العثور على profile للمستخدم الجديد بعد.");
       }
+    } else {
+      console.warn("⚠️ كود الدعوة غير صالح أو غير موجود:", referral_code);
+      message.textContent = `⚠️ كود الدعوة غير صالح (${referral_code})`;
+      message.className = "text-center mt-4 text-sm text-yellow-600";
     }
-  } catch (err) {
-    console.error("❌ خطأ أثناء التعامل مع كود الدعوة:", err);
   }
-}
-
 
   message.textContent = "✅ تم التسجيل بنجاح! تحقق من بريدك الإلكتروني لتفعيل الحساب.";
   message.className = "text-center mt-4 text-sm text-green-600";
 
-  setTimeout(() => window.location.href = "shop-login.html", 2000);
+  setTimeout(() => {
+    window.location.href = "shop.html";
+  }, 2000);
 });
-
 async function logUserActivity(type) {
   const user = JSON.parse(localStorage.getItem('lv12_user') || '{}');
   await supabase.from('user_activity').insert({
@@ -423,11 +421,6 @@ async function logUserActivity(type) {
 logUserActivity('زيارة المتجر');
 
 </script>
-
-
-
-
-
 
 <script>
 (async () => {

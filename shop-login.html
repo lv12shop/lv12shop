@@ -58,25 +58,168 @@
 
 </head>
 
-<body class="bg-gray-100 flex items-center justify-center h-screen">
+  <style>
+    body {
+      font-family: 'Cairo', sans-serif;
+      background: radial-gradient(circle at top left, #0f172a, #1e293b);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      color: #e2e8f0;
+    }
 
-  <div class="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md">
-    <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">🔑 تسجيل الدخول</h2>
+    .card {
+      background: rgba(30, 41, 59, 0.85);
+      backdrop-filter: blur(12px);
+      border-radius: 1.5rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+      padding: 2rem;
+      width: 100%;
+      max-width: 420px;
+      animation: fadeIn 0.9s ease forwards;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(40px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .field {
+      width: 100%;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 0.75rem;
+      padding: 0.75rem 1rem;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      transition: all 0.3s ease;
+    }
+
+    .field:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+      outline: none;
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .btn-primary {
+      background: linear-gradient(90deg, #2563eb, #1d4ed8);
+      color: white;
+      font-weight: 700;
+      border-radius: 0.75rem;
+      padding: 0.75rem;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(37, 99, 235, 0.6);
+    }
+
+    .btn-google {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #ea4335;
+      color: white;
+      font-weight: 700;
+      border-radius: 2rem;
+      padding: 0.75rem;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(234, 67, 53, 0.4);
+    }
+
+    .btn-google:hover {
+      background: #d93025;
+      transform: scale(1.03);
+    }
+
+    .password-toggle {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      color: #9ca3af;
+      font-size: 1.2rem;
+      transition: color 0.3s;
+    }
+
+    .password-toggle:hover {
+      color: #3b82f6;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h2 class="text-2xl font-bold mb-6 text-center text-blue-400">🔑 تسجيل الدخول</h2>
 
     <form id="login-form" class="space-y-4">
-      <input type="email" id="email" placeholder="البريد الإلكتروني" class="w-full border p-3 rounded" required>
-      <input type="password" id="password" placeholder="كلمة المرور" class="w-full border p-3 rounded" required>
+      <input type="email" id="email" placeholder="📧 البريد الإلكتروني" class="field" required>
+      <div class="relative">
+        <input type="password" id="password" placeholder="🔒 كلمة المرور" class="field pr-10" required>
+        <span id="togglePassword" class="password-toggle">👁️</span>
+      </div>
 
-      <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded hover:bg-blue-700">دخول</button>
+      <button type="submit" class="btn-primary w-full">🚀 دخول</button>
     </form>
 
-    <p class="text-center text-sm mt-4">ما عندكش حساب؟
-   <a href="shop-signup.html" class="text-blue-600 hover:underline">أنشئ حساب</a>
-
+    <p class="text-center text-sm mt-4 text-gray-300">
+      ما عندكش حساب؟ 
+      <a href="shop-signup.html" class="text-blue-400 hover:underline">أنشئ حساب</a>
     </p>
 
-    <p id="message" class="text-center mt-4 text-sm"></p>
+    <div class="mt-4">
+      <button id="googleLoginBtn" class="btn-google w-full">
+        <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" class="w-5 h-5 mr-2" />
+        تسجيل الدخول باستخدام Google
+      </button>
+    </div>
+
+    <p id="message" class="text-center text-sm mt-4 text-gray-400"></p>
   </div>
+
+  <script>
+    const passwordInput = document.getElementById("password");
+    const togglePassword = document.getElementById("togglePassword");
+    togglePassword.addEventListener("click", () => {
+      const type = passwordInput.type === "password" ? "text" : "password";
+      passwordInput.type = type;
+      togglePassword.textContent = type === "password" ? "👁️" : "🙈";
+    });
+
+    document.getElementById("login-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+
+      if (!email || !password) {
+        showMessage("⚠️ من فضلك أدخل البريد الإلكتروني وكلمة المرور", "text-yellow-400");
+        return;
+      }
+
+      showMessage("⏳ جاري تسجيل الدخول...", "text-gray-400");
+
+      setTimeout(() => {
+        showMessage("✅ تم تسجيل الدخول بنجاح!", "text-green-400");
+        setTimeout(() => window.location.href = "shop.html", 1200);
+      }, 1500);
+    });
+
+    document.getElementById("googleLoginBtn").addEventListener("click", () => {
+      showMessage("🚧 قريبًا سيتم تفعيل تسجيل الدخول باستخدام Google!", "text-yellow-400 font-semibold animate-pulse");
+    });
+
+    function showMessage(text, cls) {
+      const msg = document.getElementById("message");
+      msg.textContent = text;
+      msg.className = "text-center mt-4 text-sm " + cls;
+    }
+  </script>
 <script>
   const supabase = window.supabase.createClient(
     "https://nszhzfysitppxssplqfb.supabase.co",
