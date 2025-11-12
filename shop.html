@@ -399,8 +399,9 @@ footer .border-t {
       <p class="text-[11px] opacity-80">مرحباً بك 👋</p>
     </div>
     <button id="logoutBtn"
-      class="text-xs sm:text-sm font-semibold border border-red-300 text-red-100 px-3 py-1 rounded-full bg-red-600/30 hover:bg-red-600/50 transition-all duration-300">
-      🔓 خروج
+      class="text-xs sm:text-sm font-semibold border border-red-600 text-white px-3 py-1.5 rounded-full 
+             bg-red-600 hover:bg-red-700 shadow-md hover:shadow-lg transition-all duration-300 flex items-center gap-1">
+      🔓 <span>خروج</span>
     </button>
   </div>
 </header>
@@ -3727,12 +3728,24 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   } else {
     console.log("⚪ لم يتم تسجيل الدخول.");
-    userArea.innerHTML = `
-      <a href="shop-login.html" class="text-blue-700 font-medium hover:underline text-sm">
-        تسجيل الدخول
-      </a>
-    `;
-  }
+  userArea.innerHTML = `
+    <a href="shop-login.html"
+       class="font-semibold text-sm hover:underline"
+       style="
+         color: #ff1a1a !important;
+         background: transparent !important;
+         font-weight: 700 !important;
+         text-shadow: 0 0 6px rgba(0,0,0,0.25);
+         padding: 4px 10px;
+         border-radius: 8px;
+         transition: all 0.3s ease;
+       "
+       onmouseover="this.style.color='#ff5555'"
+       onmouseout="this.style.color='#ff1a1a'">
+       🔑 تسجيل الدخول
+    </a>
+  `;
+}
 });
 </script>
 <script>
