@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>البحث في متجر  | اكتشف المنتجات بسهولة</title>
+
+  <meta name="description" content="ابحث في متجر متاز بسهولة — منتجات، أسعار، تقييمات، خصومات وعروض.">
+  <meta name="keywords" content="متاز, متجر متاز, منتجات, بحث, شراء, تسوق, خصومات">
+  <meta property="og:image" content="/lv12.png">
+  <link rel="icon" href="/lv12.png">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-gray-100">
+
+<header class="bg-gradient-to-r from-blue-600 to-indigo-600 p-4 shadow-lg sticky top-0 z-50 flex justify-between items-center text-white">
+
+  <div class="flex items-center gap-3 cursor-pointer" onclick="window.location.href='shop.html'">
+    <img src="/logo.png" class="w-11 h-11 rounded-full shadow-lg border border-white">
+    <h1 class="text-xl font-extrabold tracking-wide"> • البحث</h1>
+  </div>
+
+  <button onclick="window.location.href='shop.html'"
+          class="bg-white text-blue-700 font-bold px-4 py-2 rounded-xl shadow hover:scale-105 transition">
+    ⬅ رجوع
+  </button>
+</header>
+
+
+<section class="p-4 bg-white mt-3 mx-3 rounded-2xl shadow-lg">
+  <div class="flex gap-2 mb-3">
+    <input id="searchInput" type="text" placeholder="ابحث عن منتج..."
+           class="w-full border border-blue-300 rounded-xl px-4 py-3 bg-blue-50 shadow-inner focus:ring-4 focus:ring-blue-300/40">
+
+    <button onclick="doSearch()"
+            class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-xl shadow hover:scale-105 transition">
+      بحث
+    </button>
+  </div>
+
+  <div id="liveSuggestions"
+       class="hidden bg-white border border-blue-100 rounded-xl shadow max-h-64 overflow-y-auto p-2"></div>
+</section>
+
+
+<section class="px-4 mt-2">
+  <div class="bg-white p-3 rounded-xl shadow flex flex-wrap gap-2 text-sm">
+
+    <select id="sortSelect" class="border p-2 rounded-lg">
+      <option value="relevance">الأفضل</option>
+      <option value="price_low">الأقل سعرًا</option>
+      <option value="price_high">الأعلى سعرًا</option>
+      <option value="rating">الأعلى تقييمًا</option>
+      <option value="sales">الأكثر مبيعًا</option>
+    </select>
+
+    <input id="minPrice" type="number" placeholder="أقل سعر" class="border p-2 rounded-lg w-24">
+    <input id="maxPrice" type="number" placeholder="أعلى سعر" class="border p-2 rounded-lg w-24">
+
+    <label class="flex items-center gap-1 cursor-pointer">
+      <input id="discountOnly" type="checkbox"> خصومات فقط
+    </label>
+
+  </div>
+</section>
+
+
+<div id="noResults" class="hidden text-center text-gray-400 p-6 text-lg">لا توجد نتائج</div>
+<section id="resultsGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 p-4"></section>
+ <script>
+    const SUPABASE_URL = "https://nszhzfysitppxssplqfb.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zemh6ZnlzaXRwcHhzc3BscWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA4OTcsImV4cCI6MjA3MzgwNjg5N30.5KvK4bhqkZ_GpIfED4qecIMfeubAJYwSFJslULwOp-w";
+    const { createClient } = supabase;
+    const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+  </script>
+
+<script>
+
+const BUCKET_BASE = `${SUPABASE_URL}/storage/v1/object/public/product_images/`;
+
+function debounce(fn, wait = 250) {
+  let t;
+  return (...args) => {
+    clearTimeout(t);
+    t = setTimeout(() => fn(...args), wait);
+  };
+}
+
+function getProductImageFromMap(p, imagesMap) {
+  if (p.image_url && String(p.image_url).trim() !== "") {
+    return p.image_url.startsWith("http") ? p.image_url : BUCKET_BASE + p.image_url;
+  }
+
+  const imgs = imagesMap.get(p.id) || [];
+  if (imgs.length > 0) {
+    const primary = imgs.find(i => i.is_primary) || imgs[0];
+    if (primary && primary.image_url) {
+      return primary.image_url.startsWith("http") ? primary.image_url : BUCKET_BASE + primary.image_url;
+    }
+  }
+
+  return "/assets/no-image.png";
+}
+
+function levenshtein(a, b) {
+  a = a || ""; b = b || "";
+  const m = a.length, n = b.length;
+  const dp = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
+  for (let i = 0; i <= m; i++) dp[i][0] = i;
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      dp[i][j] = Math.min(
+        dp[i-1][j] + 1,
+        dp[i][j-1] + 1,
+        dp[i-1][j-1] + (a[i-1] === b[j-1] ? 0 : 1)
+      );
+    }
+  }
+  return dp[m][n];
+}
+
+async function doSearch() {
+  const q = (document.getElementById("searchInput").value || "").trim().toLowerCase();
+  const grid = document.getElementById("resultsGrid");
+  const noRes = document.getElementById("noResults");
+
+  grid.innerHTML = `<div class="col-span-full text-center p-4 text-blue-700 font-bold animate-pulse">جاري التحميل...</div>`;
+  noRes.classList.add("hidden");
+  grid.classList.remove("hidden");
+
+  const { data: products, error: prodErr } = await db
+    .from("products")
+    .select("id, name, price, discount_price, image_url, views")
+    .limit(200); 
+
+  if (prodErr || !products) {
+    grid.innerHTML = `<div class="col-span-full p-4 text-red-600">خطأ في جلب المنتجات</div>`;
+    return;
+  }
+
+  const ids = products.map(p => p.id).filter(Boolean);
+  const imagesMap = new Map(); 
+
+  if (ids.length) {
+    const { data: imgs, error: imgErr } = await db
+      .from("product_images")
+      .select("id, product_id, image_url, is_primary")
+      .in("product_id", ids);
+
+    if (!imgErr && imgs) {
+      imgs.forEach(img => {
+        if (!imagesMap.has(img.product_id)) imagesMap.set(img.product_id, []);
+        imagesMap.get(img.product_id).push(img);
+      });
+    }
+  }
+
+  const reviewsMap = new Map(); 
+  if (ids.length) {
+    const { data: revs, error: revErr } = await db
+      .from("product_reviews")
+      .select("product_id, rating")
+      .in("product_id", ids);
+
+    if (!revErr && revs) {
+      revs.forEach(r => {
+        if (!reviewsMap.has(r.product_id)) reviewsMap.set(r.product_id, []);
+        reviewsMap.get(r.product_id).push(r.rating);
+      });
+    }
+  }
+
+  products.forEach(p => {
+    const arr = reviewsMap.get(p.id) || [];
+    p.avgRating = arr.length ? arr.reduce((a,c) => a+c,0)/arr.length : 0;
+  });
+
+  const qIsEmpty = q === "";
+  let results = products
+    .map(p => {
+      const name = (p.name || "").toLowerCase();
+      const score =
+        (qIsEmpty ? 0 : (name.startsWith(q) ? 200 : 0)) +
+        (qIsEmpty ? 0 : (name.includes(q) ? 100 : 0)) -
+        (qIsEmpty ? 0 : levenshtein(name, q));
+      return { ...p, score };
+    })
+    .filter(p => qIsEmpty ? true : p.score > -10) 
+    .sort((a,b) => b.score - a.score);
+
+  const minP = Number(document.getElementById("minPrice").value) || 0;
+  const maxP = Number(document.getElementById("maxPrice").value) || Infinity;
+  const discountOnly = document.getElementById("discountOnly").checked;
+  const sortBy = document.getElementById("sortSelect").value;
+
+  results = results.filter(p => {
+    if (p.price < minP) return false;
+    if (p.price > maxP) return false;
+    if (discountOnly && !p.discount_price) return false;
+    return true;
+  });
+
+  if (sortBy === "price_low") results.sort((a,b) => a.price - b.price);
+  if (sortBy === "price_high") results.sort((a,b) => b.price - a.price);
+  if (sortBy === "rating") results.sort((a,b) => b.avgRating - a.avgRating);
+  if (sortBy === "sales") results.sort((a,b) => b.views - a.views);
+
+  if (!results.length) {
+    noRes.classList.remove("hidden");
+    grid.classList.add("hidden");
+    return;
+  }
+
+  noRes.classList.add("hidden");
+  grid.classList.remove("hidden");
+
+  grid.innerHTML = results.map(p => {
+    const imgUrl = getProductImageFromMap(p, imagesMap);
+    const priceHtml = p.discount_price
+      ? `<span class="line-through text-gray-400 text-xs mr-2">${p.price}</span><span class="font-bold text-blue-600">${p.discount_price} ج.م</span>`
+      : `<span class="font-bold text-blue-600">${p.price} ج.م</span>`;
+
+    return `
+      <div class="bg-white rounded-xl shadow p-2 hover:shadow-lg cursor-pointer transition"
+           onclick="goToProduct(${p.id})">
+        <img src="${imgUrl}" class="w-full h-40 object-cover rounded-xl" alt="${escapeHtml(p.name)}">
+        <h3 class="font-bold text-blue-900 text-sm mt-2">${escapeHtml(p.name)}</h3>
+        <p class="text-sm mt-1">${priceHtml}</p>
+        <p class="text-yellow-500 text-xs mt-1">⭐ ${p.avgRating.toFixed(1)}</p>
+      </div>
+    `;
+  }).join("");
+}
+
+function escapeHtml(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+const debouncedSearch = debounce(doSearch, 220);
+document.getElementById("searchInput").addEventListener("input", debouncedSearch);
+
+["sortSelect","minPrice","maxPrice","discountOnly"].forEach(id=>{
+  const el = document.getElementById(id);
+  if (el) el.addEventListener("change", doSearch);
+});
+
+function goToProduct(id){ window.location.href = `product.html?id=${id}`; }
+
+const urlParams = new URLSearchParams(location.search);
+if (urlParams.has("q")) {
+  document.getElementById("searchInput").value = urlParams.get("q");
+  debouncedSearch();
+}
+</script>
+
+
+<script>
+async function renderUserInterests() {
+  const container = document.getElementById("interestProducts");
+  if (!container) return;
+
+  const bucket = `${SUPABASE_URL}/storage/v1/object/public/product_images/`;
+
+
+  function getInterestImage(p) {
+    try {
+      if (p.image_url && p.image_url.trim() !== "") {
+        return p.image_url.startsWith("http")
+          ? p.image_url
+          : bucket + p.image_url;
+      }
+
+      if (Array.isArray(p.product_images) && p.product_images.length > 0) {
+        const cleanImages = p.product_images.filter(
+          img => img && img.image_url && img.image_url.trim() !== ""
+        );
+
+        if (cleanImages.length > 0) {
+          const main = cleanImages.find(img => img.is_primary) || cleanImages[0];
+          return main.image_url.startsWith("http")
+            ? main.image_url
+            : bucket + main.image_url;
+        }
+      }
+
+      return "/assets/no-image.png";
+
+    } catch {
+      return "/assets/no-image.png";
+    }
+  }
+
+  try {
+
+    const { data: session } = await db.auth.getSession();
+    const user = session?.session?.user;
+
+    if (!user) {
+      container.innerHTML = `
+        <div class="text-center py-6 bg-white rounded-xl shadow">
+          <p class="text-gray-600 text-lg">سجل دخولك لعرض اهتماماتك ❤️</p>
+        </div>
+      `;
+      return;
+    }
+
+
+    const { data: interests, error } = await db
+      .from("user_interests")
+      .select("product_id")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(12);
+
+    if (error) throw error;
+
+    if (!interests?.length) {
+      container.innerHTML = `
+        <div class="text-center py-6 bg-white rounded-xl shadow">
+          <p class="text-gray-600 text-lg">ابدأ بتصفح المنتجات ليظهر تاريخ اهتماماتك 👀</p>
+        </div>
+      `;
+      return;
+    }
+
+    const ids = [...new Set(interests.map(i => i.product_id))];
+
+    const { data: products, error: productErr } = await db
+      .from("products")
+      .select(`
+        id, name, price, discount_price, image_url,
+        product_images(image_url, is_primary),
+        product_reviews(rating)
+      `)
+      .in("id", ids);
+
+    if (productErr) throw productErr;
+
+    if (!products?.length) {
+      container.innerHTML = `
+        <div class="text-center py-6 bg-white rounded-xl shadow">
+          <p class="text-gray-500 text-lg">لا توجد منتجات مطابقة 😕</p>
+        </div>
+      `;
+      return;
+    }
+
+   
+    products.forEach(p => {
+      if (p.product_reviews?.length) {
+        p.avgRating =
+          p.product_reviews.reduce((acc, r) => acc + r.rating, 0) /
+          p.product_reviews.length;
+      } else {
+        p.avgRating = 0;
+      }
+    });
+
+
+    container.innerHTML = products
+      .map(p => {
+        const img = getInterestImage(p);
+        const price = p.discount_price ?? p.price;
+
+        return `
+          <div class="bg-white rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-1 
+                      transition p-2 cursor-pointer"
+               onclick="location.href='product.html?id=${p.id}'">
+
+            <div class="relative">
+              <img src="${img}" class="w-full h-40 object-cover rounded-xl">
+
+              ${p.discount_price ? `
+                <span class="absolute top-2 right-2 bg-red-600 text-white text-xs px-2 py-1 rounded-xl shadow">
+                  خصم
+                </span>` : ""}
+            </div>
+
+            <h3 class="font-bold text-blue-900 text-sm mt-2 line-clamp-2">
+              ${p.name}
+            </h3>
+
+            <p class="text-blue-600 font-bold text-sm mt-1">
+              ${p.discount_price 
+                ? `<span class="line-through text-gray-400 text-xs">${p.price}</span> ${p.discount_price}`
+                : p.price} ج.م
+            </p>
+
+            <p class="text-yellow-500 text-xs mt-1">
+              ⭐ ${p.avgRating.toFixed(1)}
+            </p>
+          </div>
+        `;
+      })
+      .join("");
+
+  } catch (err) {
+    console.error("❌ خطأ في عرض الاهتمامات:", err);
+    container.innerHTML = `
+      <p class="text-red-500 text-center py-4">حدث خطأ أثناء تحميل اهتماماتك 😞</p>
+    `;
+  }
+}
+
+document.addEventListener("DOMContentLoaded", renderUserInterests);
+</script>
+<section class="mt-6">
+  <div class="flex items-center justify-between mb-3">
+    <h2 class="text-xl font-extrabold text-blue-800 flex items-center gap-2">
+      ✨ اهتماماتك
+    </h2>
+    <button onclick="window.location.href='shop.html#interestProducts'"
+            class="text-sm text-blue-600 hover:text-blue-800 transition">
+      عرض الكل →
+    </button>
+  </div>
+
+  <div id="interestProducts"
+       class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+  </div>
+</section>
+
+</body>
+</html>
