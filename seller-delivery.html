@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>صفحة التاجر — توصيل وطلبات | LV12</title>
+  <link rel="icon" href="/lv12.ico" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+<style>
+  .delivery-modal-bg {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.55);
+    z-index: 99999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+  .delivery-modal-box {
+    width: 100%;
+    max-width: 420px;
+    background: #ffffff;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    animation: modalPop .25s ease-out;
+    box-shadow: 0 10px 35px rgba(0,0,0,0.15);
+  }
+  @keyframes modalPop {
+    from { opacity: 0; transform: scale(.85); }
+    to   { opacity: 1; transform: scale(1);  }
+  }
+  .modal-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: .35rem;
+    display: block;
+  }
+  .modal-input {
+    width: 100%;
+    padding: .65rem .75rem;
+    border: 1px solid #cbd5e1;
+    border-radius: .5rem;
+    font-size: .9rem;
+    background: #f8fafc;
+  }
+  .modal-input:focus {
+    outline: none;
+    border-color: #2563eb;
+    background: #fff;
+    box-shadow: 0 0 0 2px rgba(37,99,235,0.25);
+  }
+  .modal-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1.25rem;
+    gap: .75rem;
+  }
+  .modal-btn-save {
+    flex: 1;
+    background: linear-gradient(90deg, #2563eb, #1d4ed8);
+    color: #fff;
+    padding: .75rem;
+    border-radius: .55rem;
+    font-weight: 600;
+    font-size: .95rem;
+    text-align: center;
+  }
+  .modal-btn-cancel {
+    flex: 1;
+    background: #475569;
+    color: #fff;
+    padding: .75rem;
+    border-radius: .55rem;
+    font-weight: 600;
+    font-size: .95rem;
+    text-align: center;
+  }
+  @media(max-width:480px) {
+    .delivery-modal-box {
+      padding: 1.25rem;
+      max-width: 90%;
+    }
+  }
+</style>
+<div id="deliveryModal" class="delivery-modal-bg">
+  <div class="delivery-modal-box">
+    <h3 class="text-lg font-bold text-blue-700 mb-4 text-center">⏰ تعديل ميعاد التوصيل</h3>
+    <label class="modal-label">🗓 تاريخ التوصيل:</label>
+    <input id="newDeliveryDate" type="date" class="modal-input mb-3">
+    <label class="modal-label">⏱ وقت التوصيل:</label>
+    <input id="newDeliveryTime" type="time" class="modal-input mb-1">
+    <div class="modal-buttons">
+      <button onclick="saveDeliveryTime()" class="modal-btn-save hover:opacity-90">
+        💾 حفظ
+      </button>
+      <button onclick="closeDeliveryModal()" class="modal-btn-cancel hover:opacity-90">
+        إلغاء
+      </button>
+    </div>
+  </div>
+</div>
+</head>
+<body class="min-h-screen">
+<header class="bg-white shadow-lg sticky top-0 z-50 border-b border-gray-200">
+  <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-3 cursor-pointer select-none" onclick="location.href='shop.html'">
+      <div class="relative">
+        <img src="lv12.ico" class="w-11 h-11 rounded-xl shadow-sm border border-gray-300" />
+      </div>
+      <div class="leading-tight">
+        <div class="text-xl font-extrabold text-blue-700 tracking-tight">LV12 — لوحة التاجر</div>
+        <div class="text-[11px] text-gray-500">إدارة الطلبات وعمليات التوصيل بسهولة</div>
+      </div>
+    </div>
+    <div id="sellerArea"
+         class="hidden sm:flex items-center gap-3 bg-gray-100 px-3 py-1.5 rounded-lg shadow-sm border border-gray-300 text-sm font-medium text-gray-700">
+    </div>
+    <div id="sellerAreaMobile" class="sm:hidden text-xs text-gray-600"></div>
+  </div>
+</header>
+<main class="max-w-7xl mx-auto px-4 py-5">
+  <div class="bg-white shadow-md rounded-xl p-4 mb-5 flex flex-wrap items-center gap-3 border border-gray-200">
+    <div class="flex items-center gap-2 flex-wrap">
+      <button onclick="setSellerFilter('all')" id="btnAll"
+        class="px-4 py-2 rounded-lg bg-blue-50 text-blue-700 font-semibold hover:bg-blue-100 transition">
+        📦 جميع الطلبات
+      </button>
+      <button onclick="setSellerFilter('today')" id="btnToday"
+        class="px-4 py-2 rounded-lg bg-yellow-50 text-yellow-700 font-semibold hover:bg-yellow-100 transition">
+        📅 طلبات اليوم
+      </button>
+      <button onclick="setSellerFilter('shipped')" id="btnInDelivery"
+        class="px-4 py-2 rounded-lg bg-blue-50 text-blue-800 font-semibold hover:bg-blue-100 transition">
+        🚚 قيد التوصيل
+      </button>
+    </div>
+    <div class="w-full border-t my-2 sm:hidden"></div>
+    <div class="ml-auto flex gap-2 items-center flex-wrap">
+      <input id="qSearch" class="border rounded-lg p-2 w-48 text-sm" placeholder="🔍 بحث بالعميل / الهاتف / المنتج..." />
+      <input id="startDate" type="date" class="border rounded-lg p-2 text-sm" />
+      <input id="endDate" type="date" class="border rounded-lg p-2 text-sm" />
+      <button onclick="applyFilters()"
+        class="px-4 py-2 rounded-lg text-sm text-white font-semibold"
+        style="background: linear-gradient(90deg,#2563eb,#1d4ed8);">
+        بحث
+      </button>
+      <button onclick="resetFilters()" class="px-4 py-2 rounded-lg bg-gray-600 text-white text-sm">
+        إعادة
+      </button>
+    </div>
+  </div>
+  <section class="card p-4 mb-4 border border-gray-200 rounded-xl shadow">
+    <div id="loadingBar"
+      class="p-4 text-center text-sm text-gray-500 hidden">
+      ⏳ جاري تحميل الطلبات...
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm border-collapse">
+        <thead class="table-head bg-gray-100 text-gray-800">
+          <tr class="text-center">
+            <th class="p-3">#</th>
+            <th class="p-3">العميل</th>
+            <th class="p-3 desktop-only">الهاتف</th>
+            <th class="p-3 desktop-only">العنوان</th>
+            <th class="p-3">المنتج</th>
+            <th class="p-3">الكمية</th>
+            <th class="p-3 desktop-only">السعر</th>
+            <th class="p-3 desktop-only">الإجمالي</th>
+            <th class="p-3 desktop-only">ميعاد التوصيل</th>
+            <th class="p-3">الحالة</th>
+            <th class="p-3">إجراءات</th>
+          </tr>
+        </thead>
+        <tbody id="ordersBody"></tbody>
+      </table>
+    </div>
+    <div class="mt-4 p-2 flex items-center justify-between flex-wrap gap-2">
+      <div id="summary" class="text-xs text-gray-600"></div>
+      <div class="flex gap-3 items-center">
+        <button onclick="prevPage()" id="prevBtn"
+          class="px-3 py-1 border rounded-lg hover:bg-gray-100 transition">
+          « السابق
+        </button>
+        <span id="pageInfo" class="text-sm font-semibold"></span>
+        <button onclick="nextPage()" id="nextBtn"
+          class="px-3 py-1 border rounded-lg hover:bg-gray-100 transition">
+          التالي »
+        </button>
+        <select id="pageSize" onchange="changePageSize()"
+          class="border rounded-lg p-1 ml-2">
+          <option value="10">10 / صفحة</option>
+          <option value="25">25 / صفحة</option>
+          <option value="50">50 / صفحة</option>
+        </select>
+      </div>
+    </div>
+  </section>
+</main>
+  <div id="toast" class="toast"></div>
+  <div id="modal" class="modal-bg">
+    <div class="modal-box">
+      <h3 class="text-lg font-bold mb-2">تفاصيل الطلب</h3>
+      <div id="modalContent" class="space-y-2 text-sm"></div>
+      <div class="mt-4 text-left">
+        <button onclick="closeModal()" class="px-3 py-1 bg-red-600 text-white rounded">إغلاق</button>
+      </div>
+    </div>
+  </div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.plugin.autotable.min.js"></script>
+<script>
+  const amiriFont = `
+AAEAAAAPAIAAAwBwR1NVQgAA... (كود الخط الطويل سأنشئه لك الآن)
+  `;
+</script>
+<script>
+const SUPABASE_URL = "https://nszhzfysitppxssplqfb.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zemh6ZnlzaXRwcHhzc3BscWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA4OTcsImV4cCI6MjA3MzgwNjg5N30.5KvK4bhqkZ_GpIfED4qecIMfeubAJYwSFJslULwOp-w";
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let page = 1, pageSize = 10, totalCount = 0;
+let sellerFilter = 'all'; 
+let statusFilter = 'all';
+let orders = [];
+let editDeliveryOrderId = null;
+let activeOrder = null;
+let ordersRealtimeSub = null;
+const ordersBody = document.getElementById('ordersBody');
+const loadingBar = document.getElementById('loadingBar');
+const toastEl = document.getElementById('toast');
+const summaryEl = document.getElementById('summary');
+const pageInfo = document.getElementById('pageInfo');
+function showToast(msg, ok = true, ms = 3000) {
+  toastEl.textContent = msg;
+  toastEl.style.background = ok ? '#16a34a' : '#dc2626';
+  toastEl.style.display = 'block';
+  clearTimeout(toastEl._t);
+  toastEl._t = setTimeout(()=> toastEl.style.display='none', ms);
+}
+async function checkSeller() {
+  const { data } = await supabase.auth.getSession();
+  const user = data?.session?.user;
+  if (!user) {
+    showToast("يجب تسجيل الدخول كتاجر", false);
+    setTimeout(()=> location.href='shop-login.html', 900);
+    return null;
+  }
+  document.getElementById('sellerArea').innerHTML = `${user.email} <button onclick="logout()" class="text-red-600 underline ml-2">خروج</button>`;
+  initRealtimeForSeller(user.id);
+  return user;
+}
+async function logout() {
+  try {
+    if (ordersRealtimeSub) {
+      await supabase.removeChannel(ordersRealtimeSub);
+      ordersRealtimeSub = null;
+    }
+  } catch(e){ console.warn("failed remove realtime", e); }
+  await supabase.auth.signOut();
+  location.reload();
+}
+function initRealtimeForSeller(sellerId) {
+  if (ordersRealtimeSub) {
+    supabase.removeChannel(ordersRealtimeSub).catch(()=>{});
+    ordersRealtimeSub = null;
+  }
+  ordersRealtimeSub = supabase.channel(`orders-seller-${sellerId}`)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'orders', filter: `seller_id=eq.${sellerId}` }, payload => {
+ 
+      console.log("Realtime orders payload:", payload);
+      loadOrders(); 
+    })
+    .subscribe(status => {
+      console.log('realtime status', status);
+    });
+}
+async function loadOrders() {
+  loadingBar.classList.remove('hidden');
+  ordersBody.innerHTML = '';
+  try {
+    const { data: sess } = await supabase.auth.getSession();
+    const user = sess?.session?.user;
+    if (!user) { loadingBar.classList.add('hidden'); return; }
+    let q = supabase
+      .from('orders')
+      .select(`
+        id,
+        name,
+        phone,
+        address,
+        quantity,
+        status,
+        payment_method,
+        delivery_date,
+        delivery_time,
+        created_at,
+        product_id,
+        price,
+        notes,
+        seller_id,
+        products:products!orders_product_id_fkey (
+          id, name, price, product_images(image_url, is_primary)
+        )
+      `, { count: 'exact' })
+      .order('id', { ascending: false })
+      .eq('seller_id', user.id);
+
+    if (sellerFilter === 'today') {
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth()+1).padStart(2,'0');
+      const dd = String(today.getDate()).padStart(2,'0');
+      const from = `${yyyy}-${mm}-${dd}T00:00:00`;
+      const to = `${yyyy}-${mm}-${dd}T23:59:59`;
+      q = q.gte('created_at', from).lte('created_at', to);
+    } else if (sellerFilter === 'shipped') {
+      q = q.eq('status', 'shipped');
+    }
+    if (statusFilter !== 'all') q = q.eq('status', statusFilter);
+    const qSearchEl = document.getElementById('qSearch');
+    const qSearch = qSearchEl ? qSearchEl.value.trim() : '';
+    if (qSearch) q = q.or(`
+      name.ilike.%${qSearch}%,
+      phone.ilike.%${qSearch}%,
+      address.ilike.%${qSearch}%,
+      products.name.ilike.%${qSearch}%,
+      payment_method.ilike.%${qSearch}%`);
+    const startEl = document.getElementById('startDate');
+    const endEl = document.getElementById('endDate');
+    const start = startEl ? startEl.value : '';
+    const end = endEl ? endEl.value : '';
+    if (start) q = q.gte('created_at', start + 'T00:00:00');
+    if (end) q = q.lte('created_at', end + 'T23:59:59');
+    const from = (page - 1) * pageSize;
+    const to = from + pageSize - 1;
+    const { data, error, count } = await q.range(from, to);
+    if (error) throw error;
+    orders = data || [];
+    totalCount = Number(count) || 0;
+    renderOrders();
+  } catch (err) {
+    console.error("⚠ Supabase Error:", err);
+    showToast("❌ خطأ في تحميل الطلبات", false);
+  }
+  loadingBar.classList.add('hidden');
+}
+function renderOrders() {
+  ordersBody.innerHTML = '';
+  if (!orders.length) {
+    ordersBody.innerHTML = `
+      <tr><td colspan="11" class="p-4 text-center text-gray-500">🚫 لا توجد طلبات</td></tr>
+    `;
+    summaryEl.textContent = `عرض 0 من 0 طلب`;
+    pageInfo.textContent = `صفحة ${page}`;
+    return;
+  }
+  const formatPrice = (num) => Number(num || 0).toLocaleString('ar-EG') + ' ج.م';
+  const statusMap = {
+    pending: ['bg-yellow-100 text-yellow-800', '🕒 معلقة'],
+    shipped: ['bg-blue-100 text-blue-800', '🚚 قيد التوصيل'],
+    delivered: ['bg-green-100 text-green-800', '✅ تم التسليم'],
+    return_requested: ['bg-orange-100 text-orange-800', '🔁 استرجاع'],
+    cancelled: ['bg-red-100 text-red-800', '❌ ملغاة']
+  };
+  const rows = orders.map(o => {
+    const prod = o.products || {};
+    const img = (prod.product_images?.find(i=>i.is_primary)?.image_url) || prod.product_images?.[0]?.image_url || prod.image || '/assets/no-image.png';
+    const price = o.price || prod.price || 0;
+    const total = price * (o.quantity || 1);
+    const [bg, label] = statusMap[o.status] || ['bg-gray-100 text-gray-800', 'غير معروف'];
+    const statusHTML = `<span class="pill ${bg}">${label}</span>`;
+    const deliveryText = (o.delivery_date || '-') + (o.delivery_time ? ' ' + o.delivery_time : '');
+    let actions = `
+      <button onclick="viewDetails(${o.id})" class="bg-gray-600 hover:bg-gray-700 text-white text-xs px-2 py-1 rounded">🔍 تفاصيل</button>
+      <button onclick="downloadPDF(${o.id})" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-2 py-1 rounded">📄 فاتورة</button>
+      <button onclick="editDelivery(${o.id},'${o.delivery_date||''}','${o.delivery_time||''}')" class="bg-orange-500 hover:bg-orange-600 text-white text-xs px-2 py-1 rounded">⏰ تعديل</button>
+    `;
+    if (o.status === 'return_requested') {
+      actions += `
+        <button onclick="resolveReturn(${o.id}, 'replaced')" class="bg-purple-600 hover:bg-purple-700 text-white text-xs px-2 py-1 rounded">🔁 استبدال</button>
+        <button onclick="resolveReturn(${o.id}, 'refunded')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-2 py-1 rounded">💵 استرجاع</button>
+        <button onclick="resolveReturn(${o.id}, 'delivered')" class="bg-gray-500 hover:bg-gray-600 text-white text-xs px-2 py-1 rounded">❌ رفض</button>
+      `;
+    }
+    if (o.status === 'pending') {
+      actions += `<button onclick="updateStatus(${o.id},'shipped')" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-2 py-1 rounded">🚚 شحن</button>
+                  <button onclick="updateStatus(${o.id},'cancelled')" class="bg-red-600 hover:bg-red-700 text-white text-xs px-2 py-1 rounded">❌ إلغاء</button>`;
+    } else if (o.status === 'shipped') {
+      actions += `<button onclick="updateStatus(${o.id},'delivered')" class="bg-green-600 hover:bg-green-700 text-white text-xs px-2 py-1 rounded">✅ تسليم</button>`;
+    }
+    return `
+      <tr class="border-b bg-white hover:bg-gray-50 transition">
+        <td class="p-3 font-semibold text-gray-700">#${o.id}</td>
+        <td class="p-3">${o.name||'-'}</td>
+        <td class="p-3 desktop-only">${o.phone||'-'}</td>
+        <td class="p-3 desktop-only">${o.address||'-'}</td>
+        <td class="p-3 flex gap-2 items-center">
+          <img src="${img}" class="w-12 h-12 rounded object-cover border" />
+          <div>
+            <div class="font-semibold">${(prod.name)||'-'}</div>
+            <div class="text-xs text-gray-500">${formatPrice(price)}</div>
+          </div>
+        </td>
+        <td class="p-3">${o.quantity||1}</td>
+        <td class="p-3 desktop-only">${formatPrice(price)}</td>
+        <td class="p-3 desktop-only font-bold text-blue-700">${formatPrice(total)}</td>
+        <td class="p-3 desktop-only">${deliveryText}</td>
+        <td class="p-3">${statusHTML}</td>
+        <td class="p-3 flex flex-wrap gap-2">${actions}</td>
+      </tr>
+    `;
+  });
+  ordersBody.innerHTML = rows.join('');
+  const start = (page - 1) * pageSize + 1;
+  const end = Math.min(page * pageSize, totalCount || (page * pageSize));
+  summaryEl.textContent = `عرض ${orders.length ? start : 0} إلى ${orders.length ? end : 0} من ${totalCount} طلب`;
+  pageInfo.textContent = `صفحة ${page}`;
+}
+async function updateStatus(id, newStatus) {
+  if (!confirm("هل أنت متأكد من تغيير الحالة؟")) return;
+  try {
+    const { error } = await supabase.from('orders').update({ status: newStatus }).eq('id', id);
+    if (error) throw error;
+    if (newStatus === 'delivered') {
+      const { data: ord, error: ordErr } = await supabase.from('orders').select('product_id,quantity').eq('id', id).single();
+      if (!ordErr && ord) {
+        const pId = ord.product_id, qty = ord.quantity || 1;
+        const { data: p } = await supabase.from('products').select('stock,sold').eq('id', pId).single();
+        if (p) {
+          await supabase.from('products').update({ stock: Math.max(0, p.stock - qty), sold: (p.sold || 0) + qty }).eq('id', pId);
+        }
+      }
+    }
+    showToast("✅ تم تحديث الحالة");
+    loadOrders();
+  } catch (err) {
+    console.error(err);
+    showToast("❌ فشل تحديث الحالة", false);
+  }
+}
+async function resolveReturn(id, action) {
+  const messages = {
+    replaced: "✅ تم الاستبدال بنجاح",
+    refunded: "💵 تم الاسترجاع النقدي",
+    delivered: "❌ تم رفض طلب الاسترجاع"
+  };
+  if (!confirm("هل أنت متأكد من تنفيذ هذا الإجراء؟")) return;
+  try {
+    const { error } = await supabase.from('orders').update({ status: action }).eq('id', id);
+    if (error) throw error;
+    showToast(messages[action] || "✅ تم التنفيذ");
+    loadOrders();
+  } catch (err) {
+    console.error(err);
+    showToast("❌ حدث خطأ أثناء تنفيذ الإجراء", false);
+  }
+}
+function editDelivery(id, oldDate, oldTime) {
+  editDeliveryOrderId = id;
+  const dateEl = document.getElementById("newDeliveryDate");
+  const timeEl = document.getElementById("newDeliveryTime");
+  if (dateEl) dateEl.value = oldDate || "";
+  if (timeEl) timeEl.value = oldTime || "";
+  const modal = document.getElementById("deliveryModal");
+  if (modal) modal.style.display = "flex";
+}
+function closeDeliveryModal() {
+  const modal = document.getElementById("deliveryModal");
+  if (modal) modal.style.display = "none";
+  editDeliveryOrderId = null;
+}
+async function saveDeliveryTime() {
+  const dEl = document.getElementById("newDeliveryDate");
+  const tEl = document.getElementById("newDeliveryTime");
+  const d = dEl ? dEl.value : '';
+  const t = tEl ? tEl.value : '';
+  if (!d || !t) return showToast("❌ يجب اختيار التاريخ والوقت", false);
+  if (!editDeliveryOrderId) return showToast("❌ خطأ داخلي: لا يوجد طلب محدد", false);
+  try {
+    const { error } = await supabase
+      .from('orders')
+      .update({ delivery_date: d, delivery_time: t })
+      .eq('id', editDeliveryOrderId);
+
+    if (error) throw error;
+    showToast("✅ تم تحديث الموعد");
+    closeDeliveryModal();
+    loadOrders();
+  } catch (err) {
+    console.error(err);
+    showToast("❌ فشل الحفظ", false);
+  }
+}
+function viewDetails(id) {
+  activeOrder = orders.find(o => o.id === id);
+  if (!activeOrder) return;
+  const prod = activeOrder.products || {};
+  const img = (prod.product_images?.find(i=>i.is_primary)?.image_url) || prod.product_images?.[0]?.image_url || '/assets/no-image.png';
+  const html = `
+    <div class="flex gap-3">
+      <img src="${img}" class="w-28 h-28 object-cover rounded border" />
+      <div>
+        <p><b>رقم الطلب:</b> ${activeOrder.id}</p>
+        <p><b>العميل:</b> ${activeOrder.name || '-'}</p>
+        <p><b>الهاتف:</b> ${activeOrder.phone || '-'}</p>
+        <p><b>العنوان:</b> ${activeOrder.address || '-'}</p>
+        <p><b>المنتج:</b> ${prod.name || '-'}</p>
+        <p><b>الكمية:</b> ${activeOrder.quantity}</p>
+        <p><b>حالة الطلب:</b> ${activeOrder.status}</p>
+        <p><b>ملاحظات:</b> ${activeOrder.notes || '-'}</p>
+      </div>
+    </div>
+  `;
+  document.getElementById('modalContent').innerHTML = html;
+  document.getElementById('modal').style.display = 'flex';
+}
+function closeModal() {
+  document.getElementById('modal').style.display = 'none';
+  activeOrder = null;
+}
+async function downloadPDF(id) {
+  const ord = orders.find(o => o.id === id);
+  if (!ord) return showToast("❌ الطلب غير موجود");
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+  const fontUrl = "assets/fonts/Amiri-Regular.ttf";
+  const fontBinary = await fetch(fontUrl).then(r => r.arrayBuffer());
+  const fontBytes = btoa(
+    Array.from(new Uint8Array(fontBinary))
+      .map(byte => String.fromCharCode(byte))
+      .join("")
+  );
+  doc.addFileToVFS("Amiri.ttf", fontBytes);
+  doc.addFont("Amiri.ttf", "Amiri", "normal");
+  doc.setFont("Amiri");
+  doc.setFontSize(16);
+  doc.text("فاتورة طلب", 300, 40, { align: "center" });
+  const lines = [
+    `رقم الطلب: ${ord.id}`,
+    `اسم العميل: ${ord.name}`,
+    `الهاتف: ${ord.phone}`,
+    `العنوان: ${ord.address}`,
+    `وسيلة الدفع: ${ord.payment_method || "-"}`,
+    `الإجمالي: ${(ord.price||0)*(ord.quantity||1)} ج.م`,
+  ];
+  let y = 90;
+  lines.forEach(t => {
+    doc.text(t, 550, y, { align: "right" });
+    y += 22;
+  });
+  doc.autoTable({
+    startY: y + 10,
+    styles: { font: "Amiri", halign: "right" },
+    head: [["المنتج", "الكمية", "ميعاد التوصيل"]],
+    body: [
+      [
+        ord.products?.name || "---",
+        ord.quantity || 1,
+        `${ord.delivery_date || ""} ${ord.delivery_time || ""}`
+      ]
+    ]
+  });
+  doc.save(`order-${ord.id}.pdf`);
+}
+function prevPage(){ if(page>1){ page--; loadOrders(); } }
+function nextPage(){ if(page*pageSize < totalCount){ page++; loadOrders(); } }
+function changePageSize(){ const el = document.getElementById('pageSize'); pageSize = el ? +el.value : 10; page=1; loadOrders(); }
+function setSellerFilter(f){ sellerFilter = f; page=1; loadOrders(); }
+function setStatusFilter(s){ statusFilter = s; page=1; loadOrders(); }
+function applyFilters(){ page=1; loadOrders(); }
+function resetFilters(){
+  const q = document.getElementById('qSearch'); if (q) q.value = '';
+  const s = document.getElementById('startDate'); if (s) s.value = '';
+  const e = document.getElementById('endDate'); if (e) e.value = '';
+  sellerFilter='all'; statusFilter='all'; page=1; loadOrders();
+}
+(async function init() {
+  const user = await checkSeller();
+  if (!user) return;
+  loadOrders();
+})();
+</script>
+</body>
+</html>

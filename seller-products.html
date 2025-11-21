@@ -1,44 +1,18 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <title>👤 ملفي الشخصي - LV12</title>
-  <link rel="icon" href="/lv12.png" />
-<link rel="image_src" href="https://www.lv12shop.shop/lv12.png" />
-
-<meta property="og:title" content="متجر LV12 - تسوق ذكي وسريع" />
-<meta property="og:description" content="أفضل تجربة تسوق عبر الإنترنت - منتجات مميزة وشحن سريع لجميع المحافظات." />
-<meta property="og:image" content="https://www.lv12shop.shop/lv12.png" />
-<meta property="og:type" content="website" />
-<meta property="og:url" content="https://www.lv12shop.shop" />
-
-<meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="متجر LV12 - تسوق ذكي وسريع" />
-<meta name="twitter:description" content="أفضل تجربة تسوق عبر الإنترنت - منتجات مميزة وشحن سريع لجميع المحافظات." />
-<meta name="twitter:image" content="https://www.lv12shop.shop/lv12.png" />
-
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  "name": "LV12 Shop",
-  "url": "https://www.lv12shop.shop",
-  "logo": "https://www.lv12shop.shop/lv12.png"
-}
-</script>
-
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="icon" href="lv12.ico" />
+  <meta charset="UTF-8">
+  <title>منتجات البائع | LV12</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <style>
-    body { font-family: "Cairo", sans-serif; background:#f8fafc; }
+    body {
+      font-family: "Cairo", sans-serif;
+      background: #f4f6f9;
+    }
   </style>
 </head>
-
-<body class="min-h-screen flex flex-col items-center py-10 px-4">
-
-
 <header id="mainHeader"
   class="fixed top-0 left-0 w-full z-[99999] bg-white/20 backdrop-blur-xl
   shadow-lg px-4 py-3 flex items-center justify-between border-b border-white/30">
@@ -339,173 +313,280 @@ menuOverlay.addEventListener("click", () => {
 });
 </script>
 
-  <main class="w-full max-w-2xl bg-white rounded-2xl shadow p-6">
-    <div class="flex flex-col items-center">
-      <div class="relative">
-        <img id="profilePic" src="lv12.png" class="w-28 h-28 rounded-full border-4 border-blue-100 object-cover" alt="Profile" />
-        <label for="uploadPic" class="absolute bottom-1 right-1 bg-blue-600 text-white p-2 rounded-full cursor-pointer text-xs">📷</label>
-        <input id="uploadPic" type="file" accept="image/*" class="hidden" />
-      </div>
 
-      <div class="mt-4 text-center">
-        <div class="text-gray-600 text-sm">البريد الإلكتروني:</div>
-        <div id="userEmail" class="font-semibold">جارٍ التحميل...</div>
-      </div>
-    </div>
 
-    <div class="mt-6">
-      <label class="block text-sm font-medium mb-1 text-gray-700">الاسم الكامل</label>
-      <input id="fullName" type="text" class="border p-2 w-full rounded" placeholder="اكتب اسمك هنا" />
-    </div>
 
-    <button id="saveBtn" class="mt-6 bg-blue-600 text-white w-full py-2 rounded text-lg font-semibold">💾 حفظ التغييرات</button>
 
-    <div id="statusMsg" class="text-center text-sm mt-3 text-gray-600"></div>
-  </main>
 
-<script>
-const SUPABASE_URL = "https://nszhzfysitppxssplqfb.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zemh6ZnlzaXRwcHhzc3BscWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA4OTcsImV4cCI6MjA3MzgwNjg5N30.5KvK4bhqkZ_GpIfED4qecIMfeubAJYwSFJslULwOp-w";
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-let currentUser = null;
 
-async function checkAuth() {
-  const { data } = await supabase.auth.getSession();
-  currentUser = data?.session?.user;
 
-  if (!currentUser) {
-    window.location.href = "shop-login.html";
-    return;
-  }
 
-  document.getElementById("userEmail").textContent = currentUser.email;
-  document.getElementById("fullName").value = currentUser.user_metadata?.full_name || "";
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("avatar_url")
-    .eq("id", currentUser.id)
-    .maybeSingle();
 
-  if (profile?.avatar_url) {
-    document.getElementById("profilePic").src = profile.avatar_url;
-  }
-}
-checkAuth();
 
-document.getElementById("uploadPic").addEventListener("change", async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
 
-  const fileName = `${currentUser.id}_${Date.now()}.jpg`;
-  const { data, error } = await supabase.storage.from("avatars").upload(fileName, file, { upsert: true });
 
-  if (error) {
-    alert("حدث خطأ أثناء رفع الصورة.");
-    console.error(error);
-    return;
-  }
 
-  const { data: { publicUrl } } = supabase.storage.from("avatars").getPublicUrl(fileName);
-  document.getElementById("profilePic").src = publicUrl;
 
-  await supabase.from("profiles").upsert({
-    id: currentUser.id,
-    avatar_url: publicUrl
-  });
 
-  document.getElementById("statusMsg").textContent = "✅ تم تحديث الصورة بنجاح";
-});
 
-document.getElementById("saveBtn").addEventListener("click", async () => {
-  const newName = document.getElementById("fullName").value.trim();
-  if (!newName) {
-    alert("الرجاء إدخال الاسم الكامل");
-    return;
-  }
 
-  await supabase.auth.updateUser({ data: { full_name: newName } });
 
-  await supabase.from("profiles").upsert({
-    id: currentUser.id,
-    full_name: newName
-  });
 
-  document.getElementById("statusMsg").textContent = "✅ تم حفظ الاسم بنجاح";
-});
-async function logUserActivity(type) {
-  const user = JSON.parse(localStorage.getItem('lv12_user') || '{}');
-  await supabase.from('user_activity').insert({
-    user_id: user.id || null,
-    user_display: user.name || 'زائر',
-    type
-  });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<style>
+:root {
+  --primary: #4da8ff;       
+  --primary-dark: #1f71d8; 
+  --secondary: #7b5bff;     
+  --accent: #9fd8ff;        
+
+  --bg-light: linear-gradient(180deg, #0e1a33, #111f3f, #13264e); 
+  --bg-box: rgba(255,255,255,0.10);
+
+  --text-dark: #f4f7ff;     
+  --text-gray: #cdd6ea;
+
+  --radius: 18px;
+  --shadow: 0 6px 30px rgba(0,0,0,0.35);
+  --transition: .3s ease;
 }
 
-logUserActivity('زيارة المتجر');
+body {
+  font-family: 'Cairo', sans-serif;
+  background: var(--bg-light);
+  color: var(--text-dark);
+  margin: 0;
+  overflow-x: hidden;
+}
 
-</script>
-<script>
-(async () => {
-  try {
-    const res = await fetch("https://ipwho.is/");
-    const data = await res.json();
 
-    const sec = data.security || {};
-    const net = data.connection || {};
-    const isp = (data.isp || "").toLowerCase();
-    const org = (net.org || "").toLowerCase();
-    const country = data.country_code || "??";
+header {
+  background: linear-gradient(90deg, #122040, #1b2f55, #122040);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.45);
+}
 
-    const safeCountries = ["EG", "SA", "AE", "KW", "JO", "QA", "OM", "DZ", "MA", "TN", "LY", "BH", "IQ", "SD", "YE", "SY", "PS"];
 
-    const suspicious =
-      sec.vpn ||
-      sec.proxy ||
-      sec.tor ||
-      sec.relay ||
-      (!isp && !safeCountries.includes(country)) || 
-      /vpn|proxy|tor|hosting|cloudflare|aws|azure|google|digitalocean|ovh|linode|hetzner|server/i.test(
-        isp + org
-      );
+.search-bar input {
+  background: rgba(255,255,255,0.14);
+  border: 1px solid rgba(255,255,255,0.18);
+  color: white;
+}
+.search-bar input:focus {
+  box-shadow: 0 0 0 3px rgba(77,168,255,0.4);
+}
 
-    if (suspicious && !safeCountries.includes(country)) {
-      document.documentElement.innerHTML = `
-        <div style="
-          position:fixed;inset:0;background:#0b0f19;
-          color:#fff;display:flex;flex-direction:column;
-          align-items:center;justify-content:center;
-          font-family:'Cairo',sans-serif;text-align:center;
-          padding:20px;z-index:999999;
-        ">
-          <div style="max-width:500px;">
-            <h2 style="font-size:26px;margin-bottom:12px;">🚫 تم حظر الوصول</h2>
-            <p style="font-size:16px;line-height:1.8;">
-              تم اكتشاف اتصال غير موثوق أو استخدام VPN / Proxy.<br>
-              يرجى إيقافه ثم إعادة المحاولة.<br><br>
-              <b>عنوانك الحالي:</b> ${data.ip || "غير معروف"}<br>
-              <b>البلد:</b> ${data.country || "غير معروف"}
-            </p>
-            <button onclick="location.reload()" style="
-              margin-top:25px;background:#2563eb;color:white;
-              border:none;padding:10px 20px;border-radius:8px;
-              cursor:pointer;font-size:15px;">
-              🔄 إعادة المحاولة
-            </button>
+
+.product-card {
+  background: rgba(255,255,255,0.10);
+  border: 1px solid rgba(255,255,255,0.14);
+  backdrop-filter: blur(8px);
+}
+.product-card h3 {
+  color: #eaf1ff;
+}
+.price-new {
+  color: #4da8ff;
+}
+.price-old {
+  color: #b8c3db;
+}
+
+#categoriesBar {
+  background: #162443;
+}
+.category-item {
+  background: #1c2f57;
+  border: 1px solid rgba(255,255,255,0.10);
+}
+.category-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 26px rgba(0,0,0,0.5);
+}
+
+
+#mainNav {
+  background: linear-gradient(90deg, #142544, #203a6d);
+  border-top: 1px solid rgba(255,255,255,0.12);
+}
+.nav-icon {
+  color: #aecdff;
+}
+.nav-link-new span {
+  color: #cfd8f7;
+}
+.nav-link-new:hover .nav-icon {
+  color: #4da8ff;
+}
+
+
+#sideMenu {
+  background: #172a52;
+  border-left: 1px solid rgba(255,255,255,0.14);
+}
+#sideMenu a {
+  color: #dce6ff;
+}
+#sideMenu a:hover {
+  color: var(--primary);
+}
+
+#closeMenu {
+  color: #ff6b6b !important;
+}
+
+
+footer {
+  background: linear-gradient(180deg, #152649, #111e36);
+  color: #cbd5ec;
+  border-top: 1px solid rgba(255,255,255,0.10);
+}
+footer a:hover {
+  color: var(--primary);
+}
+</style>
+<body class="p-5">
+
+  <h1 class="text-2xl font-bold text-blue-700 mb-4">🛒 جميع منتجات البائع</h1>
+
+  <div id="productsGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+
+  <script>
+    const supabase = window.supabase.createClient(
+      "https://nszhzfysitppxssplqfb.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zemh6ZnlzaXRwcHhzc3BscWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA4OTcsImV4cCI6MjA3MzgwNjg5N30.5KvK4bhqkZ_GpIfED4qecIMfeubAJYwSFJslULwOp-w"
+
+    )
+
+    async function loadSellerProducts() {
+      const params = new URLSearchParams(window.location.search);
+      const sellerId = params.get("seller");
+
+      if (!sellerId) {
+        alert("❌ رقم البائع غير موجود");
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("products")
+        .select("id, name, price, product_images(image_url, is_primary)")
+        .eq("seller_id", sellerId)
+        .order("id", { ascending: false });
+
+      if (error) {
+        console.error(error);
+        return;
+      }
+
+      const grid = document.getElementById("productsGrid");
+      grid.innerHTML = data.map(p => {
+        const img = p.product_images?.find(i => i.is_primary) || p.product_images?.[0];
+        return `
+          <div class="bg-white shadow rounded-lg p-3 cursor-pointer hover:scale-[1.02] transition"
+               onclick="window.location='product.html?id=${p.id}'">
+            <img src="${img?.image_url || '/assets/no-image.png'}"
+                 class="w-full h-40 object-cover rounded" />
+            <h3 class="mt-2 font-semibold">${p.name}</h3>
+            <p class="text-blue-700 font-bold">${p.price} ج.م</p>
           </div>
-        </div>
-      `;
-      throw new Error("Blocked: Suspicious VPN/Proxy connection");
+        `;
+      }).join("");
     }
 
-    console.log(
-      `✅ VPN check passed | IP: ${data.ip} | Country: ${country} | ISP: ${isp || "unknown"}`
-    );
-  } catch (err) {
-    console.warn("⚠️ VPN check failed:", err);
-  }
-})();
-</script>
+    loadSellerProducts();
+  </script>
+  
+  <footer class="text-gray-100 mt-16">
+    <div class="max-w-7xl mx-auto px-4 py-12 grid grid-cols-1 md:grid-cols-4 gap-10">
+      <div>
+        <img src="/lv12.ico" class="w-14 h-14 rounded mb-3" alt="LV12 logo">
+        <h4 class="font-bold text-lg text-white mb-1">متجر LV12</h4>
+        <p class="text-sm text-gray-300">أفضل تجربة تسوق عبر الإنترنت — شحن سريع واسترجاع مضمون.</p>
+      </div>
+      <div>
+        <h4 class="font-semibold mb-3 text-white">روابط مفيدة</h4>
+        <ul class="space-y-2 text-sm text-gray-300">
+          <li><a href="about.html" class="hover:text-white">من نحن</a></li>
+          <li><a href="return-policy.html" class="hover:text-white">سياسة الاسترجاع</a></li>
+          <li><a href="shipping-policy.html" class="hover:text-white">سياسة الشحن</a></li>
+          <li><a href="support.html" class="hover:text-white">الدعم الفني</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="font-semibold mb-3 text-white">تواصل معنا</h4>
+        <a href="mailto:shoplv12shop@gmail.com" class="inline-block bg-blue-50 hover:bg-blue-100 text-blue-700 px-4 py-2 rounded-lg text-sm font-medium transition">
+          📧 shoplv12shop@gmail.com
+        </a>
+        <a href="tel:01094965067" class="block text-blue-200 text-lg font-bold hover:underline mt-2">
+          📞 01094965067
+        </a>
+      </div>
+      <div>
+        <h4 class="font-semibold mb-3 text-white">تابعنا</h4>
+        <div class="flex gap-3">
+<div class="flex items-center justify-center gap-4 mt-4 text-sm font-semibold">
+  <a href="https://www.facebook.com/share/1KEzAxHzzS/" target="_blank"
+     class="flex items-center gap-1 text-blue-600 hover:text-blue-800 transition-all duration-300">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" class="w-5 h-5">
+      <path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 5.003 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.463h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.891h-2.33v6.987C18.343 21.128 22 17.003 22 12z"/>
+    </svg>
+    Facebook
+  </a>
+
+  <a href="https://www.tiktok.com/@lv12shop1?_r=1&_t=ZS-91JONZZLeZJ" target="_blank"
+     class="flex items-center gap-1 text-gray-800 hover:text-black transition-all duration-300">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" class="w-5 h-5">
+      <path d="M16.5 3a5.5 5.5 0 0 0 5.5 5.5V11a8.5 8.5 0 0 1-8.5-8.5h3zM9 8a5 5 0 1 0 5 5V4h3v9a8 8 0 1 1-8-8h3v3H9z"/>
+    </svg>
+    TikTok
+  </a>
+
+  <a href="https://www.instagram.com/lv12.shop?igsh=MTQxc3lsM24wb2Fmdg==" target="_blank"
+     class="flex items-center gap-1 text-pink-600 hover:text-pink-700 transition-all duration-300">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" class="w-5 h-5">
+      <path d="M7 2C4.243 2 2 4.243 2 7v10c0 2.757 2.243 5 5 5h10c2.757 0 5-2.243 5-5V7c0-2.757-2.243-5-5-5H7zm0 2h10c1.654 0 3 1.346 3 3v10c0 1.654-1.346 3-3 3H7c-1.654 0-3-1.346-3-3V7c0-1.654 1.346-3 3-3zm5 2a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0 2a3 3 0 1 1 0 6 3 3 0 0 1 0-6zm4.5-1a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
+    </svg>
+    Instagram
+  </a>
+</div>
+
+        
+        </div>
+      </div>
+    </div>
+    <div class="border-t border-blue-800 text-center py-4 text-sm text-blue-100">
+      © <span id="yearFooter"></span> LV12 — جميع الحقوق محفوظة.
+    </div>
+  </footer>
 </body>
 </html>

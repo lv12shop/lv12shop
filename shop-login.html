@@ -155,6 +155,260 @@
 </head>
 <body>
 
+
+
+
+<style>
+#mainHeader {
+  transform: none !important;
+  left: 0 !important;
+  right: 0 !important;
+}
+</style>
+
+
+
+
+<style>
+@keyframes fadeIn { from { opacity: 0; transform: scale(.95); } to { opacity: 1; transform: scale(1); } }
+@keyframes fadeOut { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(.95); } }
+.animate-fade-out { animation: fadeOut .3s ease forwards; }
+
+.suggestion-item {
+  padding: 10px 14px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  border-bottom: 1px solid #e5e7eb;
+  cursor: pointer;
+  transition: .25s;
+}
+.suggestion-item:hover {
+  background: #eff6ff;
+}
+</style>
+
+
+<script>
+const floatingBtn = document.getElementById("floatingSearchBtn");
+const overlay = document.getElementById("searchOverlay");
+const closeBtn = document.getElementById("closeSearchOverlay");
+const searchInput = document.getElementById("popupSearchInput");
+const suggestionsBox = document.getElementById("popupSuggestions");
+const searchBtn = document.getElementById("startSearchBtn");
+
+floatingBtn?.addEventListener("click", () => {
+  overlay.classList.remove("hidden", "animate-fade-out");
+  overlay.classList.add("flex");
+  setTimeout(() => searchInput.focus(), 150);
+});
+
+closeBtn?.addEventListener("click", closeSearch);
+overlay?.addEventListener("click", (e) => { if (e.target === overlay) closeSearch(); });
+
+function closeSearch() {
+  overlay.classList.add("animate-fade-out");
+  setTimeout(() => overlay.classList.add("hidden"), 280);
+  suggestionsBox.classList.add("hidden");
+}
+
+function levenshtein(a, b) {
+  const m = a.length, n = b.length;
+  const dp = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
+
+  for (let i = 0; i <= m; i++) dp[i][0] = i;
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      dp[i][j] = Math.min(
+        dp[i-1][j] + 1,
+        dp[i][j-1] + 1,
+        dp[i-1][j-1] + (a[i-1] === b[j-1] ? 0 : 1)
+      );
+    }
+  }
+  return dp[m][n];
+}
+searchBtn?.addEventListener("click", () => {
+  const q = searchInput.value.trim();
+  if (q.length > 0) openSearchResultsPage(q);
+});
+searchInput?.addEventListener("input", async () => {
+  const query = searchInput.value.trim().toLowerCase();
+  if (!query) return suggestionsBox.classList.add("hidden");
+  const { data: products, error } = await supabase
+    .from("products")
+    .select(`
+      id,
+      name,
+      price,
+      product_images(image_url, is_primary)
+    `);
+
+  if (error || !products) return;
+
+  let results = products.filter(p =>
+    p.name?.toLowerCase().includes(query) ||
+    levenshtein(p.name?.toLowerCase(), query) <= 2
+  );
+
+  results = results.map(p => ({
+    ...p,
+    img:
+      p.product_images?.find(i => i.is_primary)?.image_url ||
+      p.product_images?.[0]?.image_url ||
+      "/placeholder.png"
+  }));
+
+  if (!results.length) {
+    suggestionsBox.innerHTML = `
+      <div class="p-3 text-center text-red-600">لا يوجد نتائج</div>
+    `;
+    return suggestionsBox.classList.remove("hidden");
+  }
+
+  suggestionsBox.innerHTML = results
+    .map(
+      p => `
+      <div class="suggestion-item flex items-center gap-3 cursor-pointer"
+           onclick="goToProduct(${p.id})">
+
+        <img src="${p.img}" 
+             class="w-12 h-12 object-cover rounded border">
+
+        <div>
+          <div class="font-bold text-blue-900 text-sm">${p.name}</div>
+          <div class="text-blue-600 text-xs">${p.price} ج.م</div>
+        </div>
+      </div>
+    `
+    )
+    .join("");
+
+  suggestionsBox.classList.remove("hidden");
+});
+function openSearchResultsPage(query) {
+  window.location.href = `search.html?q=${encodeURIComponent(query)}`;
+}
+
+
+function goToProduct(id) {
+  window.location.href = `product.html?id=${id}`;
+}
+</script>
+
+
+<nav id="mainNav"
+  class="fixed bottom-0 left-0 w-full 
+        bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900
+        text-white border-t border-blue-900/30
+        shadow-[0_-4px_20px_rgba(0,0,0,0.35)]
+        z-[99999] transition-all duration-300">
+
+  <div class="max-w-6xl mx-auto flex justify-around items-center px-4 py-2
+              text-[11px] sm:text-[14px] font-semibold select-none">
+
+    <a href="shop.html" id="nav-home" class="nav-link-new group">
+      <svg class="nav-icon group-hover:scale-110" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M3 9.75L12 3l9 6.75V21H4V9.75z"/>
+      </svg>
+      <span>الرئيسية</span>
+    </a>
+
+    <a href="cart.html" id="nav-cart" class="nav-link-new group relative">
+      <svg class="nav-icon group-hover:scale-110" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M7 4H5L3 8H1v2h3l3.6 7.59L5.24 17A3 3 0 0 0 8 21h11v-2H8l1.1-2h8.45A3 3 0 0 0 20 15l2-9H6.31L5.36 4z"/>
+      </svg>
+      <span>السلة</span>
+      <span id="cartBadge"
+        class="absolute -top-1 right-2 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full hidden">0</span>
+    </a>
+
+    <a href="wallet.html" id="nav-wallet" class="nav-link-new group relative">
+      <svg id="walletIcon" class="nav-icon group-hover:scale-110 transition"
+           fill="currentColor" viewBox="0 0 24 24">
+        <path d="M21 7H5V5h16v2zm0 2v10H3V7h2v2h16zM7 15h8v2H7v-2z"/>
+      </svg>
+      <span>المحفظة</span>
+      <span id="walletBalance"
+        class="absolute -top-2 right-2 bg-green-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg">0 ج.م</span>
+    </a>
+
+    <a href="my-orders.html" id="nav-orders" class="nav-link-new group">
+      <svg class="nav-icon group-hover:scale-110" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M3 6v14h14V18H5V6H3zm17-2H8v12h12V4zm-2 8h-8V6h8v6z"/>
+      </svg>
+      <span>طلباتي</span>
+    </a>
+
+    <a id="nav-menu" class="nav-link-new group">
+      <svg class="nav-icon group-hover:scale-110" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/>
+      </svg>
+      <span>القائمة</span>
+    </a>
+
+  </div>
+</nav>
+
+
+<div id="menuOverlay"
+  class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[99990]"></div>
+
+<div id="sideMenu"
+  class="fixed top-0 right-0 w-72 h-full bg-[#0d0d0f] shadow-2xl z-[99999]
+  translate-x-full transition-all duration-300 p-6 border-l border-[#222]">
+
+  <button id="closeMenu" class="text-2xl text-red-500 mb-6 font-bold">✖</button>
+
+  <h3 class="text-xl font-bold text-gray-200 mb-4">القائمة</h3>
+
+  <ul class="space-y-3 text-lg font-semibold text-gray-300">
+
+    <li><a href="shop.html" class="block hover:text-blue-400">🏠 الرئيسية</a></li>
+    <li><a href="about.html" class="block hover:text-blue-400">ℹ️ من نحن</a></li>
+    <li><a href="support.html" class="block hover:text-blue-400">📞 تواصل معنا</a></li>
+    <li><a href="shipping-policy.html" class="block hover:text-blue-400">🚚 سياسة الشحن</a></li>
+    <li><a href="return-policy.html" class="block hover:text-blue-400">🔄 سياسة الاسترجاع</a></li>
+
+    <hr class="border-gray-700">
+
+    <li><a href="profile.html" class="block hover:text-blue-400">👤 ملفي</a></li>
+<ul class="space-y-3 text-lg font-semibold text-gray-300">
+
+  <div id="userAreaMenu"
+       class="mb-4 p-3 rounded-lg bg-[#111] border border-gray-700">
+  </div>
+
+
+  </ul>
+</div>
+
+<script>
+const navMenu     = document.getElementById("nav-menu");
+const sideMenu    = document.getElementById("sideMenu");
+const closeMenu   = document.getElementById("closeMenu");
+const menuOverlay = document.getElementById("menuOverlay");
+
+navMenu.addEventListener("click", () => {
+  sideMenu.classList.remove("translate-x-full");
+  menuOverlay.classList.remove("hidden");
+});
+
+closeMenu.addEventListener("click", () => {
+  sideMenu.classList.add("translate-x-full");
+  menuOverlay.classList.add("hidden");
+});
+
+menuOverlay.addEventListener("click", () => {
+  sideMenu.classList.add("translate-x-full");
+  menuOverlay.classList.add("hidden");
+});
+</script>
+
+
+
   <div class="card">
     <h2 class="text-2xl font-bold mb-6 text-center text-blue-400">🔑 تسجيل الدخول</h2>
 
