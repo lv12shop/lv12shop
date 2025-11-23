@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -171,6 +172,30 @@
 </style>
 
 <body class="min-h-screen">
+
+<script>
+// التحقق من تسجيل الدخول
+const SUPABASE_URL = "https://nszhzfysitppxssplqfb.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zemh6ZnlzaXRwcHhzc3BscWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA4OTcsImV4cCI6MjA3MzgwNjg5N30.5KvK4bhqkZ_GpIfED4qecIMfeubAJYwSFJslULwOp-w";
+
+const supabaseAuth = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+async function checkAuthAndRedirect() {
+  try {
+    const { data, error } = await supabaseAuth.auth.getSession();
+    if (error || !data?.session?.user) {
+      window.location.href = 'shop-login.html';
+      return;
+    }
+  } catch (err) {
+    console.error('Auth check failed:', err);
+    window.location.href = 'shop-login.html';
+  }
+}
+
+// تشغيل التحقق عند تحميل الصفحة
+checkAuthAndRedirect();
+</script>
 <header class="sticky top-0 z-50 backdrop-blur-xl bg-white/10 border-b border-white/20 shadow-lg px-5 py-3 flex flex-wrap justify-between items-center">
   <a href="index.html" class="flex items-center gap-3 group">
     <img src="lv12.ico" class="w-12 h-12 rounded-full ring-2 ring-sky-400/40 group-hover:ring-sky-500 transition" alt="LV12">
@@ -521,6 +546,20 @@ menuOverlay.addEventListener("click", () => {
     transform: scale(1.05);
     box-shadow: 0 0 15px rgba(59,130,246,0.5);
   }
+  
+  @keyframes qrGlow {
+    0%, 100% { opacity: 0.6; transform: scale(1); }
+    50% { opacity: 0.8; transform: scale(1.02); }
+  }
+  
+  #inviteQRWrapper {
+    animation: float 6s ease-in-out infinite;
+  }
+  
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-8px); }
+  }
 
   #copyToast {
     position: fixed;
@@ -840,9 +879,6 @@ footer a:hover {
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-
-const SUPABASE_URL = "https://nszhzfysitppxssplqfb.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zemh6ZnlzaXRwcHhzc3BscWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA4OTcsImV4cCI6MjA3MzgwNjg5N30.5KvK4bhqkZ_GpIfED4qecIMfeubAJYwSFJslULwOp-w";
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let currentUser = null;
@@ -1208,17 +1244,77 @@ const renderQRCode = () => {
   qrWrapper.innerHTML = "";
 
   const qrDiv = document.createElement("div");
+  qrDiv.style.cssText = `
+    padding: 15px;
+    background: linear-gradient(135deg, #ffffff, #f8fafc);
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    border: 3px solid #3b82f6;
+    display: inline-block;
+    position: relative;
+    overflow: hidden;
+  `;
+  
+  // إضافة تأثير الإضاءة
+  const glowEffect = document.createElement("div");
+  glowEffect.style.cssText = `
+    position: absolute;
+    inset: -2px;
+    background: linear-gradient(45deg, #3b82f6, #06b6d4, #8b5cf6, #3b82f6);
+    border-radius: 22px;
+    z-index: -1;
+    animation: qrGlow 3s ease-in-out infinite;
+  `;
+  qrDiv.appendChild(glowEffect);
+  
   qrWrapper.appendChild(qrDiv);
 
   try {
     new QRCode(qrDiv, {
       text: link,
-      width: 180,
-      height: 180,
-      colorDark: "#0284c7",
+      width: 200,
+      height: 200,
+      colorDark: "#1e40af",
       colorLight: "#ffffff",
-      correctLevel: QRCode.CorrectLevel.H
+      correctLevel: QRCode.CorrectLevel.H,
+      dotScale: 0.8,
+      margin: 2
     });
+    
+    // إضافة لوجو في المنتصف
+    setTimeout(() => {
+      const qrImg = qrDiv.querySelector('img');
+      if (qrImg) {
+        qrImg.style.cssText = `
+          border-radius: 12px;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        `;
+        
+        // إضافة لوجو صغير في المنتصف
+        const logo = document.createElement('div');
+        logo.style.cssText = `
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 40px;
+          height: 40px;
+          background: linear-gradient(135deg, #3b82f6, #06b6d4);
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-weight: bold;
+          font-size: 18px;
+          box-shadow: 0 4px 12px rgba(59,130,246,0.4);
+          border: 3px solid white;
+        `;
+        logo.textContent = 'LV12';
+        qrDiv.appendChild(logo);
+      }
+    }, 100);
+    
   } catch (err) {
     console.error("❌ فشل إنشاء QR:", err);
   }
