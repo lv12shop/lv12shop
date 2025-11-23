@@ -57,6 +57,13 @@ body { font-family: 'Cairo', sans-serif; background:#F2F4F7; }
   display: inline-block;
   margin-bottom: 6px;
 }
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 </style>
 </head>
 
@@ -190,6 +197,7 @@ searchBtn?.addEventListener("click", () => {
 searchInput?.addEventListener("input", async () => {
   const query = searchInput.value.trim().toLowerCase();
   if (!query) return suggestionsBox.classList.add("hidden");
+  if (!supabase) return;
   const { data: products, error } = await supabase
     .from("products")
     .select(`
@@ -360,9 +368,30 @@ menuOverlay.addEventListener("click", () => {
 });
 </script>
 
-<h2 id="dayTitle" class="text-center text-xl font-bold text-red-700 mt-4"></h2>
+<div class="bg-gradient-to-br from-red-600 via-pink-600 to-purple-700 text-white p-8 rounded-3xl mx-4 mt-4 shadow-2xl">
+  <div class="text-center">
+    <div class="text-6xl mb-4 animate-bounce">🔥</div>
+    <h2 id="dayTitle" class="text-3xl font-bold mb-2"></h2>
+    <p class="text-lg opacity-90">عروض حصرية لفترة محدودة</p>
+    <div class="mt-4 bg-white/20 backdrop-blur-sm rounded-2xl p-4 inline-block">
+      <div class="text-sm">عدد المنتجات المخفضة:</div>
+      <div id="discountCount" class="text-2xl font-bold">جاري التحميل...</div>
+    </div>
+  </div>
+</div>
 
-<div id="productsGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 p-4"></div>
+<div class="p-4">
+  <div class="flex justify-between items-center mb-6">
+    <h3 class="text-xl font-bold text-gray-800">🎁 المنتجات المخفضة</h3>
+    <select id="sortSelect" class="bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm">
+      <option value="discount">ترتيب حسب الخصم</option>
+      <option value="price">ترتيب حسب السعر</option>
+      <option value="date">ترتيب حسب التاريخ</option>
+    </select>
+  </div>
+  
+  <div id="productsGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
+</div>
 
 <footer class="bg-white border-t mt-auto sticky bottom-0 z-50">
   <div class="grid grid-cols-5 text-center text-sm py-2 text-gray-700">
@@ -374,62 +403,188 @@ menuOverlay.addEventListener("click", () => {
   </div>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const days = ["السبت","الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة"];
+const supabase = window.supabase.createClient(
+  "https://nszhzfysitppxssplqfb.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zemh6ZnlzaXRwcHhzc3BscWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA4OTcsImV4cCI6MjA3MzgwNjg5N30.5KvK4bhqkZ_GpIfED4qecIMfeubAJYwSFJslULwOp-w"
+);
 
-const day = localStorage.getItem("selectedDiscountDay") || "";
-document.getElementById("dayTitle").textContent = "🛍 عروض يوم " + day;
+const day = localStorage.getItem("selectedDiscountDay") || "اليوم";
+document.getElementById("dayTitle").textContent = `عروض ${day} الحصرية`;
 
-const productsCache = JSON.parse(localStorage.getItem("lv12shop_products_v4") || "{}");
-const products = productsCache.data || [];
+let allDiscountProducts = [];
 
-const groups = {};
-products.forEach(p => {
-  if (!p.discount_start) return;
+async function loadDiscountProducts() {
+  console.log('🔍 بدء تحميل المنتجات المخفضة...');
+  
+  const { data: products, error } = await supabase
+    .from('products')
+    .select(`
+      *,
+      product_images(image_url, is_primary)
+    `)
+    .not('discount_price', 'is', null)
+    .gt('discount_price', 0);
+    
+  console.log('📊 نتيجة استعلام المنتجات:', { products: products?.length, error });
+    
+  if (error) {
+    console.error('Error loading discount products:', error);
+    return;
+  }
+  
+  // تصفية المنتجات المخفضة فقط
+  const discountedProducts = products.filter(p => 
+    p.discount_price && 
+    p.discount_price > 0 && 
+    p.discount_price < p.price
+  );
+  
+  console.log('📊 عدد المنتجات بعد التصفية:', discountedProducts.length);
+  
+  allDiscountProducts = discountedProducts.map(p => ({
+    ...p,
+    image: p.product_images?.find(img => img.is_primary)?.image_url || 
+           p.product_images?.[0]?.image_url || '/placeholder.png',
+    discountPercent: Math.round((1 - p.discount_price / p.price) * 100),
+    daysAgo: Math.floor((Date.now() - new Date(p.created_at).getTime()) / (1000 * 60 * 60 * 24))
+  }));
+  
+  document.getElementById('discountCount').textContent = allDiscountProducts.length;
+  console.log(`✅ تم تحميل ${allDiscountProducts.length} منتج مخفض`);
+  displayProducts(allDiscountProducts);
+}
 
-  const d = new Date(p.discount_start);
-  const dayName = days[d.getDay()]; 
-  if (!groups[dayName]) groups[dayName] = [];
-  groups[dayName].push(p);
-});
-
-const list = groups[day] || [];
-
-document.getElementById("productsGrid").innerHTML = list.map((p,i) => `
-  <div onclick="location.href='product.html?id=${p.id}'" 
-  class="bg-white rounded-xl shadow-sm hover:shadow-md transition p-2 cursor-pointer">
-
-    <img src="${p.image}" class="w-full h-48 rounded-lg object-cover">
-
-    <div class="mt-2 text-center">
-      ${p.discount_price ? `<span class="badge">خصم ${Math.round((1 - p.discount_price / p.price) * 100)}%</span>` : ""}
-      <h3 class="text-sm font-bold text-blue-800 line-clamp-2 min-h-[40px]">${p.name}</h3>
+async function displayProducts(products) {
+  const grid = document.getElementById('productsGrid');
+  
+  if (!products.length) {
+    grid.innerHTML = `
+      <div class="col-span-full text-center py-12">
+        <div class="text-6xl mb-4">😔</div>
+        <h3 class="text-xl font-bold text-gray-600 mb-2">لا توجد عروض حالياً</h3>
+        <p class="text-gray-500">تابعنا للحصول على أحدث العروض</p>
+      </div>
+    `;
+    return;
+  }
+  
+  grid.innerHTML = await Promise.all(products.map(async (p, i) => {
+    let sellerName = 'متجر LV12';
+    const sellerId = p.seller_id || p.owner_id;
+    if (sellerId) {
+      try {
+        const { data: user } = await supabase
+          .from('users')
+          .select('full_name')
+          .eq('id', sellerId)
+          .maybeSingle();
+        if (user) {
+          sellerName = user.full_name || 'متجر LV12';
+        }
+      } catch (e) { console.warn('خطأ جلب بائع:', e); }
+    }
+    
+    return `
+    <div onclick="location.href='product.html?id=${p.id}'" 
+         class="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer overflow-hidden group">
       
-      <div class="mt-1">
-        <span class="text-red-600 font-extrabold text-lg">${p.discount_price ?? p.price} ج.م</span>
-        ${p.discount_price ? `<span class="text-gray-400 line-through text-xs">${p.price} ج.م</span>` : ""}
+      <div class="relative">
+        <img src="${p.image}" class="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500">
+        <div class="absolute top-3 left-3 bg-gradient-to-r from-red-500 to-pink-500 text-white px-3 py-1 rounded-full text-xs font-bold animate-pulse">
+          خصم ${p.discountPercent}%
+        </div>
+        <div class="absolute top-3 right-3 bg-black/50 backdrop-blur-sm text-white px-2 py-1 rounded-lg text-xs">
+          ${p.daysAgo} يوم
+        </div>
+        <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
       </div>
 
-      ${p.discount_end ? `<div class="countdown" id="cd-${i}"></div>` : ""}
+      <div class="p-4">
+        <h3 class="text-sm font-bold text-gray-800 line-clamp-2 min-h-[40px] mb-2">${p.name}</h3>
+        
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center gap-2">
+            <span class="text-lg font-bold text-green-600">${p.discount_price} ج.م</span>
+            <span class="text-sm text-gray-400 line-through">${p.price} ج.م</span>
+          </div>
+          <div class="text-xs text-gray-500">
+            💰 وفر ${p.price - p.discount_price} ج.م
+          </div>
+        </div>
+        
+        <div class="flex items-center justify-between text-xs text-gray-500 mb-1">
+          <span>📅 منذ ${p.daysAgo} يوم</span>
+          <span class="${p.stock > 0 ? 'text-green-600' : 'text-red-600'}">
+            ${p.stock > 0 ? `✅ متوفر (${p.stock})` : '❌ نفد'}
+          </span>
+        </div>
+        
+        <div class="text-xs text-blue-600 font-medium">
+          🛒 البائع: ${sellerName}
+        </div>
+        
+        ${p.discount_end ? `<div class="countdown mt-2 text-center" id="cd-${i}"></div>` : ''}
+      </div>
     </div>
-  </div>
-`).join("");
+    `;
+  })).then(arr => arr.join(''));
+  
+  // Setup countdown timers
+  products.forEach((p, i) => {
+    if (!p.discount_end) return;
+    const end = new Date(p.discount_end).getTime();
+    const timer = setInterval(() => {
+      const diff = end - Date.now();
+      const element = document.getElementById(`cd-${i}`);
+      if (!element) {
+        clearInterval(timer);
+        return;
+      }
+      
+      if (diff <= 0) {
+        element.innerHTML = '⛔ انتهى العرض';
+        clearInterval(timer);
+        return;
+      }
+      
+      const h = Math.floor(diff / (1000 * 60 * 60));
+      const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const s = Math.floor((diff % (1000 * 60)) / 1000);
+      element.innerHTML = `⏳ ${h}س ${m}د ${s}ث`;
+    }, 1000);
+  });
+}
 
-list.forEach((p,i)=>{
-  if(!p.discount_end) return;
-  const end = new Date(p.discount_end).getTime();
-  setInterval(()=>{
-    const diff = end - Date.now();
-    if(diff <= 0){
-      document.getElementById(`cd-${i}`).innerHTML = "⛔ انتهى العرض";
-      return;
-    }
-    const h = Math.floor(diff/(1000*60*60));
-    const m = Math.floor((diff%(1000*60*60))/(1000*60));
-    const s = Math.floor((diff%(1000*60))/1000);
-    document.getElementById(`cd-${i}`).innerHTML = `⏳ ${h} س ${m} د ${s} ث`;
-  },1000);
+// Sort functionality
+document.getElementById('sortSelect')?.addEventListener('change', (e) => {
+  const sortBy = e.target.value;
+  let sorted = [...allDiscountProducts];
+  
+  switch (sortBy) {
+    case 'discount':
+      sorted.sort((a, b) => b.discountPercent - a.discountPercent);
+      break;
+    case 'price':
+      sorted.sort((a, b) => a.discount_price - b.discount_price);
+      break;
+    case 'date':
+      sorted.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      break;
+  }
+  
+  displayProducts(sorted);
 });
+
+// Load products on page load
+if (supabase) {
+  console.log('✅ Supabase محمل بنجاح - بدء تحميل المنتجات المخفضة');
+  loadDiscountProducts();
+} else {
+  console.error('Supabase not loaded');
+  document.getElementById('discountCount').textContent = 'خطأ في التحميل';
+}
 async function logUserActivity(type) {
   const user = JSON.parse(localStorage.getItem('lv12_user') || '{}');
   await supabase.from('user_activity').insert({

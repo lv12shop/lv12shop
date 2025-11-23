@@ -1,106 +1,31 @@
-
-const CACHE_NAME = "lv12-cache-v5";
-const APP_FILES = [
-  "/",                    
-  "/index.html",
-  "/shop.html",
-  "/product.html",
-  "/cart.html",
-  "/offline.html",
-  "/manifest.json",
-  "/lv12.ico",
-  "/lv12-192.png",
-  "/lv12-512.png",
-  "https://cdn.tailwindcss.com",
-  "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2",
-];
-
-self.addEventListener("install", event => {
-  console.log("🧩 Service Worker: التثبيت...");
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      console.log("✅ تم حفظ الملفات في الكاش");
-      return cache.addAll(APP_FILES);
-    })
-  );
+self.addEventListener('install', event => {
   self.skipWaiting();
 });
-
-self.addEventListener("activate", event => {
-  console.log("♻️ تفعيل الـ Service Worker الجديد...");
-  event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(
-        keys
-          .filter(key => key !== CACHE_NAME)
-          .map(key => {
-            console.log("🧹 حذف الكاش القديم:", key);
-            return caches.delete(key);
-          })
-      )
-    )
-  );
-  self.clients.claim();
+self.addEventListener('activate', event => {
+  event.waitUntil(self.clients.claim());
 });
 
-self.addEventListener("fetch", event => {
-  const { request } = event;
-  if (request.url.includes("supabase.co")) return; 
-
-  event.respondWith(
-    caches.match(request).then(cachedResponse => {
-      if (cachedResponse) return cachedResponse;
-
-      return fetch(request)
-        .then(networkResponse => {
-          if (!networkResponse || networkResponse.status !== 200) return networkResponse;
-          return caches.open(CACHE_NAME).then(cache => {
-            cache.put(request, networkResponse.clone());
-            return networkResponse;
-          });
-        })
-        .catch(() => {
-          if (request.destination === "document") {
-            return caches.match("/offline.html");
-          }
-        });
-    })
-  );
+self.addEventListener('notificationclick', function(event) {
+  event.notification.close();
+  const url = event.notification.data && event.notification.data.url ? event.notification.data.url : '/';
+  event.waitUntil(clients.matchAll({ type: 'window' }).then( windowClients => {
+    for (let i = 0; i < windowClients.length; i++) {
+      const client = windowClients[i];
+      if (client.url === url && 'focus' in client) return client.focus();
+    }
+    if (clients.openWindow) return clients.openWindow(url);
+  }));
 });
 
-self.addEventListener("push", event => {
-  if (!event.data) return;
-  const data = event.data.json();
-  const title = data.title || "🛍️ إشعار من متجر LV12";
+self.addEventListener('push', function(event) {
+  // Not implemented server-side here; keep handler for future push support
+  let data = {};
+  try { data = event.data.json(); } catch(e){}
+  const title = data.title || 'LV12 - إشعار جديد';
   const options = {
-    body: data.message || "عروض جديدة بانتظارك!",
-    icon: "/lv12-192.png",
-    badge: "/lv12-192.png",
-    data: data.url || "https://www.lv12shop.shop/",
-    vibrate: [200, 100, 200],
+    body: data.body || '',
+    icon: data.icon || '/lv12.png',
+    data: { url: data.url || '/' }
   };
   event.waitUntil(self.registration.showNotification(title, options));
-});
-
-self.addEventListener("notificationclick", event => {
-  event.notification.close();
-  event.waitUntil(clients.openWindow(event.notification.data || "/"));
-});
-
-self.addEventListener("message", event => {
-  if (event.data === "SKIP_WAITING") {
-    console.log("⚡ تحديث النسخة الحالية من Service Worker");
-    self.skipWaiting();
-  }
-
-  if (event.data && event.data.type === "SHOW_NOTIFICATION") {
-    const { title, body, url } = event.data;
-    console.log("📢 إشعار مخصص:", title, body);
-    self.registration.showNotification(title || "🆕 منتج جديد", {
-      body: body || "تمت إضافة منتج جديد في متجر LV12",
-      icon: "/lv12-192.png",
-      badge: "/lv12-192.png",
-      data: url || "/shop.html",
-    });
-  }
 });

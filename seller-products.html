@@ -11,6 +11,13 @@
       font-family: "Cairo", sans-serif;
       background: #f4f6f9;
     }
+    
+    .line-clamp-2 {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
   </style>
 </head>
 <header id="mainHeader"
@@ -475,11 +482,38 @@ footer a:hover {
   color: var(--primary);
 }
 </style>
-<body class="p-5">
+<body class="min-h-screen pt-20">
 
-  <h1 class="text-2xl font-bold text-blue-700 mb-4">🛒 جميع منتجات البائع</h1>
+  <div class="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 text-white p-6 sm:p-8 mx-4 mt-4 rounded-3xl shadow-2xl">
+    <div class="text-center">
+      <div class="text-5xl sm:text-6xl mb-4 animate-bounce">🛒</div>
+      <h1 class="text-2xl sm:text-3xl font-bold mb-2">جميع منتجات البائع</h1>
+      <p id="sellerInfo" class="text-base sm:text-lg opacity-90 mb-4">جاري تحميل بيانات البائع...</p>
+      <div class="bg-white/20 backdrop-blur-sm rounded-2xl p-3 sm:p-4 inline-block">
+        <div class="text-sm">عدد المنتجات:</div>
+        <div id="productCount" class="text-xl sm:text-2xl font-bold">جاري التحميل...</div>
+      </div>
+    </div>
+  </div>
 
-  <div id="productsGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+  <div class="p-4">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+      <h3 class="text-lg sm:text-xl font-bold text-gray-800">📌 قائمة المنتجات</h3>
+      <div class="flex gap-2 w-full sm:w-auto">
+        <select id="sortSelect" class="flex-1 sm:flex-none bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm">
+          <option value="newest">الأحدث</option>
+          <option value="price_low">السعر: من الأقل</option>
+          <option value="price_high">السعر: من الأعلى</option>
+          <option value="name">الاسم</option>
+        </select>
+        <button id="gridToggle" class="bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition">
+          📊
+        </button>
+      </div>
+    </div>
+    
+    <div id="productsGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4"></div>
+  </div>
 
   <script>
     const supabase = window.supabase.createClient(
@@ -488,40 +522,179 @@ footer a:hover {
 
     )
 
+    let allProducts = [];
+    let currentView = 'grid';
+    
     async function loadSellerProducts() {
       const params = new URLSearchParams(window.location.search);
       const sellerId = params.get("seller");
 
       if (!sellerId) {
-        alert("❌ رقم البائع غير موجود");
+        showError("❌ رقم البائع غير موجود");
         return;
       }
 
-      const { data, error } = await supabase
-        .from("products")
-        .select("id, name, price, product_images(image_url, is_primary)")
-        .eq("seller_id", sellerId)
-        .order("id", { ascending: false });
+      try {
+        const [sellerResult, productsResult] = await Promise.all([
+          supabase.from("sellers").select("name, phone").eq("id", sellerId).single(),
+          supabase.from("products")
+            .select(`
+              id, name, price, discount_price, stock, created_at,
+              product_images(image_url, is_primary)
+            `)
+            .eq("seller_id", sellerId)
+            .order("created_at", { ascending: false })
+        ]);
 
-      if (error) {
-        console.error(error);
-        return;
+        if (productsResult.error) {
+          console.error(productsResult.error);
+          showError("حدث خطأ في تحميل المنتجات");
+          return;
+        }
+
+        const sellerName = sellerResult.data?.name || "بائع غير معروف";
+        document.getElementById('sellerInfo').textContent = `بائع: ${sellerName}`;
+        
+        allProducts = productsResult.data.map(p => ({
+          ...p,
+          image: p.product_images?.find(i => i.is_primary)?.image_url || 
+                 p.product_images?.[0]?.image_url || '/placeholder.png',
+          finalPrice: p.discount_price && p.discount_price < p.price ? p.discount_price : p.price,
+          hasDiscount: p.discount_price && p.discount_price < p.price,
+          discountPercent: p.discount_price && p.discount_price < p.price ? 
+                          Math.round((1 - p.discount_price / p.price) * 100) : 0
+        }));
+        
+        document.getElementById('productCount').textContent = allProducts.length;
+        displayProducts(allProducts);
+        
+      } catch (error) {
+        console.error('Error:', error);
+        showError("حدث خطأ غير متوقع");
       }
-
-      const grid = document.getElementById("productsGrid");
-      grid.innerHTML = data.map(p => {
-        const img = p.product_images?.find(i => i.is_primary) || p.product_images?.[0];
-        return `
-          <div class="bg-white shadow rounded-lg p-3 cursor-pointer hover:scale-[1.02] transition"
-               onclick="window.location='product.html?id=${p.id}'">
-            <img src="${img?.image_url || '/assets/no-image.png'}"
-                 class="w-full h-40 object-cover rounded" />
-            <h3 class="mt-2 font-semibold">${p.name}</h3>
-            <p class="text-blue-700 font-bold">${p.price} ج.م</p>
+    }
+    
+    function displayProducts(products) {
+      const grid = document.getElementById('productsGrid');
+      
+      if (!products.length) {
+        grid.innerHTML = `
+          <div class="col-span-full text-center py-12">
+            <div class="text-6xl mb-4">📦</div>
+            <h3 class="text-xl font-bold text-gray-600 mb-2">لا توجد منتجات</h3>
+            <p class="text-gray-500">لم يتم إضافة أي منتجات بعد</p>
           </div>
         `;
-      }).join("");
+        return;
+      }
+      
+      if (currentView === 'grid') {
+        grid.className = 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4';
+        grid.innerHTML = products.map(p => `
+          <div class="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer overflow-hidden group"
+               onclick="window.location='product.html?id=${p.id}'">
+            
+            <div class="relative">
+              <img src="${p.image}" class="w-full h-40 sm:h-48 object-cover group-hover:scale-110 transition-transform duration-500">
+              ${p.hasDiscount ? `
+                <div class="absolute top-2 left-2 bg-gradient-to-r from-red-500 to-pink-500 text-white px-2 py-1 rounded-full text-xs font-bold">
+                  ${p.discountPercent}% خصم
+                </div>
+              ` : ''}
+              <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            </div>
+            
+            <div class="p-3 sm:p-4">
+              <h3 class="text-sm sm:text-base font-bold text-gray-800 line-clamp-2 min-h-[40px] mb-2">${p.name}</h3>
+              
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                  <span class="text-base sm:text-lg font-bold text-blue-600">${p.finalPrice} ج.م</span>
+                  ${p.hasDiscount ? `<span class="text-xs text-gray-400 line-through">${p.price} ج.م</span>` : ''}
+                </div>
+              </div>
+              
+              <div class="flex items-center justify-between text-xs text-gray-500">
+                <span class="${p.stock > 0 ? 'text-green-600' : 'text-red-600'}">
+                  ${p.stock > 0 ? `✅ متوفر (${p.stock})` : '❌ نفد'}
+                </span>
+                <span>📅 ${new Date(p.created_at).toLocaleDateString('ar-EG')}</span>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      } else {
+        grid.className = 'space-y-4';
+        grid.innerHTML = products.map(p => `
+          <div class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer overflow-hidden flex"
+               onclick="window.location='product.html?id=${p.id}'">
+            
+            <div class="relative w-24 sm:w-32 flex-shrink-0">
+              <img src="${p.image}" class="w-full h-24 sm:h-32 object-cover">
+              ${p.hasDiscount ? `
+                <div class="absolute top-1 left-1 bg-red-500 text-white px-1 py-0.5 rounded text-xs font-bold">
+                  ${p.discountPercent}%
+                </div>
+              ` : ''}
+            </div>
+            
+            <div class="flex-1 p-3 sm:p-4">
+              <h3 class="text-sm sm:text-base font-bold text-gray-800 mb-1">${p.name}</h3>
+              
+              <div class="flex items-center gap-2 mb-2">
+                <span class="text-base sm:text-lg font-bold text-blue-600">${p.finalPrice} ج.م</span>
+                ${p.hasDiscount ? `<span class="text-xs text-gray-400 line-through">${p.price} ج.م</span>` : ''}
+              </div>
+              
+              <div class="flex items-center justify-between text-xs text-gray-500">
+                <span class="${p.stock > 0 ? 'text-green-600' : 'text-red-600'}">
+                  ${p.stock > 0 ? `✅ متوفر (${p.stock})` : '❌ نفد'}
+                </span>
+                <span>📅 ${new Date(p.created_at).toLocaleDateString('ar-EG')}</span>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      }
     }
+    
+    function showError(message) {
+      document.getElementById('productsGrid').innerHTML = `
+        <div class="col-span-full text-center py-12">
+          <div class="text-6xl mb-4">⚠️</div>
+          <h3 class="text-xl font-bold text-red-600 mb-2">خطأ</h3>
+          <p class="text-gray-500">${message}</p>
+        </div>
+      `;
+    }
+    
+    document.getElementById('sortSelect').addEventListener('change', (e) => {
+      const sortBy = e.target.value;
+      let sorted = [...allProducts];
+      
+      switch (sortBy) {
+        case 'newest':
+          sorted.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+          break;
+        case 'price_low':
+          sorted.sort((a, b) => a.finalPrice - b.finalPrice);
+          break;
+        case 'price_high':
+          sorted.sort((a, b) => b.finalPrice - a.finalPrice);
+          break;
+        case 'name':
+          sorted.sort((a, b) => a.name.localeCompare(b.name, 'ar'));
+          break;
+      }
+      
+      displayProducts(sorted);
+    });
+    
+    document.getElementById('gridToggle').addEventListener('click', () => {
+      currentView = currentView === 'grid' ? 'list' : 'grid';
+      document.getElementById('gridToggle').textContent = currentView === 'grid' ? '📊' : '📋';
+      displayProducts(allProducts);
+    });
 
     loadSellerProducts();
   </script>
