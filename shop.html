@@ -1,10 +1,10 @@
+
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.5/dist/umd/supabase.min.js"></script>
-
   <title>متجر LV12 — اكتشف أحدث المنتجات بأسعار تنافسية وتوصيل سريع</title>
   <meta name="description" content="🛍️ متجر LV12 يقدم لك تجربة تسوق ذكية وسهلة — منتجات متنوعة، عروض حصرية، وتوصيل لجميع المحافظات بأسرع وقت. اكتشف الأفضل الآن!">
 <meta name="google-adsense-account" content="ca-pub-7770714931220768">
@@ -16,20 +16,16 @@
   <meta property="og:url" content="https://www.lv12shop.shop" />
   <meta property="og:type" content="website" />
   <meta property="og:locale" content="ar_AR" />
-
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="متجر LV12 — تسوق بسهولة وأمان" />
   <meta name="twitter:description" content="منتجات مميزة وعروض حصرية كل يوم! تسوق الآن من LV12." />
   <meta name="twitter:image" content="https://www.lv12shop.shop/lv12.jpg" />
-
   <link rel="icon" href="/lv12.ico" />
   <link rel="apple-touch-icon" href="/lv12-192.png" />
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#2563eb" />
-
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
-
   <script>
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
@@ -39,7 +35,6 @@
       });
     }
   </script>
-
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -798,58 +793,74 @@ window.addEventListener("mousemove", e => {
 });
 </script>
 
-<section class="w-full py-6 bg-[#0b0b0d]">
+<section class="w-full py-4 sm:py-8 bg-gradient-to-b from-[#0a0a0c] via-[#0f0f12] to-[#0a0a0c] relative overflow-hidden">
+  <div class="absolute inset-0 opacity-30">
+    <div class="absolute top-20 left-10 w-96 h-96 bg-blue-500/20 rounded-full blur-[120px] animate-pulse"></div>
+    <div class="absolute bottom-20 right-10 w-96 h-96 bg-purple-500/20 rounded-full blur-[120px] animate-pulse" style="animation-delay: 1s"></div>
+  </div>
 
-  <div class="swiper adSwiper w-full max-w-md mx-auto rounded-3xl overflow-hidden
-              shadow-[0_0_40px_rgba(0,0,0,0.55)] bg-[#121214]
-              border border-[#222225]/40 backdrop-blur-xl">
+  <div class="swiper adSwiper w-[95%] sm:w-full max-w-2xl mx-auto rounded-2xl sm:rounded-[32px] overflow-hidden
+              shadow-[0_20px_80px_rgba(0,0,0,0.8)] bg-gradient-to-br from-[#1a1a1f] to-[#0f0f14]
+              border border-white/10 backdrop-blur-2xl relative z-10
+              hover:shadow-[0_25px_100px_rgba(59,130,246,0.3)] transition-all duration-500">
 
     <div class="swiper-wrapper">
 
       <div class="swiper-slide">
+        <div class="w-full h-[280px] sm:h-[380px] relative overflow-hidden rounded-2xl sm:rounded-[32px] bg-gradient-to-br from-indigo-900/40 via-purple-900/40 to-pink-900/40">
+          
+          <div class="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.03"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"%3E%3C/path%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-20"></div>
 
-        <div class="w-full h-[340px] relative overflow-hidden rounded-3xl">
-
-          <div class="absolute top-0 left-0 w-full p-5 bg-gradient-to-b from-black/80 to-transparent z-20">
-            <h2 class="text-xl font-extrabold text-yellow-400 drop-shadow-lg tracking-wide">
-              الأكثر مشاهدة 🔥
-            </h2>
-            <p class="text-gray-300 text-sm">أفضل المنتجات حسب الزيارات</p>
+          <div class="absolute top-0 left-0 w-full p-6 bg-gradient-to-b from-black/80 via-black/40 to-transparent z-20">
+            <div class="flex items-center gap-3 mb-2">
+              <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-lg shadow-yellow-500/50 animate-bounce">
+                <span class="text-2xl">🔥</span>
+              </div>
+              <div>
+                <h2 class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-orange-400 to-red-500 drop-shadow-2xl tracking-tight">
+                  الأكثر مشاهدة
+                </h2>
+                <p class="text-yellow-100/90 text-sm font-semibold drop-shadow-lg flex items-center gap-2">
+                  <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                  أفضل المنتجات حسب الزيارات
+                </p>
+              </div>
+            </div>
           </div>
 
-          <div id="featuredProducts"
-               class="absolute inset-0 grid grid-cols-1 gap-0">
+          <div id="featuredProducts" class="absolute inset-0 pt-16 sm:pt-24"></div>
 
-          </div>
-
+          <div class="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-black/60 to-transparent z-10"></div>
         </div>
-
       </div>
 
-      <div class="swiper-slide">
-        <a href="wallet.html">
-          <img src="1.png"
-               class="w-full h-[340px] object-cover rounded-3xl" />
+      <div class="swiper-slide group">
+        <a href="wallet.html" class="block relative overflow-hidden rounded-[32px]">
+          <div class="absolute inset-0 bg-gradient-to-br from-blue-600/20 to-purple-600/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"></div>
+          <img src="1.png" class="w-full h-[280px] sm:h-[380px] object-cover rounded-2xl sm:rounded-[32px] transform group-hover:scale-105 transition-transform duration-700" />
+          <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
         </a>
       </div>
 
-      <div class="swiper-slide">
-        <a href="wallet.html">
-          <img src="2.png"
-               class="w-full h-[340px] object-cover rounded-3xl" />
+      <div class="swiper-slide group">
+        <a href="wallet.html" class="block relative overflow-hidden rounded-[32px]">
+          <div class="absolute inset-0 bg-gradient-to-br from-purple-600/20 to-pink-600/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"></div>
+          <img src="2.png" class="w-full h-[280px] sm:h-[380px] object-cover rounded-2xl sm:rounded-[32px] transform group-hover:scale-105 transition-transform duration-700" />
+          <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
         </a>
       </div>
 
-      <div class="swiper-slide">
-        <a href="discount-day.html">
-          <img src="3.png"
-               class="w-full h-[340px] object-cover rounded-3xl" />
+      <div class="swiper-slide group">
+        <a href="discount-day.html" class="block relative overflow-hidden rounded-[32px]">
+          <div class="absolute inset-0 bg-gradient-to-br from-orange-600/20 to-red-600/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"></div>
+          <img src="3.png" class="w-full h-[280px] sm:h-[380px] object-cover rounded-2xl sm:rounded-[32px] transform group-hover:scale-105 transition-transform duration-700" />
+          <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
         </a>
       </div>
 
     </div>
 
-    <div class="swiper-pagination my-3"></div>
+    <div class="swiper-pagination !bottom-4"></div>
 
   </div>
 
@@ -868,20 +879,6 @@ new Swiper(".adSwiper", {
 </script>
 
 <style>
-  #featuredProducts * {
-    font-size: 0 !important;
-    color: transparent !important;
-  }
-
-  #featuredProducts img {
-    height: 55px;
-    width: 55px;
-    object-fit: cover !important;
-    border-radius: 12px;
-    background: #111;
-    display: block;
-  }
-
   .slide-banner {
     width: 100%;
     height: 190px;
@@ -891,10 +888,33 @@ new Swiper(".adSwiper", {
   }
 
   .swiper-slide {
-    background: #121214;
+    background: transparent;
     display: flex;
     align-items: center;
     justify-content: center;
+  }
+
+  .swiper-pagination-bullet {
+    background: rgba(255,255,255,0.4) !important;
+    width: 10px !important;
+    height: 10px !important;
+    transition: all 0.3s ease !important;
+  }
+
+  .swiper-pagination-bullet-active {
+    background: linear-gradient(135deg, #fbbf24, #f59e0b) !important;
+    width: 32px !important;
+    border-radius: 6px !important;
+    box-shadow: 0 0 20px rgba(251,191,36,0.6) !important;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+  }
+
+  .swiper-slide:hover {
+    transform: scale(1.01);
   }
 </style>
 
@@ -928,15 +948,18 @@ new Swiper(".adSwiper", {
         }
 
         el.innerHTML = `
-          <div class="p-4 w-full h-full flex items-center justify-center">
-            <div class="flex gap-4 overflow-x-auto no-scrollbar py-2 px-1">
-              ${products.map(p => `
-                <a href="product.html?id=${p.id}" class="group block w-44 bg-[#0b1220] p-3 rounded-2xl border border-white/6 hover:scale-105 transition shadow">
-                  <div class="w-full h-36 bg-gray-900 rounded-lg overflow-hidden mb-2">
-                    <img src="${(p.product_images?.[0]?.image_url) || '/placeholder.png'}" class="w-full h-full object-cover" alt="${escapeHtml(p.name)}" />
+          <div class="w-full h-full p-3">
+            <div class="grid grid-cols-2 gap-3 h-full">
+              ${products.slice(0,4).map(p => `
+                <a href="product.html?id=${p.id}" class="group relative bg-gradient-to-br from-blue-900/80 to-purple-900/80 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/20 hover:scale-105 hover:border-yellow-400/50 transition-all duration-300 shadow-2xl">
+                  <div class="absolute inset-0">
+                    <img src="${(p.product_images?.[0]?.image_url) || '/placeholder.png'}" class="w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity" alt="${escapeHtml(p.name)}" />
                   </div>
-                  <div class="text-sm text-white font-semibold truncate">${escapeHtml(p.name)}</div>
-                  <div class="text-xs text-gray-300">${Number(p.price||0).toFixed(2)} ج.م</div>
+                  <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent"></div>
+                  <div class="relative z-10 p-3 h-full flex flex-col justify-end">
+                    <div class="text-white font-bold text-sm leading-tight mb-1 drop-shadow-lg">${escapeHtml(p.name)}</div>
+                    <div class="text-yellow-400 font-black text-lg drop-shadow-lg">${Number(p.price||0).toFixed(0)} ج.م</div>
+                  </div>
                 </a>
               `).join('')}
             </div>
@@ -1017,98 +1040,192 @@ new Swiper(".adSwiper", {
 
   })();
 </script>
-<main id="products" class="max-w-7xl mx-auto px-4 py-12 space-y-16 relative">
 
-  <div class="absolute inset-0 bg-gradient-to-b from-[#eef4ff] via-white to-[#f5f8ff] opacity-90 -z-10"></div>
 
-  <section class="relative mb-8">
-    <h2 class="text-2xl font-extrabold mb-4 text-blue-700 flex items-center gap-2">
-      🏷️ فئات المنتجات
-    </h2>
 
-    <div id="categoriesBar"
-      class="flex gap-4 overflow-x-auto pb-3 pt-1 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-blue-300 scrollbar-track-blue-100">
+
+
+
+
+</script>
+
+<main id="products" class="max-w-7xl mx-auto px-3 sm:px-4 py-8 sm:py-12 space-y-10 sm:space-y-14">
+
+  <!-- فئات المنتجات -->
+  <section class="relative">
+    <div class="flex items-center justify-between mb-5">
+      <h2 class="text-2xl sm:text-3xl font-black flex items-center gap-3">
+        <span class="text-3xl">🏷️</span>
+        <span class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent drop-shadow-sm">فئات المنتجات</span>
+      </h2>
+    </div>
+    <div id="categoriesBar" class="flex gap-3 overflow-x-auto pb-3 snap-x snap-mandatory hide-scrollbar"></div>
+  </section>
+
+  <!-- عروض اليوم (المنتجات الجديدة اليوم) -->
+  <section id="todayDeals" class="relative bg-gradient-to-br from-amber-500 via-orange-500 to-red-500 rounded-3xl p-6 sm:p-8 shadow-2xl overflow-hidden">
+    <div class="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.1"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"%3E%3C/path%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-20"></div>
+    <div class="absolute top-0 left-0 w-40 h-40 bg-yellow-300/30 rounded-full blur-3xl animate-pulse"></div>
+    <div class="relative z-10">
+      <div class="flex items-center justify-between mb-5">
+        <div>
+          <h2 class="text-2xl sm:text-3xl font-black text-white flex items-center gap-3 drop-shadow-lg">
+            <span class="text-3xl animate-bounce">🔥</span>
+            عروض اليوم
+          </h2>
+          <p class="text-white/90 text-sm mt-1 font-semibold">المنتجات الجديدة التي وصلت اليوم</p>
+        </div>
+        <a href="discount-day.html" class="bg-white text-orange-600 px-4 py-2 rounded-xl text-sm font-bold hover:scale-105 transition shadow-lg">
+          عرض الكل ←
+        </a>
+      </div>
+      <div id="todayDealsCarousel" class="flex gap-4 overflow-x-auto snap-x pb-2 hide-scrollbar"></div>
     </div>
   </section>
 
+  <!-- قسم الخصومات -->
+  <section id="discountsSection" class="relative bg-gradient-to-br from-rose-500 via-pink-500 to-fuchsia-600 rounded-3xl p-6 sm:p-8 shadow-2xl overflow-hidden">
+    <div class="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="%23ffffff" fill-opacity="0.08" fill-rule="evenodd"%3E%3Cpath d="M0 40L40 0H20L0 20M40 40V20L20 40"%3E%3C/path%3E%3C/g%3E%3C/svg%3E')] opacity-30"></div>
+    <div class="absolute bottom-0 right-0 w-40 h-40 bg-purple-300/30 rounded-full blur-3xl animate-pulse" style="animation-delay: 0.5s"></div>
+    <div class="relative z-10">
+      <div class="flex items-center justify-between mb-5">
+        <div>
+          <h2 class="text-2xl sm:text-3xl font-black text-white flex items-center gap-3 drop-shadow-lg">
+            <span class="text-3xl">🎁</span>
+            خصومات حصرية
+          </h2>
+          <p class="text-white/90 text-sm mt-1 font-semibold">وفّر الآن مع أفضل العروض</p>
+        </div>
+      </div>
+      <div id="discountsGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"></div>
+    </div>
+  </section>
+
+  <!-- الفئات -->
   <section id="categorySections" class="space-y-10"></section>
 
-  <section class="max-w-7xl mx-auto px-4 py-10">
-    <h2 class="text-2xl font-extrabold text-blue-800 mb-6">🛍️ جميع المنتجات</h2>
-    <div id="allProductsGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6"></div>
-  </section>
-
-  <section id="deals"
-    class="p-6 bg-white rounded-3xl shadow-lg border border-blue-100 relative overflow-hidden">
-
-    <div class="absolute top-0 right-0 bg-blue-200/40 w-40 h-40 rounded-full blur-3xl -translate-y-10 translate-x-10"></div>
-
-    <div class="flex justify-between items-center mb-4">
-      <h2 class="text-2xl font-extrabold text-blue-700">🔥 عروض اليوم</h2>
-      <a href="discount-day.html"
-        class="text-sm text-blue-600 hover:underline font-semibold transition-all hover:translate-x-1">عرض الكل →</a>
+  <!-- جميع المنتجات -->
+  <section class="relative">
+    <div class="flex items-center justify-between mb-5">
+      <h2 class="text-2xl sm:text-3xl font-black flex items-center gap-3">
+        <span class="text-3xl">🛍️</span>
+        <span class="bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 bg-clip-text text-transparent drop-shadow-sm">جميع المنتجات</span>
+      </h2>
     </div>
-
-    <div id="dealsCarousel"
-      class="flex gap-4 overflow-x-auto snap-x pb-2 scrollbar-thin scrollbar-thumb-blue-300 scrollbar-track-blue-100"></div>
+    <div id="allProductsGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"></div>
   </section>
 
-  <section id="under100Wrapper" class="mt-10">
-    <h2 class="text-xl font-bold text-green-700 mb-3">💰 منتجات أقل من 100 ج.م</h2>
-    <div id="under100" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
+  <!-- منتجات أقل من 100 -->
+  <section id="under100Wrapper" class="relative bg-gradient-to-br from-emerald-50 to-teal-50 rounded-3xl p-6 shadow-lg">
+    <div class="flex items-center justify-between mb-5">
+      <h2 class="text-xl sm:text-2xl font-black text-emerald-700 flex items-center gap-3">
+        <span class="text-2xl">💰</span>
+        منتجات أقل من 100 ج.م
+      </h2>
+    </div>
+    <div id="under100" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"></div>
   </section>
 
-  <section id="under200Wrapper" class="mt-10">
-    <h2 class="text-xl font-bold text-emerald-700 mb-3">💰 منتجات أقل من 200 ج.م</h2>
-    <div id="under200" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
+  <!-- منتجات أقل من 200 -->
+  <section id="under200Wrapper" class="relative bg-gradient-to-br from-blue-50 to-indigo-50 rounded-3xl p-6 shadow-lg">
+    <div class="flex items-center justify-between mb-5">
+      <h2 class="text-xl sm:text-2xl font-black text-blue-700 flex items-center gap-3">
+        <span class="text-2xl">💎</span>
+        منتجات أقل من 200 ج.م
+      </h2>
+    </div>
+    <div id="under200" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"></div>
   </section>
 
-  <section id="discountDaysWrapper" class="hidden mt-10">
-    <h2 class="text-xl font-bold text-blue-700 mb-4 flex items-center gap-2">📅 عروض حسب الأيام</h2>
-    <div id="discountDaysBar"
-      class="flex gap-2 overflow-x-auto py-2 scrollbar-thin scrollbar-thumb-blue-300 scrollbar-track-blue-100"></div>
-    <div id="discountDayProducts"
-      class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-4"></div>
-  </section>
-
-  <section>
-    <h2 class="text-xl font-bold text-blue-700 mb-3 flex items-center gap-2">✨ اهتماماتك</h2>
-    <div id="interestProducts"
-      class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 bg-white rounded-2xl p-4 shadow-sm border border-blue-100"></div>
+  <!-- قد يعجبك -->
+  <section id="interestWrapper" class="relative bg-gradient-to-br from-purple-50 to-pink-50 rounded-3xl p-6 shadow-lg">
+    <div class="flex items-center justify-between mb-5">
+      <h2 class="text-xl sm:text-2xl font-black text-purple-700 flex items-center gap-3">
+        <span class="text-2xl">✨</span>
+        قد يعجبك أيضاً
+      </h2>
+    </div>
+    <div id="interestProducts" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"></div>
   </section>
 </main>
 
 <style>
+  .hide-scrollbar::-webkit-scrollbar { display: none; }
+  .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
   #categoriesBar .category-item {
-    min-width: 140px;
+    min-width: 130px;
     padding: 12px;
-    background: white;
-    border-radius: 16px;
-    border: 1px solid #dbe7ff;
-    color: #1e3a8a;
-    font-weight: 700;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
+    border-radius: 20px;
+    color: white;
+    font-weight: 800;
+    font-size: 15px;
     text-align: center;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    box-shadow: 0 8px 20px rgba(99,102,241,0.4);
     scroll-snap-align: start;
-    transition: .25s ease;
+    transition: all .35s ease;
+    cursor: pointer;
+    border: 2px solid rgba(255,255,255,0.2);
   }
   #categoriesBar .category-item:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+    transform: translateY(-6px) scale(1.08);
+    box-shadow: 0 12px 35px rgba(139,92,246,0.5);
+    border-color: rgba(255,255,255,0.4);
   }
 
-  .category-slider-card {
-    min-width: 150px;
+  .product-card-modern {
     background: white;
-    padding: 12px;
-    border-radius: 16px;
-    border: 1px solid #e4e9f5;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-    transition: .25s;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    transition: all .35s ease;
+    cursor: pointer;
+    border: 1px solid rgba(0,0,0,0.05);
+    position: relative;
   }
-  .category-slider-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  .product-card-modern:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.15);
+    border-color: rgba(99,102,241,0.3);
+  }
+  .product-card-modern img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    transition: transform .4s ease;
+  }
+  .product-card-modern:hover img {
+    transform: scale(1.12);
+  }
+  .product-card-modern .discount-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 800;
+    box-shadow: 0 4px 12px rgba(239,68,68,0.4);
+    z-index: 10;
+  }
+  .product-card-modern .new-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 800;
+    box-shadow: 0 4px 12px rgba(16,185,129,0.4);
+    z-index: 10;
+  }
+  @media (max-width: 640px) {
+    .product-card-modern img { height: 150px; }
   }
 </style>
 
@@ -3008,19 +3125,18 @@ async function loadNotifications() {
   `).join('');
 }
 loadNotifications();
-</script>
 
-
-
-
-
-
-<script>
 
 const seenAds = JSON.parse(localStorage.getItem("seen_ads") || "{}");
 
 async function showShopAd() {
   try {
+
+    if (typeof supabase === "undefined") {
+      console.error("❌ Supabase غير معرّف. تأكد من تضمين مكتبة supabase قبل هذا السكربت.");
+      return;
+    }
+
     const { data, error } = await supabase
       .from("shop_ads")
       .select("*")
@@ -3032,55 +3148,123 @@ async function showShopAd() {
       return;
     }
 
-    if (!data?.length) {
-      console.log("ℹ️ لا توجد إعلانات في shop_ads");
+    if (!data || !data.length) {
+      console.log("ℹ️ لا توجد إعلانات متاحة في shop_ads");
       return;
     }
 
     const ad = data[0];
     const now = new Date();
 
-    if ((ad.start_date && new Date(ad.start_date) > now) ||
-        (ad.end_date && new Date(ad.end_date) < now)) return;
+    if (ad.start_date && new Date(ad.start_date) > now) return;
+    if (ad.end_date && new Date(ad.end_date) < now) return;
 
     if (seenAds[ad.id]) return;
 
-    const banner = document.getElementById("shopAdBanner");
-    const text = document.getElementById("shopAdText");
+    let banner = document.getElementById("shopAdBanner");
+    let text = document.getElementById("shopAdText");
+    let closeBtn = document.getElementById("closeShopAd");
 
-    banner.style.background = ad.bg || "linear-gradient(to right, #16a34a, #22c55e, #0d9488)";
-    text.textContent = ad.text || "🔥 إعلان المتجر الجديد!";
+   
+    if (!banner || !text || !closeBtn) {
+      banner = document.createElement("div");
+      banner.id = "shopAdBanner";
 
-    banner.classList.remove("hidden");
-    setTimeout(() => {
-      banner.classList.remove("opacity-0", "-translate-y-full");
-      banner.classList.add("opacity-100", "translate-y-0");
-    }, 50);
+      banner.className = "mx-auto max-w-3xl w-full bg-white text-gray-900 rounded-2xl shadow-lg p-4 flex items-center justify-between gap-4";
 
-    document.getElementById("closeShopAd").addEventListener("click", () => {
-      banner.classList.add("opacity-0", "-translate-y-full");
-      setTimeout(() => banner.remove(), 500);
+      banner.style.opacity = "0";
+      banner.style.transform = "translateY(-10px)";
+      banner.style.transition = "opacity 300ms ease, transform 300ms ease";
+
+      banner.innerHTML = `
+        <div class="flex items-center gap-3">
+          <div id="shopAdIcon" aria-hidden="true" style="font-size:22px;line-height:1;width:44px;height:44px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#f97316,#ef4444);color:white;box-shadow:0 6px 18px rgba(239,68,68,0.12)">🔥</div>
+          <div>
+            <div id="shopAdText" style="font-weight:800;font-size:1.15rem;line-height:1.1;letter-spacing:0.2px;background:linear-gradient(90deg,#4f46e5,#ec4899);-webkit-background-clip:text;background-clip:text;color:transparent;">إعلان مميز</div>
+            <div id="shopAdSub" style="margin-top:3px;color:#475569;font-size:0.9rem;">نص توضيحي قصير للاعلان</div>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <a id="shopAdAction" href="#" class="hidden" style="background:linear-gradient(90deg,#4f46e5,#ec4899);color:#fff;padding:8px 12px;border-radius:10px;font-weight:600;text-decoration:none;box-shadow:0 6px 16px rgba(79,70,229,0.12);">عرض</a>
+          <button id="closeShopAd" aria-label="إغلاق الإعلان" style="background:transparent;border:none;color:#94a3b8;font-size:0.95rem;padding:6px 8px;">إغلاق</button>
+        </div>
+      `;
+
+      const productsEl = document.getElementById("products");
+      if (productsEl && productsEl.parentNode) {
+        productsEl.parentNode.insertBefore(banner, productsEl);
+      } else {
+        const mainEl = document.querySelector("main") || document.body;
+        mainEl.insertBefore(banner, mainEl.firstChild);
+      }
+
+      text = document.getElementById("shopAdText");
+      closeBtn = document.getElementById("closeShopAd");
+    }
+
+    if (ad.bg) banner.style.background = ad.bg;
+    if (ad.text) text.textContent = ad.text;
+    if (ad.subtext) document.getElementById("shopAdSub").textContent = ad.subtext;
+
+    const actionBtn = document.getElementById("shopAdAction");
+    if (ad.link) {
+      actionBtn.href = ad.link;
+      actionBtn.classList.remove("hidden");
+    } else {
+      actionBtn.classList.add("hidden");
+    }
+
+    requestAnimationFrame(() => {
+      banner.style.opacity = "1";
+      banner.style.transform = "translateY(0)";
+    });
+
+    closeBtn.addEventListener("click", () => {
+      banner.style.opacity = "0";
+      banner.style.transform = "translateY(-10px)";
+      setTimeout(() => banner.remove(), 300);
       seenAds[ad.id] = true;
       localStorage.setItem("seen_ads", JSON.stringify(seenAds));
     });
+
   } catch (err) {
     console.error("❌ خطأ أثناء تحميل الإعلان:", err);
   }
 }
 
 document.addEventListener("DOMContentLoaded", showShopAd);
+
+
 async function logUserActivity(type) {
-  const user = JSON.parse(localStorage.getItem('lv12_user') || '{}');
-  await supabase.from('user_activity').insert({
-    user_id: user.id || null,
-    user_display: user.name || 'زائر',
-    type
-  });
+  try {
+    const user = JSON.parse(localStorage.getItem('lv12_user') || '{}');
+
+    if (typeof supabase === "undefined") {
+      console.error("❌ Supabase غير معرّف. لن يتم تسجيل النشاط.");
+      return;
+    }
+
+    await supabase.from('user_activity').insert({
+      user_id: user.id || null,
+      user_display: user.name || 'زائر',
+      type
+    });
+
+  } catch (e) {
+    console.error("❌ خطأ أثناء تسجيل النشاط:", e);
+  }
 }
 
 logUserActivity('زيارة المتجر');
-
 </script>
+
+
+
+
+
+
+
+
 
 
 
@@ -4207,3 +4391,5 @@ document.addEventListener("DOMContentLoaded", loadUserProfile);
 </body>
 </html>
 
+
+<script src="shop-products.js"></script>
