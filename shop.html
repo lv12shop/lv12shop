@@ -1,4 +1,5 @@
 
+
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
@@ -55,45 +56,47 @@
 
 
 :root {
-  --primary: #4f46e5;         
-  --primary-dark: #312e81;
-  --secondary: #6366f1;
-  --accent: #818cf8;
+  --primary: #3b82f6;         
+  --primary-dark: #1d4ed8;
+  --secondary: #8b5cf6;
+  --accent: #06b6d4;
 
-  --bg-light: linear-gradient(180deg, #0f0f10, #121214, #1a1a1d);
-  --bg-box: rgba(255,255,255,0.06);
+  --bg-light: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --bg-box: rgba(255,255,255,0.15);
 
-  --text-dark: #f3f4f6;
-  --text-gray: #9ca3af;
+  --text-dark: #ffffff;
+  --text-gray: #e2e8f0;
 
   --radius: 18px;
-  --shadow: 0 6px 24px rgba(0,0,0,0.38);
+  --shadow: 0 8px 32px rgba(0,0,0,0.25);
   --transition: all .35s ease;
 }
 
 
 body {
   font-family: 'Cairo', sans-serif;
-  background: var(--bg-light);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  background-attachment: fixed;
   color: var(--text-dark);
   margin: 0;
   padding: 0;
   overflow-x: hidden;
   line-height: 1.7;
   scroll-behavior: smooth;
+  min-height: 100vh;
 }
 
 
 
 header {
-  background: linear-gradient(90deg, #111827, #1f2937, #111827);
+  background: linear-gradient(90deg, rgba(59,130,246,0.9), rgba(139,92,246,0.9));
   color: #fff;
   position: sticky;
   top: 0;
   z-index: 50;
-  backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-  box-shadow: 0 8px 26px rgba(0,0,0,0.45);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255,255,255,0.2);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
   padding: 14px 22px;
 }
 header .container {
@@ -133,22 +136,24 @@ header h1 {
 }
 .search-bar input {
   width: 100%;
-  border: none;
+  border: 1px solid rgba(255,255,255,0.3);
   border-radius: 14px;
   padding: 10px 42px 10px 14px;
   font-size: 15px;
-  background: rgba(255,255,255,0.1);
+  background: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.1));
   color: #fff;
-  box-shadow: var(--shadow);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
   transition: var(--transition);
-  backdrop-filter: blur(6px);
+  backdrop-filter: blur(15px);
 }
 .search-bar input::placeholder {
   color: #cbd5e1;
 }
 .search-bar input:focus {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(99,102,241,0.4);
+  box-shadow: 0 0 0 3px rgba(16,185,129,0.5), 0 8px 25px rgba(0,0,0,0.3);
+  background: linear-gradient(135deg, rgba(255,255,255,0.3), rgba(255,255,255,0.2));
+  transform: translateY(-2px);
 }
 .search-bar .icon {
   position: absolute;
@@ -167,8 +172,9 @@ header h1 {
   gap: 14px;
   padding: 18px;
   scroll-snap-type: x mandatory;
-  background: #111827;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
+  background: linear-gradient(90deg, rgba(59,130,246,0.8), rgba(139,92,246,0.8));
+  border-bottom: 1px solid rgba(255,255,255,0.2);
+  backdrop-filter: blur(10px);
 }
 #categoriesBar::-webkit-scrollbar {
   height: 6px;
@@ -180,7 +186,8 @@ header h1 {
 
 .category-item {
   min-width: 120px;
-  background: #1f2937;
+  background: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.1));
+  border: 1px solid rgba(255,255,255,0.3);
   border-radius: 16px;
   box-shadow: var(--shadow);
   padding: 10px;
@@ -188,6 +195,7 @@ header h1 {
   cursor: pointer;
   scroll-snap-align: center;
   transition: var(--transition);
+  backdrop-filter: blur(10px);
 }
 .category-item:hover {
   transform: translateY(-6px);
@@ -218,19 +226,20 @@ header h1 {
 }
 
 .product-card {
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: linear-gradient(135deg, rgba(255,255,255,0.25), rgba(255,255,255,0.15));
+  border: 1px solid rgba(255,255,255,0.3);
   border-radius: var(--radius);
   overflow: hidden;
   position: relative;
-  box-shadow: var(--shadow);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
   cursor: pointer;
   transition: var(--transition);
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(15px);
 }
 .product-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 12px 36px rgba(0,0,0,0.55);
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+  background: linear-gradient(135deg, rgba(255,255,255,0.35), rgba(255,255,255,0.25));
 }
 .product-card img {
   width: 100%;
@@ -246,7 +255,8 @@ header h1 {
   font-size: 15px;
   font-weight: 700;
   margin: 10px 8px 4px;
-  color: #f1f5f9;
+  color: #ffffff;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 .product-card .price {
   display: flex;
@@ -255,9 +265,10 @@ header h1 {
   margin: 0 8px 12px;
 }
 .price-new {
-  color: #22d3ee;
+  color: #10b981;
   font-weight: 800;
   font-size: 16px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 .price-old {
   text-decoration: line-through;
@@ -268,12 +279,14 @@ header h1 {
   position: absolute;
   top: 10px;
   right: 10px;
-  background: linear-gradient(135deg, #ef4444, #b91c1c);
+  background: linear-gradient(135deg, #f59e0b, #d97706);
   color: #fff;
   padding: 4px 8px;
   border-radius: 8px;
   font-size: 12px;
   font-weight: 700;
+  box-shadow: 0 4px 12px rgba(245,158,11,0.4);
+  animation: pulse 2s infinite;
 }
 
 
@@ -284,29 +297,33 @@ header h1 {
 .category-section h2 {
   font-size: 18px;
   font-weight: 800;
-  color: #e5e7eb;
+  color: #ffffff;
   margin-bottom: 10px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
 .view-all {
-  color: var(--accent);
+  color: #10b981;
   cursor: pointer;
   transition: var(--transition);
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 .view-all:hover {
-  color: #fff;
+  color: #34d399;
   text-decoration: underline;
+  transform: translateX(-3px);
 }
 
 
 footer {
-  background: linear-gradient(180deg, #1e293b, #0f172a);
-  color: #d1d5db;
+  background: linear-gradient(135deg, rgba(59,130,246,0.9), rgba(139,92,246,0.9));
+  color: #ffffff;
   padding: 50px 20px;
-  box-shadow: 0 -6px 20px rgba(0,0,0,0.4);
-  border-top: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 -8px 32px rgba(0,0,0,0.3);
+  border-top: 1px solid rgba(255,255,255,0.2);
+  backdrop-filter: blur(20px);
 }
 
 footer .container {
@@ -357,6 +374,46 @@ footer a:hover {
 }
 .animate-fade {
   animation: fade 0.8s ease-out forwards;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+.category-item:hover {
+  transform: translateY(-6px) scale(1.05);
+  box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+  background: linear-gradient(135deg, rgba(255,255,255,0.3), rgba(255,255,255,0.2));
+}
+
+.product-card img {
+  width: 100%;
+  height: 190px;
+  object-fit: cover;
+  border-bottom: 1px solid rgba(255,255,255,0.2);
+  transition: transform .4s ease;
+  filter: brightness(1.1) contrast(1.1);
+}
+
+.product-card:hover img {
+  transform: scale(1.08);
+  filter: brightness(1.2) contrast(1.2);
+}
+
+#productsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 22px;
+  padding: 28px;
+  max-width: 1300px;
+  margin: 0 auto;
+  animation: float 6s ease-in-out infinite;
 }
 
 </style>
@@ -1049,103 +1106,103 @@ new Swiper(".adSwiper", {
 
 </script>
 
-<main id="products" class="max-w-7xl mx-auto px-3 sm:px-4 py-8 sm:py-12 space-y-10 sm:space-y-14">
+<main id="products" class="w-full px-2 sm:px-4 py-4 sm:py-8 space-y-6 sm:space-y-10 pb-20">
 
   <!-- فئات المنتجات -->
-  <section class="relative">
-    <div class="flex items-center justify-between mb-5">
-      <h2 class="text-2xl sm:text-3xl font-black flex items-center gap-3">
-        <span class="text-3xl">🏷️</span>
-        <span class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent drop-shadow-sm">فئات المنتجات</span>
+  <section class="relative px-2">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-lg sm:text-2xl font-black flex items-center gap-2">
+        <span class="text-xl sm:text-2xl">🏷️</span>
+        <span class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">الفئات</span>
       </h2>
     </div>
-    <div id="categoriesBar" class="flex gap-3 overflow-x-auto pb-3 snap-x snap-mandatory hide-scrollbar"></div>
+    <div id="categoriesBar" class="flex gap-2 sm:gap-3 overflow-x-auto pb-3 snap-x snap-mandatory hide-scrollbar"></div>
   </section>
 
-  <!-- عروض اليوم (المنتجات الجديدة اليوم) -->
-  <section id="todayDeals" class="relative bg-gradient-to-br from-amber-500 via-orange-500 to-red-500 rounded-3xl p-6 sm:p-8 shadow-2xl overflow-hidden">
+  <!-- عروض اليوم -->
+  <section id="todayDeals" class="relative bg-gradient-to-br from-amber-500 via-orange-500 to-red-500 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xl overflow-hidden mx-2">
     <div class="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.1"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"%3E%3C/path%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-20"></div>
-    <div class="absolute top-0 left-0 w-40 h-40 bg-yellow-300/30 rounded-full blur-3xl animate-pulse"></div>
+    <div class="absolute top-0 left-0 w-32 h-32 bg-yellow-300/30 rounded-full blur-3xl animate-pulse"></div>
     <div class="relative z-10">
-      <div class="flex items-center justify-between mb-5">
+      <div class="flex items-center justify-between mb-4">
         <div>
-          <h2 class="text-2xl sm:text-3xl font-black text-white flex items-center gap-3 drop-shadow-lg">
-            <span class="text-3xl animate-bounce">🔥</span>
+          <h2 class="text-xl sm:text-2xl font-black text-white flex items-center gap-2 drop-shadow-lg">
+            <span class="text-xl sm:text-2xl animate-bounce">🔥</span>
             عروض اليوم
           </h2>
-          <p class="text-white/90 text-sm mt-1 font-semibold">المنتجات الجديدة التي وصلت اليوم</p>
+          <p class="text-white/90 text-xs sm:text-sm mt-1 font-semibold">المنتجات الجديدة اليوم</p>
         </div>
-        <a href="discount-day.html" class="bg-white text-orange-600 px-4 py-2 rounded-xl text-sm font-bold hover:scale-105 transition shadow-lg">
-          عرض الكل ←
+        <a href="discount-day.html" class="bg-white text-orange-600 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold hover:scale-105 transition shadow-lg">
+          الكل ←
         </a>
       </div>
-      <div id="todayDealsCarousel" class="flex gap-4 overflow-x-auto snap-x pb-2 hide-scrollbar"></div>
+      <div id="todayDealsCarousel" class="flex gap-3 overflow-x-auto snap-x pb-2 hide-scrollbar"></div>
     </div>
   </section>
 
   <!-- قسم الخصومات -->
-  <section id="discountsSection" class="relative bg-gradient-to-br from-rose-500 via-pink-500 to-fuchsia-600 rounded-3xl p-6 sm:p-8 shadow-2xl overflow-hidden">
+  <section id="discountsSection" class="relative bg-gradient-to-br from-rose-500 via-pink-500 to-fuchsia-600 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xl overflow-hidden mx-2">
     <div class="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="%23ffffff" fill-opacity="0.08" fill-rule="evenodd"%3E%3Cpath d="M0 40L40 0H20L0 20M40 40V20L20 40"%3E%3C/path%3E%3C/g%3E%3C/svg%3E')] opacity-30"></div>
-    <div class="absolute bottom-0 right-0 w-40 h-40 bg-purple-300/30 rounded-full blur-3xl animate-pulse" style="animation-delay: 0.5s"></div>
+    <div class="absolute bottom-0 right-0 w-32 h-32 bg-purple-300/30 rounded-full blur-3xl animate-pulse" style="animation-delay: 0.5s"></div>
     <div class="relative z-10">
-      <div class="flex items-center justify-between mb-5">
+      <div class="flex items-center justify-between mb-4">
         <div>
-          <h2 class="text-2xl sm:text-3xl font-black text-white flex items-center gap-3 drop-shadow-lg">
-            <span class="text-3xl">🎁</span>
+          <h2 class="text-xl sm:text-2xl font-black text-white flex items-center gap-2 drop-shadow-lg">
+            <span class="text-xl sm:text-2xl">🎁</span>
             خصومات حصرية
           </h2>
-          <p class="text-white/90 text-sm mt-1 font-semibold">وفّر الآن مع أفضل العروض</p>
+          <p class="text-white/90 text-xs sm:text-sm mt-1 font-semibold">وفّر الآن مع أفضل العروض</p>
         </div>
       </div>
-      <div id="discountsGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"></div>
+      <div id="discountsGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3"></div>
     </div>
   </section>
 
   <!-- الفئات -->
-  <section id="categorySections" class="space-y-10"></section>
+  <section id="categorySections" class="space-y-6 px-2"></section>
 
   <!-- جميع المنتجات -->
-  <section class="relative">
-    <div class="flex items-center justify-between mb-5">
-      <h2 class="text-2xl sm:text-3xl font-black flex items-center gap-3">
-        <span class="text-3xl">🛍️</span>
-        <span class="bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 bg-clip-text text-transparent drop-shadow-sm">جميع المنتجات</span>
+  <section class="relative px-2">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-lg sm:text-2xl font-black flex items-center gap-2">
+        <span class="text-xl sm:text-2xl">🛍️</span>
+        <span class="bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 bg-clip-text text-transparent">جميع المنتجات</span>
       </h2>
     </div>
-    <div id="allProductsGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"></div>
+    <div id="allProductsGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3"></div>
   </section>
 
   <!-- منتجات أقل من 100 -->
-  <section id="under100Wrapper" class="relative bg-gradient-to-br from-emerald-50 to-teal-50 rounded-3xl p-6 shadow-lg">
-    <div class="flex items-center justify-between mb-5">
-      <h2 class="text-xl sm:text-2xl font-black text-emerald-700 flex items-center gap-3">
-        <span class="text-2xl">💰</span>
-        منتجات أقل من 100 ج.م
+  <section id="under100Wrapper" class="relative bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-4 sm:p-6 shadow-lg mx-2">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-lg sm:text-xl font-black text-emerald-700 flex items-center gap-2">
+        <span class="text-lg sm:text-xl">💰</span>
+        أقل من 100 ج.م
       </h2>
     </div>
-    <div id="under100" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"></div>
+    <div id="under100" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3"></div>
   </section>
 
   <!-- منتجات أقل من 200 -->
-  <section id="under200Wrapper" class="relative bg-gradient-to-br from-blue-50 to-indigo-50 rounded-3xl p-6 shadow-lg">
-    <div class="flex items-center justify-between mb-5">
-      <h2 class="text-xl sm:text-2xl font-black text-blue-700 flex items-center gap-3">
-        <span class="text-2xl">💎</span>
-        منتجات أقل من 200 ج.م
+  <section id="under200Wrapper" class="relative bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-4 sm:p-6 shadow-lg mx-2">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-lg sm:text-xl font-black text-blue-700 flex items-center gap-2">
+        <span class="text-lg sm:text-xl">💎</span>
+        أقل من 200 ج.م
       </h2>
     </div>
-    <div id="under200" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"></div>
+    <div id="under200" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3"></div>
   </section>
 
   <!-- قد يعجبك -->
-  <section id="interestWrapper" class="relative bg-gradient-to-br from-purple-50 to-pink-50 rounded-3xl p-6 shadow-lg">
-    <div class="flex items-center justify-between mb-5">
-      <h2 class="text-xl sm:text-2xl font-black text-purple-700 flex items-center gap-3">
-        <span class="text-2xl">✨</span>
-        قد يعجبك أيضاً
+  <section id="interestWrapper" class="relative bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-4 sm:p-6 shadow-lg mx-2">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-lg sm:text-xl font-black text-purple-700 flex items-center gap-2">
+        <span class="text-lg sm:text-xl">✨</span>
+        قد يعجبك
       </h2>
     </div>
-    <div id="interestProducts" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"></div>
+    <div id="interestProducts" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3"></div>
   </section>
 </main>
 
@@ -1154,78 +1211,146 @@ new Swiper(".adSwiper", {
   .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
   #categoriesBar .category-item {
-    min-width: 130px;
-    padding: 12px;
+    min-width: 100px;
+    padding: 8px 12px;
     background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
-    border-radius: 20px;
+    border-radius: 16px;
     color: white;
-    font-weight: 800;
-    font-size: 15px;
+    font-weight: 700;
+    font-size: 13px;
     text-align: center;
-    box-shadow: 0 8px 20px rgba(99,102,241,0.4);
+    box-shadow: 0 4px 15px rgba(99,102,241,0.3);
     scroll-snap-align: start;
-    transition: all .35s ease;
+    transition: all .3s ease;
     cursor: pointer;
-    border: 2px solid rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.2);
+    white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
   }
+  
+  @media (min-width: 640px) {
+    #categoriesBar .category-item {
+      min-width: 120px;
+      padding: 10px 16px;
+      font-size: 14px;
+      border-radius: 18px;
+    }
+  }
+  
   #categoriesBar .category-item:hover {
-    transform: translateY(-6px) scale(1.08);
-    box-shadow: 0 12px 35px rgba(139,92,246,0.5);
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 8px 25px rgba(139,92,246,0.4);
     border-color: rgba(255,255,255,0.4);
+  }
+  
+  #categoriesBar .category-item:active {
+    transform: scale(0.95);
   }
 
   .product-card-modern {
     background: white;
-    border-radius: 20px;
+    border-radius: 16px;
     overflow: hidden;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-    transition: all .35s ease;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    transition: all .3s ease;
     cursor: pointer;
-    border: 1px solid rgba(0,0,0,0.05);
+    border: 1px solid rgba(0,0,0,0.04);
     position: relative;
+    -webkit-tap-highlight-color: transparent;
   }
+  
+  @media (min-width: 640px) {
+    .product-card-modern {
+      border-radius: 20px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+  }
+  
   .product-card-modern:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 16px 40px rgba(0,0,0,0.15);
-    border-color: rgba(99,102,241,0.3);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    border-color: rgba(99,102,241,0.2);
   }
+  
+  @media (min-width: 640px) {
+    .product-card-modern:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 12px 35px rgba(0,0,0,0.15);
+    }
+  }
+  
+  .product-card-modern:active {
+    transform: scale(0.98);
+  }
+  
   .product-card-modern img {
     width: 100%;
-    height: 180px;
+    height: 140px;
     object-fit: cover;
-    transition: transform .4s ease;
+    transition: transform .3s ease;
   }
+  
+  @media (min-width: 640px) {
+    .product-card-modern img {
+      height: 180px;
+    }
+  }
+  
   .product-card-modern:hover img {
-    transform: scale(1.12);
+    transform: scale(1.08);
+  }
+  
+  @media (min-width: 640px) {
+    .product-card-modern:hover img {
+      transform: scale(1.12);
+    }
   }
   .product-card-modern .discount-badge {
     position: absolute;
-    top: 10px;
-    right: 10px;
+    top: 6px;
+    right: 6px;
     background: linear-gradient(135deg, #ef4444, #dc2626);
     color: white;
-    padding: 6px 12px;
-    border-radius: 12px;
-    font-size: 13px;
-    font-weight: 800;
-    box-shadow: 0 4px 12px rgba(239,68,68,0.4);
+    padding: 4px 8px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(239,68,68,0.3);
     z-index: 10;
   }
+  
+  @media (min-width: 640px) {
+    .product-card-modern .discount-badge {
+      top: 8px;
+      right: 8px;
+      padding: 6px 10px;
+      font-size: 12px;
+      border-radius: 10px;
+    }
+  }
+  
   .product-card-modern .new-badge {
     position: absolute;
-    top: 10px;
-    left: 10px;
+    top: 6px;
+    left: 6px;
     background: linear-gradient(135deg, #10b981, #059669);
     color: white;
-    padding: 6px 12px;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: 800;
-    box-shadow: 0 4px 12px rgba(16,185,129,0.4);
+    padding: 4px 8px;
+    border-radius: 8px;
+    font-size: 10px;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(16,185,129,0.3);
     z-index: 10;
   }
-  @media (max-width: 640px) {
-    .product-card-modern img { height: 150px; }
+  
+  @media (min-width: 640px) {
+    .product-card-modern .new-badge {
+      top: 8px;
+      left: 8px;
+      padding: 6px 10px;
+      font-size: 11px;
+      border-radius: 10px;
+    }
   }
 </style>
 
