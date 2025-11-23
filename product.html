@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -174,16 +175,24 @@
     }
     #thumbs img {
       flex-shrink: 0;
-      width: 80px;
-      height: 80px;
+      width: 100px;
+      height: 100px;
       object-fit: cover;
-      border-radius: 0.5rem;
-      border: 2px solid transparent;
+      border-radius: 1rem;
+      border: 3px solid transparent;
       transition: all 0.3s ease;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
     #thumbs img:hover {
-      border-color: var(--lv-blue-500);
+      border-color: #3b82f6;
+      transform: scale(1.1) rotate(2deg);
+      box-shadow: 0 8px 25px rgba(59,130,246,0.3);
+    }
+    #thumbs img.active {
+      border-color: #3b82f6;
       transform: scale(1.05);
+      box-shadow: 0 0 20px rgba(59,130,246,0.4);
     }
 
     #mainImage {
@@ -216,6 +225,46 @@
     p, h1, h2, h3, span, div {
       word-wrap: break-word;
       overflow-wrap: break-word;
+    }
+    
+    .product-badge {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: bold;
+      animation: bounce 2s infinite;
+    }
+    
+    @keyframes bounce {
+      0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+      40% { transform: translateY(-10px); }
+      60% { transform: translateY(-5px); }
+    }
+    
+    .zoom-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.9);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      backdrop-filter: blur(10px);
+    }
+    
+    .zoom-overlay img {
+      max-width: 90%;
+      max-height: 90%;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
     }
 
     @media (max-width: 768px) {
@@ -374,36 +423,75 @@ function injectProductSchema(p) {
 
 
 <button id="floatingSearchBtn"
-  class="fixed bottom-20 right-5 sm:right-8 bg-gradient-to-r from-blue-600 to-indigo-600 text-white 
-         font-bold px-5 py-3 rounded-full shadow-xl hover:scale-105 transition-all duration-300 
-         z-[9999] flex items-center gap-2 text-sm sm:text-base">
-  🔍 بحث عن منتج
+  class="fixed bottom-20 right-5 sm:right-8 bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 text-white 
+         font-bold px-6 py-4 rounded-full shadow-2xl hover:scale-110 hover:rotate-3 transition-all duration-500 
+         z-[9999] flex items-center gap-3 text-sm sm:text-base animate-pulse">
+  <span class="text-2xl animate-bounce">🔍</span>
+  <span class="hidden sm:block">بحث ذكي</span>
 </button>
+
 <div id="searchOverlay"
-  class="hidden fixed inset-0 bg-black/60 backdrop-blur-md flex items-start justify-center z-[20000] pt-16 transition-all">
+  class="hidden fixed inset-0 bg-gradient-to-br from-black/80 via-purple-900/50 to-blue-900/50 backdrop-blur-xl flex items-center justify-center z-[20000] transition-all duration-500">
 
-  <div class="bg-white w-[92%] sm:w-[460px] rounded-3xl p-6 shadow-2xl border border-blue-200 
-              animate-[fadeIn_0.35s_ease] relative">
+  <div class="bg-white/95 backdrop-blur-xl w-[95%] sm:w-[600px] rounded-3xl p-8 shadow-2xl border border-white/20 
+              animate-[slideUp_0.5s_ease] relative overflow-hidden">
 
+    <!-- خلفية متحركة -->
+    <div class="absolute inset-0 bg-gradient-to-r from-blue-400/10 via-purple-400/10 to-pink-400/10 animate-pulse"></div>
+    
     <button id="closeSearchOverlay"
-      class="absolute top-3 left-3 text-red-500 text-xl hover:scale-125 transition">✖</button>
+      class="absolute top-4 left-4 text-red-500 text-2xl hover:scale-125 hover:rotate-90 transition-all duration-300 z-10">
+      ✖
+    </button>
 
-    <h3 class="text-center text-blue-700 font-extrabold text-xl mb-4">ابحث عن منتج 🔍</h3>
+    <div class="relative z-10">
+      <div class="text-center mb-6">
+        <div class="text-4xl mb-2 animate-bounce">🔍</div>
+        <h3 class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          البحث الذكي المتطور
+        </h3>
+        <p class="text-gray-600 text-sm mt-2">ابحث عن أي منتج بسرعة البرق</p>
+      </div>
 
-    <div class="flex gap-2">
-      <input type="text" id="popupSearchInput" placeholder="اكتب اسم المنتج هنا..."
-        class="w-full border border-blue-300 rounded-full px-4 py-3 text-gray-700 text-sm 
-               focus:ring-4 focus:ring-blue-300/40 focus:outline-none shadow-inner">
-      <button id="startSearchBtn"
-        class="bg-blue-600 text-white px-4 py-2 rounded-full shadow hover:scale-105 transition">
-        بحث
-      </button>
+      <div class="relative mb-4">
+        <input type="text" id="popupSearchInput" placeholder="ابحث عن المنتجات، الفئات، العلامات التجارية..."
+          class="w-full border-2 border-blue-300 rounded-2xl px-6 py-4 text-gray-700 text-lg 
+                 focus:ring-4 focus:ring-purple-300/50 focus:border-purple-500 focus:outline-none 
+                 shadow-lg transition-all duration-300 bg-white/80 backdrop-blur-sm">
+        <div class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400">
+          <span class="text-xl">🔍</span>
+        </div>
+      </div>
+      
+      <!-- فلاتر البحث -->
+      <div class="flex flex-wrap gap-2 mb-4">
+        <button class="search-filter active" data-filter="all">الكل</button>
+        <button class="search-filter" data-filter="electronics">إلكترونيات</button>
+        <button class="search-filter" data-filter="fashion">أزياء</button>
+        <button class="search-filter" data-filter="home">منزل</button>
+        <button class="search-filter" data-filter="sports">رياضة</button>
+      </div>
+
+      <!-- البحث السريع -->
+      <div class="mb-4">
+        <p class="text-sm text-gray-600 mb-2">🔥 عمليات بحث شائعة:</p>
+        <div class="flex flex-wrap gap-2">
+          <span class="quick-search">هواتف ذكية</span>
+          <span class="quick-search">ملابس رجالي</span>
+          <span class="quick-search">اكسسوارات</span>
+          <span class="quick-search">أجهزة منزلية</span>
+        </div>
+      </div>
+
+      <div id="popupSuggestions"
+        class="hidden bg-white/90 backdrop-blur-sm border border-gray-200 rounded-2xl shadow-2xl max-h-80 overflow-y-auto">
+      </div>
+      
+      <!-- إحصائيات البحث -->
+      <div id="searchStats" class="hidden text-center text-sm text-gray-500 mt-4">
+        <span id="searchResultsCount">0</span> نتيجة في <span id="searchTime">0</span> ثانية
+      </div>
     </div>
-
-    <div id="popupSuggestions"
-      class="hidden mt-3 bg-white border border-blue-100 rounded-2xl shadow-xl max-h-72 overflow-y-auto p-1">
-    </div>
-
   </div>
 </div>
 
@@ -415,16 +503,96 @@ function injectProductSchema(p) {
 .animate-fade-out { animation: fadeOut .3s ease forwards; }
 
 .suggestion-item {
-  padding: 10px 14px;
+  padding: 16px 20px;
   display: flex;
-  gap: 10px;
+  gap: 16px;
   align-items: center;
   border-bottom: 1px solid #e5e7eb;
   cursor: pointer;
-  transition: .25s;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
 }
+
+.suggestion-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 4px;
+  background: linear-gradient(to bottom, #3b82f6, #8b5cf6);
+  transform: scaleY(0);
+  transition: transform 0.3s ease;
+}
+
 .suggestion-item:hover {
-  background: #eff6ff;
+  background: linear-gradient(135deg, #eff6ff, #f3e8ff);
+  transform: translateX(8px);
+  box-shadow: 0 8px 25px rgba(59,130,246,0.15);
+}
+
+.suggestion-item:hover::before {
+  transform: scaleY(1);
+}
+
+.search-filter {
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 2px solid #e5e7eb;
+  background: white;
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.search-filter:hover {
+  border-color: #3b82f6;
+  color: #3b82f6;
+  transform: translateY(-2px);
+}
+
+.search-filter.active {
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 4px 15px rgba(59,130,246,0.3);
+}
+
+.quick-search {
+  padding: 6px 12px;
+  background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+  border-radius: 16px;
+  font-size: 12px;
+  color: #4b5563;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.quick-search:hover {
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  color: white;
+  transform: scale(1.05);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(50px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.search-highlight {
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-weight: bold;
 }
 </style>
 
@@ -440,8 +608,65 @@ const searchBtn = document.getElementById("startSearchBtn");
 floatingBtn?.addEventListener("click", () => {
   overlay.classList.remove("hidden", "animate-fade-out");
   overlay.classList.add("flex");
-  setTimeout(() => searchInput.focus(), 150);
+  setTimeout(() => {
+    searchInput.focus();
+    // عرض اقتراحات من التاريخ
+    if (searchHistory.length > 0) {
+      showSearchHistory();
+    }
+  }, 300);
 });
+
+function showSearchHistory() {
+  if (searchHistory.length === 0) return;
+  
+  suggestionsBox.innerHTML = `
+    <div class="p-4">
+      <div class="text-sm text-gray-600 mb-3 flex items-center gap-2">
+        <span>🕰️</span>
+        <span>عمليات بحث سابقة</span>
+      </div>
+      ${searchHistory.map(term => `
+        <div class="suggestion-item" onclick="searchInput.value='${term}'; performSearch('${term}')">
+          <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+            🔍
+          </div>
+          <div class="flex-1">
+            <div class="font-semibold text-gray-700">${term}</div>
+            <div class="text-xs text-gray-500">بحث سابق</div>
+          </div>
+          <button onclick="event.stopPropagation(); removeFromHistory('${term}')" 
+                  class="text-gray-400 hover:text-red-500 transition-colors">
+            ✖
+          </button>
+        </div>
+      `).join('')}
+      <div class="text-center mt-3">
+        <button onclick="clearSearchHistory()" 
+                class="text-red-500 hover:text-red-700 text-sm font-semibold">
+          🗑️ مسح جميع العمليات
+        </button>
+      </div>
+    </div>
+  `;
+  suggestionsBox.classList.remove("hidden");
+}
+
+function removeFromHistory(term) {
+  searchHistory = searchHistory.filter(h => h !== term);
+  localStorage.setItem('searchHistory', JSON.stringify(searchHistory));
+  if (searchHistory.length > 0) {
+    showSearchHistory();
+  } else {
+    suggestionsBox.classList.add('hidden');
+  }
+}
+
+function clearSearchHistory() {
+  searchHistory = [];
+  localStorage.removeItem('searchHistory');
+  suggestionsBox.classList.add('hidden');
+}
 
 closeBtn?.addEventListener("click", closeSearch);
 overlay?.addEventListener("click", (e) => { if (e.target === overlay) closeSearch(); });
@@ -474,60 +699,183 @@ searchBtn?.addEventListener("click", () => {
   const q = searchInput.value.trim();
   if (q.length > 0) openSearchResultsPage(q);
 });
-searchInput?.addEventListener("input", async () => {
-  const query = searchInput.value.trim().toLowerCase();
-  if (!query) return suggestionsBox.classList.add("hidden");
-  const { data: products, error } = await supabase
-    .from("products")
-    .select(`
-      id,
-      name,
-      price,
-      product_images(image_url, is_primary)
-    `);
+let searchTimeout;
+let currentFilter = 'all';
+let searchHistory = JSON.parse(localStorage.getItem('searchHistory') || '[]');
 
-  if (error || !products) return;
-
-  let results = products.filter(p =>
-    p.name?.toLowerCase().includes(query) ||
-    levenshtein(p.name?.toLowerCase(), query) <= 2
-  );
-
-  results = results.map(p => ({
-    ...p,
-    img:
-      p.product_images?.find(i => i.is_primary)?.image_url ||
-      p.product_images?.[0]?.image_url ||
-      "/placeholder.png"
-  }));
-
-  if (!results.length) {
-    suggestionsBox.innerHTML = `
-      <div class="p-3 text-center text-red-600">لا يوجد نتائج</div>
-    `;
-    return suggestionsBox.classList.remove("hidden");
-  }
-
-  suggestionsBox.innerHTML = results
-    .map(
-      p => `
-      <div class="suggestion-item flex items-center gap-3 cursor-pointer"
-           onclick="goToProduct(${p.id})">
-
-        <img src="${p.img}" 
-             class="w-12 h-12 object-cover rounded border">
-
-        <div>
-          <div class="font-bold text-blue-900 text-sm">${p.name}</div>
-          <div class="text-blue-600 text-xs">${p.price} ج.م</div>
-        </div>
-      </div>
-    `
-    )
-    .join("");
-
-  suggestionsBox.classList.remove("hidden");
+// فلاتر البحث
+document.querySelectorAll('.search-filter').forEach(filter => {
+  filter.addEventListener('click', () => {
+    document.querySelectorAll('.search-filter').forEach(f => f.classList.remove('active'));
+    filter.classList.add('active');
+    currentFilter = filter.dataset.filter;
+    if (searchInput.value.trim()) {
+      performSearch(searchInput.value.trim());
+    }
+  });
 });
+
+// البحث السريع
+document.querySelectorAll('.quick-search').forEach(quick => {
+  quick.addEventListener('click', () => {
+    searchInput.value = quick.textContent;
+    performSearch(quick.textContent);
+  });
+});
+
+searchInput?.addEventListener("input", async () => {
+  const query = searchInput.value.trim();
+  
+  if (!query) {
+    suggestionsBox.classList.add("hidden");
+    document.getElementById('searchStats').classList.add('hidden');
+    return;
+  }
+  
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => performSearch(query), 300);
+});
+
+async function performSearch(query) {
+  const startTime = Date.now();
+  const lowerQuery = query.toLowerCase();
+  
+  try {
+    const { data: products, error } = await supabase
+      .from("products")
+      .select(`
+        id,
+        name,
+        price,
+        discount_price,
+        category,
+        stock,
+        product_images(image_url, is_primary)
+      `);
+
+    if (error || !products) return;
+
+    let results = products.filter(p => {
+      const matchesQuery = p.name?.toLowerCase().includes(lowerQuery) ||
+                          levenshtein(p.name?.toLowerCase(), lowerQuery) <= 2;
+      
+      if (currentFilter === 'all') return matchesQuery;
+      return matchesQuery && p.category?.toLowerCase().includes(currentFilter);
+    });
+
+    // ترتيب بالصلة
+    results.sort((a, b) => {
+      const aExact = a.name?.toLowerCase().includes(lowerQuery);
+      const bExact = b.name?.toLowerCase().includes(lowerQuery);
+      if (aExact && !bExact) return -1;
+      if (!aExact && bExact) return 1;
+      return 0;
+    });
+
+    results = results.slice(0, 8).map(p => ({
+      ...p,
+      img: p.product_images?.find(i => i.is_primary)?.image_url ||
+           p.product_images?.[0]?.image_url ||
+           "/placeholder.png"
+    }));
+
+    const searchTime = ((Date.now() - startTime) / 1000).toFixed(2);
+    
+    if (!results.length) {
+      suggestionsBox.innerHTML = `
+        <div class="p-8 text-center">
+          <div class="text-6xl mb-4">😕</div>
+          <h3 class="text-lg font-bold text-gray-600 mb-2">لم نجد نتائج</h3>
+          <p class="text-gray-500 text-sm">جرب استخدام كلمات مختلفة أو أقل تحديداً</p>
+          <div class="mt-4">
+            <button onclick="searchInput.value=''; suggestionsBox.classList.add('hidden')" 
+                    class="text-blue-600 hover:text-blue-800 text-sm font-semibold">
+              ✖ مسح البحث
+            </button>
+          </div>
+        </div>
+      `;
+    } else {
+      suggestionsBox.innerHTML = `
+        <div class="p-4">
+          <div class="text-sm text-gray-600 mb-3 flex items-center justify-between">
+            <span>🔍 نتائج البحث</span>
+            <span class="text-xs">${results.length} نتيجة</span>
+          </div>
+          ${results.map(p => `
+            <div class="suggestion-item" onclick="goToProduct(${p.id}); saveSearch('${query}')">
+              <img src="${p.img}" class="w-16 h-16 object-cover rounded-xl shadow-md">
+              <div class="flex-1">
+                <div class="font-bold text-gray-800 mb-1">${highlightMatch(p.name, query)}</div>
+                <div class="flex items-center gap-2 mb-1">
+                  ${p.discount_price && p.discount_price < p.price ? 
+                    `<span class="text-lg font-bold text-green-600">${p.discount_price} ج.م</span>
+                     <span class="text-sm text-gray-400 line-through">${p.price} ج.م</span>
+                     <span class="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                       ${Math.round((1 - p.discount_price/p.price) * 100)}% خصم
+                     </span>` :
+                    `<span class="text-lg font-bold text-blue-600">${p.price} ج.م</span>`
+                  }
+                </div>
+                <div class="flex items-center gap-3 text-xs text-gray-500">
+                  <span>📦 ${p.category || 'غير محدد'}</span>
+                  <span class="${p.stock > 0 ? 'text-green-600' : 'text-red-600'}">
+                    ${p.stock > 0 ? `✅ متوفر (${p.stock})` : '❌ نفد المخزون'}
+                  </span>
+                </div>
+              </div>
+              <div class="text-blue-500 hover:text-blue-700 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+              </div>
+            </div>
+          `).join('')}
+          
+          ${results.length >= 8 ? `
+            <div class="text-center mt-4">
+              <button onclick="openSearchResultsPage('${query}')" 
+                      class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all">
+                🔍 عرض جميع النتائج
+              </button>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }
+    
+    // إظهار إحصائيات البحث
+    document.getElementById('searchResultsCount').textContent = results.length;
+    document.getElementById('searchTime').textContent = searchTime;
+    document.getElementById('searchStats').classList.remove('hidden');
+    
+    suggestionsBox.classList.remove("hidden");
+    
+  } catch (error) {
+    console.error('Search error:', error);
+    suggestionsBox.innerHTML = `
+      <div class="p-6 text-center text-red-600">
+        <div class="text-4xl mb-2">⚠️</div>
+        <p>حدث خطأ في البحث</p>
+      </div>
+    `;
+    suggestionsBox.classList.remove("hidden");
+  }
+}
+
+function highlightMatch(text, query) {
+  if (!text || !query) return text;
+  const regex = new RegExp(`(${query})`, 'gi');
+  return text.replace(regex, '<span class="search-highlight">$1</span>');
+}
+
+function saveSearch(query) {
+  if (!searchHistory.includes(query)) {
+    searchHistory.unshift(query);
+    searchHistory = searchHistory.slice(0, 10); // الاحتفاظ بآخر 10 عمليات
+    localStorage.setItem('searchHistory', JSON.stringify(searchHistory));
+  }
+}
 function openSearchResultsPage(query) {
   window.location.href = `search.html?q=${encodeURIComponent(query)}`;
 }
@@ -647,49 +995,116 @@ menuOverlay.addEventListener("click", () => {
 });
 </script>
 
-  <main class="max-w-6xl mx-auto px-4 py-8 space-y-6">
-    <section id="productBlock" class="card p-6">
-      <div id="productSkeleton" class="animate-pulse text-center py-10 text-gray-500">
-        ⏳ جاري تحميل تفاصيل المنتج...
+  <main class="max-w-7xl mx-auto px-4 py-8 space-y-8">
+    <section id="productBlock" class="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
+      <div id="productSkeleton" class="animate-pulse text-center py-20">
+        <div class="w-16 h-16 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full mx-auto mb-4 animate-spin"></div>
+        <p class="text-gray-500 text-lg">⏳ جاري تحميل تفاصيل المنتج...</p>
       </div>
 
       <div id="productContent" class="hidden">
-        <div class="grid md:grid-cols-2 gap-8 items-start">
-          <div>
-            <img id="mainImage" class="w-full h-96 object-cover rounded-xl shadow-md" />
-            <div id="thumbs" class="flex gap-2 mt-3 overflow-x-auto"></div>
+        <div class="grid lg:grid-cols-2 gap-12 p-8">
+          <!-- قسم الصور -->
+          <div class="space-y-6">
+            <div class="relative group">
+              <img id="mainImage" class="w-full h-[500px] object-cover rounded-2xl shadow-xl transition-transform duration-500 group-hover:scale-105" />
+              <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <button class="absolute top-4 right-4 bg-white/90 backdrop-blur-sm p-3 rounded-full shadow-lg hover:bg-white transition-all duration-300 group-hover:scale-110">
+                🔍
+              </button>
+            </div>
+            <div id="thumbs" class="flex gap-3 overflow-x-auto pb-2"></div>
           </div>
 
-          <div>
-            <h1 id="pName" class="text-3xl font-bold text-blue-700 mb-2"></h1>
-            <p id="pDesc" class="text-gray-600 mb-4 leading-relaxed"></p>
-<div class="flex items-center gap-3 mb-2">
-  <span id="pPrice" class="text-2xl font-bold text-blue-700"></span>
-  <span id="oldPrice" class="line-through text-gray-500 text-lg hidden"></span>
-  <span id="discountBadge" class="bg-red-600 text-white px-2 py-1 rounded text-sm hidden"></span>
-</div>
-
-<span id="discountTimer" class="text-sm text-red-500 hidden">
- ⏳ ينتهي خلال: <span id="timerText"></span>
-</span>
-
-            <div id="pStock" class="text-sm text-gray-500 mb-4"></div>
-
-
-            <div class="flex flex-wrap gap-3 mb-4 items-center">
-              <button id="addToCartBtn" class="btn-main px-4 py-2">🛒 أضف للسلة</button>
-              <button id="buyNowBtn" class="border border-blue-600 text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition">
-                💳 اشتري الآن
-              </button>
-
-              <p id="viewsCounter" class="text-sm text-gray-600 mt-2">👁️ المشاهدات: <span id="viewsNum">0</span></p>
-              <p class="text-sm text-gray-600 mt-1">🛍️ المبيعات: <span id="salesCount">0</span></p>
+          <!-- قسم التفاصيل -->
+          <div class="space-y-6">
+            <div>
+              <h1 id="pName" class="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-3"></h1>
+              <p id="pDesc" class="text-gray-600 text-lg leading-relaxed"></p>
             </div>
 
+            <!-- الأسعار -->
+            <div class="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-2xl">
+              <div class="flex items-center gap-4 mb-3">
+                <span id="pPrice" class="text-4xl font-bold text-green-600"></span>
+                <span id="oldPrice" class="line-through text-gray-400 text-2xl hidden"></span>
+                <span id="discountBadge" class="bg-gradient-to-r from-red-500 to-pink-500 text-white px-4 py-2 rounded-full text-sm font-bold hidden animate-pulse"></span>
+              </div>
+              <div id="discountTimer" class="text-red-500 font-semibold hidden">
+                ⏳ العرض ينتهي خلال: <span id="timerText" class="font-mono"></span>
+              </div>
+            </div>
 
-            <div class="text-sm text-gray-500">
-              <span class="font-semibold">الفئة:</span> <span id="pCategory"></span> •
-              <span class="font-semibold">أضيف في:</span> <span id="pDate"></span>
+            <!-- المخزون والإحصائيات -->
+            <div class="grid grid-cols-2 gap-4">
+              <div class="bg-green-50 p-4 rounded-xl text-center">
+                <div id="pStock" class="text-2xl font-bold text-green-600"></div>
+                <div class="text-sm text-gray-500">متوفر في المخزون</div>
+              </div>
+              <div class="bg-blue-50 p-4 rounded-xl text-center">
+                <div class="text-2xl font-bold text-blue-600">
+                  <span id="viewsNum">0</span>
+                </div>
+                <div class="text-sm text-gray-500">👁️ مشاهدة</div>
+              </div>
+            </div>
+
+            <!-- أزرار الإجراءات -->
+            <div class="space-y-4">
+              <div class="flex gap-3">
+                <button id="addToCartBtn" class="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 px-6 rounded-2xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300">
+                  <div class="flex items-center justify-center gap-2">
+                    <span class="text-xl">🛒</span>
+                    <span>أضف للسلة</span>
+                  </div>
+                </button>
+                <button id="buyNowBtn" class="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold py-4 px-6 rounded-2xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300">
+                  <div class="flex items-center justify-center gap-2">
+                    <span class="text-xl">💳</span>
+                    <span>اشتري الآن</span>
+                  </div>
+                </button>
+              </div>
+              
+              <div class="flex gap-3">
+                <button class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-4 rounded-xl transition-all duration-300">
+                  <div class="flex items-center justify-center gap-2">
+                    <span>❤️</span>
+                    <span>إضافة للمفضلة</span>
+                  </div>
+                </button>
+                <button class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-4 rounded-xl transition-all duration-300">
+                  <div class="flex items-center justify-center gap-2">
+                    <span>📤</span>
+                    <span>مشاركة</span>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            <!-- معلومات إضافية -->
+            <div class="bg-gray-50 p-6 rounded-2xl space-y-3">
+              <div class="flex items-center gap-3">
+                <span class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">📦</span>
+                <div>
+                  <div class="font-semibold">الفئة:</div>
+                  <div id="pCategory" class="text-gray-600"></div>
+                </div>
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">📅</span>
+                <div>
+                  <div class="font-semibold">تاريخ الإضافة:</div>
+                  <div id="pDate" class="text-gray-600"></div>
+                </div>
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">🛍️</span>
+                <div>
+                  <div class="font-semibold">المبيعات:</div>
+                  <div class="text-gray-600"><span id="salesCount">0</span> قطعة</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -740,6 +1155,95 @@ menuOverlay.addEventListener("click", () => {
   </main>
 
   <div id="toast" class="toast hidden"></div>
+  
+  <!-- Zoom Overlay -->
+  <div id="zoomOverlay" class="zoom-overlay" onclick="closeZoom()">
+    <img id="zoomedImage" src="" alt="Zoomed Product" />
+  </div>
+  
+  <script>
+  function showMainImage(src) {
+    const mainImg = document.getElementById('mainImage');
+    mainImg.style.opacity = '0';
+    setTimeout(() => {
+      mainImg.src = src;
+      mainImg.style.opacity = '1';
+    }, 150);
+    
+    // Update active thumbnail
+    document.querySelectorAll('#thumbs img').forEach(img => {
+      img.classList.remove('active');
+      if (img.src === src) {
+        img.classList.add('active');
+      }
+    });
+  }
+
+  function openZoom() {
+    const mainImg = document.getElementById('mainImage');
+    const zoomOverlay = document.getElementById('zoomOverlay');
+    const zoomedImg = document.getElementById('zoomedImage');
+    
+    zoomedImg.src = mainImg.src;
+    zoomOverlay.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeZoom() {
+    const zoomOverlay = document.getElementById('zoomOverlay');
+    zoomOverlay.style.display = 'none';
+    document.body.style.overflow = 'auto';
+  }
+
+  function addToFavorites() {
+    showToast('❤️ تمت إضافة المنتج للمفضلة!');
+  }
+
+  function shareProduct() {
+    if (navigator.share) {
+      navigator.share({
+        title: document.getElementById('pName').textContent,
+        text: document.getElementById('pDesc').textContent,
+        url: window.location.href
+      });
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      showToast('🔗 تم نسخ رابط المنتج!');
+    }
+  }
+  
+  // Enhanced button interactions
+  document.addEventListener('DOMContentLoaded', () => {
+    // Add zoom functionality to main image
+    const mainImg = document.getElementById('mainImage');
+    if (mainImg) {
+      mainImg.addEventListener('click', openZoom);
+      mainImg.style.cursor = 'zoom-in';
+    }
+    
+    // Enhanced button feedback
+    const addToCartBtn = document.getElementById('addToCartBtn');
+    const buyNowBtn = document.getElementById('buyNowBtn');
+    
+    if (addToCartBtn) {
+      const originalOnClick = addToCartBtn.onclick;
+      addToCartBtn.onclick = (e) => {
+        addToCartBtn.style.transform = 'scale(0.95)';
+        setTimeout(() => addToCartBtn.style.transform = 'scale(1)', 150);
+        if (originalOnClick) originalOnClick(e);
+      };
+    }
+    
+    if (buyNowBtn) {
+      const originalOnClick = buyNowBtn.onclick;
+      buyNowBtn.onclick = (e) => {
+        buyNowBtn.style.transform = 'scale(0.95)';
+        setTimeout(() => buyNowBtn.style.transform = 'scale(1)', 150);
+        if (originalOnClick) originalOnClick(e);
+      };
+    }
+  });
+  </script>
   
   <footer class="text-gray-100 mt-16">
     <div class="max-w-7xl mx-auto px-4 py-12 grid grid-cols-1 md:grid-cols-4 gap-10">
