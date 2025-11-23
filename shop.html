@@ -389,6 +389,22 @@ footer a:hover {
 </header>
 
 
+<div id="pwaInstallBanner" class="hidden px-4 py-3 bg-gradient-to-r from-yellow-400 to-amber-500 text-black flex items-center justify-between gap-4 shadow-lg z-50" role="dialog" aria-live="polite">
+  <div class="flex items-center gap-3">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L15 8H9L12 2Z" fill="currentColor" opacity="0.9"/><path d="M4 10H20V20H4V10Z" fill="currentColor" opacity="0.95"/></svg>
+    <div>
+      <div class="font-bold">تثبيت تطبيق LV12</div>
+      <div class="text-sm opacity-80">احصل على تجربة أسرع وإشعارات بالعروض والمنتجات الجديدة</div>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-3">
+    <button id="pwaInstallBtn" class="bg-black/90 text-white px-4 py-2 rounded-lg font-semibold">تثبيت الآن</button>
+    <button id="pwaDismissBtn" class="text-black/70 px-3 py-2">إغلاق</button>
+  </div>
+</div>
+
+
 
 
 <style>
@@ -882,6 +898,125 @@ new Swiper(".adSwiper", {
   }
 </style>
 
+<script>
+  (function(){
+    const SUPABASE_URL = "https://nszhzfysitppxssplqfb.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zemh6ZnlzaXRwcHhzc3BscWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA4OTcsImV4cCI6MjA3MzgwNjg5N30.5KvK4bhqkZ_GpIfED4qecIMfeubAJYwSFJslULwOp-w";
+    const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    async function renderFeatured() {
+      try {
+        const el = document.getElementById('featuredProducts');
+        if (!el) return;
+        el.innerHTML = `<div class="w-full h-full flex items-center justify-center"><div class="loader" style="width:48px;height:48px;border-width:5px;border-top-color:#f59e0b"></div></div>`;
+
+        const { data: products, error } = await client
+          .from('products')
+          .select(`id,name,price,product_images(image_url,is_primary),short_desc,visits`)
+          .order('visits', { ascending: false })
+          .limit(6);
+
+        if (error) {
+          console.error('featured fetch error', error);
+          el.innerHTML = `<div class="text-gray-400 p-4 text-center">تعذر تحميل المفضلات الآن</div>`;
+          return;
+        }
+
+        if (!products || !products.length) {
+          el.innerHTML = `<div class="text-gray-400 p-4 text-center">لا توجد منتجات مميزة حالياً</div>`;
+          return;
+        }
+
+        el.innerHTML = `
+          <div class="p-4 w-full h-full flex items-center justify-center">
+            <div class="flex gap-4 overflow-x-auto no-scrollbar py-2 px-1">
+              ${products.map(p => `
+                <a href="product.html?id=${p.id}" class="group block w-44 bg-[#0b1220] p-3 rounded-2xl border border-white/6 hover:scale-105 transition shadow">
+                  <div class="w-full h-36 bg-gray-900 rounded-lg overflow-hidden mb-2">
+                    <img src="${(p.product_images?.[0]?.image_url) || '/placeholder.png'}" class="w-full h-full object-cover" alt="${escapeHtml(p.name)}" />
+                  </div>
+                  <div class="text-sm text-white font-semibold truncate">${escapeHtml(p.name)}</div>
+                  <div class="text-xs text-gray-300">${Number(p.price||0).toFixed(2)} ج.م</div>
+                </a>
+              `).join('')}
+            </div>
+          </div>`;
+
+      } catch (e) {
+        console.error('renderFeatured', e);
+      }
+    }
+
+    function escapeHtml(s=''){
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    }
+
+    async function updateWalletBadge(){
+      try{
+        const { data } = await client.auth.getSession();
+        const user = data?.session?.user;
+        const badge = document.getElementById('walletBalance');
+        if (!user) {
+          if (badge) badge.textContent = '';
+          return;
+        }
+        const { data: w, error } = await client.from('wallet').select('balance').eq('user_id', user.id).maybeSingle();
+        if (error) { console.error('wallet badge error', error); return; }
+        const bal = w?.balance || 0;
+        if (badge) badge.textContent = `رصيدي: ${Number(bal).toFixed(2)} ج.م`;
+      }catch(e){console.error('updateWalletBadge', e)}
+    }
+
+    async function initRealtimeNotifications(){
+      try{
+        if ('Notification' in window) {
+          const perm = await Notification.requestPermission();
+          if (perm !== 'granted') console.warn('Notification permission:', perm);
+        }
+
+        let swReg = null;
+        if ('serviceWorker' in navigator) {
+          try{ swReg = await navigator.serviceWorker.register('/sw.js'); console.log('sw registered'); } catch(e){console.warn('sw register failed', e); }
+        }
+
+        const channel = client.channel('public:products').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'products' }, payload => {
+          const p = payload.new;
+          console.log('new product realtime', p?.id, p?.name);
+          const title = `🆕 منتج جديد: ${p.name}`;
+          const body = (p.short_desc || '').slice(0,80) || `سعر: ${Number(p.price||0).toFixed(2)} ج.م`;
+          const icon = (p.product_images?.[0]?.image_url) || '/lv12.png';
+          const url = `product.html?id=${p.id}`;
+          if (swReg && swReg.showNotification) {
+            swReg.showNotification(title, { body, icon, data:{url} });
+          } else if (Notification.permission === 'granted') {
+            const n = new Notification(title, { body, icon });
+            n.onclick = () => { window.open(url, '_blank'); };
+          }
+
+          try{
+            const el = document.getElementById('featuredProducts');
+            if (el) {
+              const node = document.createElement('a');
+              node.href = `product.html?id=${p.id}`;
+              node.className = 'group block w-44 bg-[#0b1220] p-3 rounded-2xl border border-white/6 hover:scale-105 transition shadow';
+              node.innerHTML = `<div class="w-full h-36 bg-gray-900 rounded-lg overflow-hidden mb-2"><img src="${(p.product_images?.[0]?.image_url)||'/placeholder.png'}" class="w-full h-full object-cover"/></div><div class="text-sm text-white font-semibold truncate">${escapeHtml(p.name)}</div><div class="text-xs text-gray-300">${Number(p.price||0).toFixed(2)} ج.م</div>`;
+              const gallery = el.querySelector('.flex');
+              if (gallery) gallery.prepend(node);
+            }
+          }catch(e){console.warn('add realtime product UI', e)}
+        }).subscribe();
+
+      }catch(e){console.error('initRealtimeNotifications', e)}
+    }
+
+    document.addEventListener('DOMContentLoaded', async ()=>{
+      await renderFeatured();
+      await updateWalletBadge();
+      await initRealtimeNotifications();
+    });
+
+  })();
+</script>
 <main id="products" class="max-w-7xl mx-auto px-4 py-12 space-y-16 relative">
 
   <div class="absolute inset-0 bg-gradient-to-b from-[#eef4ff] via-white to-[#f5f8ff] opacity-90 -z-10"></div>

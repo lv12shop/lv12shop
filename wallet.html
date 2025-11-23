@@ -182,6 +182,19 @@
     </div>
   </a>
 
+  <div id="headerControls" class="flex items-center gap-4">
+    <div id="loginPrompt" class="hidden items-center gap-3">
+      <a href="shop-login.html" class="px-3 py-2 bg-gradient-to-r from-indigo-600 to-sky-500 text-white rounded-lg shadow">تسجيل الدخول</a>
+    </div>
+
+    <div id="userArea" class="hidden items-center gap-3">
+      <div class="text-right">
+        <div id="userFullName" class="font-semibold text-white">مستخدم</div>
+        <div id="userEmail" class="text-xs text-gray-300">--</div>
+      </div>
+      <button id="logoutBtn" class="px-3 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm text-white">تسجيل الخروج</button>
+    </div>
+  </div>
 
 </header>
 
@@ -252,116 +265,6 @@
   background: #eff6ff;
 }
 </style>
-
-
-<script>
-const floatingBtn = document.getElementById("floatingSearchBtn");
-const overlay = document.getElementById("searchOverlay");
-const closeBtn = document.getElementById("closeSearchOverlay");
-const searchInput = document.getElementById("popupSearchInput");
-const suggestionsBox = document.getElementById("popupSuggestions");
-const searchBtn = document.getElementById("startSearchBtn");
-
-floatingBtn?.addEventListener("click", () => {
-  overlay.classList.remove("hidden", "animate-fade-out");
-  overlay.classList.add("flex");
-  setTimeout(() => searchInput.focus(), 150);
-});
-
-closeBtn?.addEventListener("click", closeSearch);
-overlay?.addEventListener("click", (e) => { if (e.target === overlay) closeSearch(); });
-
-function closeSearch() {
-  overlay.classList.add("animate-fade-out");
-  setTimeout(() => overlay.classList.add("hidden"), 280);
-  suggestionsBox.classList.add("hidden");
-}
-
-function levenshtein(a, b) {
-  const m = a.length, n = b.length;
-  const dp = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
-
-  for (let i = 0; i <= m; i++) dp[i][0] = i;
-  for (let j = 0; j <= n; j++) dp[0][j] = j;
-
-  for (let i = 1; i <= m; i++) {
-    for (let j = 1; j <= n; j++) {
-      dp[i][j] = Math.min(
-        dp[i-1][j] + 1,
-        dp[i][j-1] + 1,
-        dp[i-1][j-1] + (a[i-1] === b[j-1] ? 0 : 1)
-      );
-    }
-  }
-  return dp[m][n];
-}
-searchBtn?.addEventListener("click", () => {
-  const q = searchInput.value.trim();
-  if (q.length > 0) openSearchResultsPage(q);
-});
-searchInput?.addEventListener("input", async () => {
-  const query = searchInput.value.trim().toLowerCase();
-  if (!query) return suggestionsBox.classList.add("hidden");
-  const { data: products, error } = await supabase
-    .from("products")
-    .select(`
-      id,
-      name,
-      price,
-      product_images(image_url, is_primary)
-    `);
-
-  if (error || !products) return;
-
-  let results = products.filter(p =>
-    p.name?.toLowerCase().includes(query) ||
-    levenshtein(p.name?.toLowerCase(), query) <= 2
-  );
-
-  results = results.map(p => ({
-    ...p,
-    img:
-      p.product_images?.find(i => i.is_primary)?.image_url ||
-      p.product_images?.[0]?.image_url ||
-      "/placeholder.png"
-  }));
-
-  if (!results.length) {
-    suggestionsBox.innerHTML = `
-      <div class="p-3 text-center text-red-600">لا يوجد نتائج</div>
-    `;
-    return suggestionsBox.classList.remove("hidden");
-  }
-
-  suggestionsBox.innerHTML = results
-    .map(
-      p => `
-      <div class="suggestion-item flex items-center gap-3 cursor-pointer"
-           onclick="goToProduct(${p.id})">
-
-        <img src="${p.img}" 
-             class="w-12 h-12 object-cover rounded border">
-
-        <div>
-          <div class="font-bold text-blue-900 text-sm">${p.name}</div>
-          <div class="text-blue-600 text-xs">${p.price} ج.م</div>
-        </div>
-      </div>
-    `
-    )
-    .join("");
-
-  suggestionsBox.classList.remove("hidden");
-});
-function openSearchResultsPage(query) {
-  window.location.href = `search.html?q=${encodeURIComponent(query)}`;
-}
-
-
-function goToProduct(id) {
-  window.location.href = `product.html?id=${id}`;
-}
-</script>
 
 
 <nav id="mainNav"
@@ -482,9 +385,9 @@ menuOverlay.addEventListener("click", () => {
       💰 رصيدك الحالي
     </h2>
 
-    <div id="walletBalance"
-      class="text-6xl md:text-7xl font-black text-emerald-400 my-6 drop-shadow-[0_0_20px_rgba(16,185,129,0.5)] animate-[pulse_3s_infinite]">
-      -- ج.م
+    <div id="walletAmount"
+      class="text-6xl md:text-7xl font-black text-emerald-400 my-6 drop-shadow-[0_0_20px_rgba(16,185,129,0.5)]">
+      <span id="walletAmountValue">--</span> <span class="text-base">ج.م</span>
     </div>
 
     <div id="walletOwner" class="text-sm text-gray-300">
@@ -541,7 +444,7 @@ menuOverlay.addEventListener("click", () => {
   </h3>
 
   <div id="transactions" class="text-sm text-gray-300 space-y-2">
-    جارٍ التحميل...
+    <div class="loader" style="margin:18px auto;"></div>
   </div>
 
   <div class="text-center mt-4">
@@ -641,6 +544,15 @@ menuOverlay.addEventListener("click", () => {
   }
 </style>
 <div id="copyToast">🚀 تم نسخ رابط الدعوة! شاركه واربح الآن! 💸</div>
+
+<style>
+  /* Additional UI polish */
+  #headerControls a, #headerControls button { display:inline-flex; align-items:center; }
+  .loader { width:36px; height:36px; border:4px solid rgba(255,255,255,0.08); border-top-color:#60a5fa; border-radius:50%; animation:spin 1s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .task-card { transition: transform .18s ease, box-shadow .18s ease; }
+  .task-card:hover { transform: translateY(-6px); box-shadow: 0 12px 30px rgba(2,6,23,0.35); }
+</style>
 
 
   <section id="withdraw" class="tab-content hidden bg-white/5 border border-white/10 p-6 rounded-2xl shadow-lg">
@@ -955,43 +867,93 @@ document.querySelectorAll('.tab').forEach(btn=>{
 });
 
 async function checkAuth() {
-  const { data } = await supabase.auth.getSession();
-  currentUser = data?.session?.user;
-  if (!currentUser) {
-    window.location.href = 'shop-login.html'; 
+  try {
+    const { data, error } = await supabase.auth.getSession();
+    if (error) {
+      console.error('checkAuth session error', error);
+      return false;
+    }
+    currentUser = data?.session?.user;
+    // Show login prompt if no session instead of hard redirect
+    const loginPrompt = document.getElementById('loginPrompt');
+    const userArea = document.getElementById('userArea');
+    if (!currentUser) {
+      if (loginPrompt) loginPrompt.classList.remove('hidden');
+      if (userArea) userArea.classList.add('hidden');
+      console.log('checkAuth: no active session');
+      return false;
+    }
+
+    if (loginPrompt) loginPrompt.classList.add('hidden');
+    if (userArea) userArea.classList.remove('hidden');
+
+    const displayName = currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0];
+    const el = document.getElementById('userFullName');
+    if (el) el.textContent = displayName;
+    const emailEl = document.getElementById('userEmail');
+    if (emailEl) emailEl.textContent = currentUser.email || '';
+    console.log('checkAuth OK user:', currentUser.id);
+    return true;
+  } catch (err) {
+    console.error('checkAuth unexpected error', err);
     return false;
   }
-  
-  const displayName = currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0];
-  document.getElementById('userFullName').textContent = displayName;
-
-  return true;
 }
 
 async function loadWallet(){
   try{
-    const { data } = await supabase
+    if (!currentUser?.id) {
+      console.warn('loadWallet: no currentUser');
+      return;
+    }
+    const { data, error } = await supabase
       .from('wallet')
       .select('balance')
       .eq('user_id', currentUser.id)
       .maybeSingle();
+    if (error) {
+      console.error('loadWallet supabase error', error);
+      throw error;
+    }
     const bal = data?.balance ?? 0;
-    document.getElementById('walletBalance').textContent = `${Number(bal).toFixed(2)} ج.م`;
+    // update nav badge (small) if exists
+    const badge = document.getElementById('walletBalance');
+    if (badge) badge.textContent = `${Number(bal).toFixed(2)} ج.م`;
+    // update main large display value
+    const mainVal = document.getElementById('walletAmountValue');
+    if (mainVal) mainVal.textContent = Number(bal).toFixed(2);
+    console.log('loadWallet balance:', bal);
+    return bal;
   }catch(err){
     console.error('loadWallet', err);
-    document.getElementById('walletBalance').textContent = '-- ج.م';
+    const badge = document.getElementById('walletBalance'); if (badge) badge.textContent = '-- ج.م';
+    const main = document.getElementById('walletAmount'); if (main) main.textContent = '-- ج.م';
   }
 }
 
 async function loadTransactions(showAll = false) {
   try {
-    const { data } = await supabase
+    if (!currentUser?.id) {
+      console.warn('loadTransactions: no currentUser');
+      const container = document.getElementById('transactions');
+      if (container) container.innerHTML = `<div class="text-gray-500 text-center p-4">يجب تسجيل الدخول لعرض السجل</div>`;
+      return;
+    }
+
+    const { data, error } = await supabase
       .from('wallet_history')
       .select('*')
       .eq('user_id', currentUser.id)
       .order('created_at', { ascending: false });
 
     const container = document.getElementById('transactions');
+    if (error) {
+      console.error('loadTransactions supabase error', error);
+      if (container) container.innerHTML = `<div class="text-red-500 text-center p-4">⚠️ فشل تحميل سجل العمليات</div>`;
+      return;
+    }
+
+    console.log('loadTransactions count:', (data || []).length);
 
     if (!data || !data.length) {
       container.innerHTML = `<div class="text-gray-500 text-center p-4">لا يوجد عمليات بعد</div>`;
@@ -1396,17 +1358,6 @@ async function checkDailyReferralTask() {
 }
 function el(id){ return document.getElementById(id); }
 
-async function getUserIP() {
-  try {
-    const res = await fetch("https://api.ipify.org?format=json");
-    const j = await res.json();
-    return j.ip || "0.0.0.0";
-  } catch (e) {
-    console.warn("IP fetch failed", e);
-    return "0.0.0.0";
-  }
-}
-
 
 
 function escapeJs(s=''){ return String(s).replace(/'/g, "\\'").replace(/\n/g,' '); }
@@ -1599,7 +1550,8 @@ async function updateWalletIPOnVisit() {
 document.addEventListener("DOMContentLoaded", updateWalletIPOnVisit);
 
 
-document.getElementById("withdrawBtn").addEventListener("click", async () => {
+const withdrawBtnEl = document.getElementById("withdrawBtn");
+if (withdrawBtnEl) withdrawBtnEl.addEventListener("click", async () => {
   const phone = document.getElementById("withdrawPhone").value.trim();
   const amount = Number(document.getElementById("withdrawAmount").value);
   const governorate = document.getElementById("withdrawGovernorate").value.trim();
@@ -1666,7 +1618,8 @@ if (insertErr) {
     toast("⚠️ فشل إرسال الطلب للسيرفر", false);
   }
 });
-document.getElementById('logoutBtn').addEventListener('click', async () => {
+const logoutBtnEl = document.getElementById('logoutBtn');
+if (logoutBtnEl) logoutBtnEl.addEventListener('click', async () => {
   try {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
@@ -1678,7 +1631,8 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
   }
 });
 
-document.getElementById("prefillWalletBtn").addEventListener("click", async () => {
+const prefillBtnEl = document.getElementById("prefillWalletBtn");
+if (prefillBtnEl) prefillBtnEl.addEventListener("click", async () => {
   try {
     const { data } = await supabase
       .from("user_profiles")
@@ -1699,7 +1653,8 @@ document.getElementById("prefillWalletBtn").addEventListener("click", async () =
   }
 });
 
-document.getElementById("topupBtn").addEventListener("click", async () => {
+const topupBtnEl = document.getElementById("topupBtn");
+if (topupBtnEl) topupBtnEl.addEventListener("click", async () => {
   const amount = Number(document.getElementById("topupAmount").value);
   const walletInput = prompt("📱 أدخل رقم محفظتك (فودافون كاش):")?.trim();
 
@@ -1720,22 +1675,27 @@ document.getElementById("topupBtn").addEventListener("click", async () => {
 });
 
 (async function init(){
-  const ok = await checkAuth();
-  if(!ok) return;
-  await loadWallet();
-  await loadTransactions();
-  await loadInviteCodeAndProgress();
-  await loadDailyTasks();
+  try {
+    const ok = await checkAuth();
+    if(!ok) return;
+    await loadWallet();
+    await loadTransactions();
+    await loadInviteCodeAndProgress();
+    await loadDailyTasks();
     await checkDailyReferralTask();
-  await loadTodaysReferrals();
+    await loadTodaysReferrals();
 
-  try{
-    const { data } = await supabase.from('user_profiles').select('wallet_number').eq('user_id', currentUser.id).maybeSingle();
-    if(data?.wallet_number){
-      document.getElementById('withdrawPhone').value = data.wallet_number;
-      document.getElementById('withdrawPhone').disabled = true;
-    }
-  }catch(e){ console.warn('prefill profile failed', e); }
+    try{
+      const { data } = await supabase.from('user_profiles').select('wallet_number').eq('user_id', currentUser.id).maybeSingle();
+      if(data?.wallet_number){
+        const wp = document.getElementById('withdrawPhone');
+        if (wp) { wp.value = data.wallet_number; wp.disabled = true; }
+      }
+    }catch(e){ console.warn('prefill profile failed', e); }
+  } catch (e) {
+    console.error('init error', e);
+    toast('⚠️ فشل تحميل بيانات المحفظة', false);
+  }
 })();
 </script>
 <div id="copyToast" class="fixed bottom-5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-emerald-500 to-green-600 text-white font-bold px-5 py-3 rounded-xl shadow-lg hidden z-50">
@@ -1798,6 +1758,11 @@ function fmtTimeLeft(totalSeconds) {
 async function loadDailyTasks() {
   try {
     const container = document.getElementById("tasksList");
+    if (!currentUser?.id) {
+      if (container) container.innerHTML = `<div class="text-gray-500 text-center p-4">يجب تسجيل الدخول لتحميل المهام</div>`;
+      console.warn('loadDailyTasks: no currentUser');
+      return;
+    }
     container.innerHTML = `<div class="loader"></div>`;
 
     const { data: tasks, error: tasksErr } = await supabase
@@ -1827,7 +1792,7 @@ async function loadDailyTasks() {
 
     const now = Date.now();
 
-    container.innerHTML = tasks.map(task => {
+    container.innerHTML = (tasks || []).filter(Boolean).map(task => {
       const attempts = attemptsMap[task.id] || [];
       const maxRepeat = task.repeat_per_day || 1;
       const expiresMs = (task.expires_in_hours || 24) * 3600 * 1000;
@@ -1873,6 +1838,7 @@ async function loadDailyTasks() {
         </div>`;
     }).join("");
 
+    console.log('loadDailyTasks tasks:', (tasks || []).length, 'userTasks:', (userTasks || []).length || 0);
     bindTasksUI(tasks);
 
   } catch (err) {
@@ -1961,7 +1927,7 @@ async function loadDailyTasks() {
 
     const now = getNow();
 
-    container.innerHTML = tasks.map(task => {
+    container.innerHTML = (tasks || []).filter(Boolean).map(task => {
       const attempts = map[task.id] || [];
       const maxRepeat = task.repeat_per_day || 1;
       const used = attempts.filter(a => ["running", "pending"].includes(a.status)).length;
@@ -2158,32 +2124,33 @@ window.addEventListener("DOMContentLoaded", async () => {
   await syncServerTime();
   await loadDailyTasks();
 // 🧹 فحص المهام القديمة التي انتهى وقتها
-try {
-  const { data: runningTasks } = await supabase
-    .from("user_daily_tasks")
-    .select("id, started_at, task_id, status")
-    .eq("user_id", currentUser.id)
-    .eq("status", "running");
+  try {
+    const { data: runningTasks } = await supabase
+      .from("user_daily_tasks")
+      .select("id, started_at, task_id, status")
+      .eq("user_id", currentUser.id)
+      .eq("status", "running");
 
-  const now = getNow();
-  for (const task of runningTasks || []) {
-    const taskInfo = JSON.parse(localStorage.getItem("activeAttempt") || "{}");
-    const endUtc = taskInfo?.endUtc || 0;
-    if (now > endUtc) {
-      await supabase
-        .from("user_daily_tasks")
-        .update({
-          status: "pending",
-          completed_at: new Date().toISOString()
-        })
-        .eq("id", task.id);
-      localStorage.removeItem("activeAttempt");
-      console.log(`🧹 تم تحديث مهمة منتهية (${task.id}) إلى pending`);
+    const now = getNow();
+    for (const task of runningTasks || []) {
+      if (!task || !task.id) continue;
+      const taskInfo = JSON.parse(localStorage.getItem("activeAttempt") || "{}");
+      const endUtc = taskInfo?.endUtc || 0;
+      if (now > endUtc) {
+        await supabase
+          .from("user_daily_tasks")
+          .update({
+            status: "pending",
+            completed_at: new Date().toISOString()
+          })
+          .eq("id", task.id);
+        localStorage.removeItem("activeAttempt");
+        console.log(`🧹 تم تحديث مهمة منتهية (${task.id}) إلى pending`);
+      }
     }
+  } catch (e) {
+    console.warn("cleanup running tasks error:", e);
   }
-} catch (e) {
-  console.warn("cleanup running tasks error:", e);
-}
 
   const saved = localStorage.getItem("activeAttempt");
   if (saved) {
@@ -2264,6 +2231,116 @@ try {
     console.warn("⚠️ VPN check failed:", err);
   }
 })();
+</script>
+
+
+<script>
+const floatingBtn = document.getElementById("floatingSearchBtn");
+const overlay = document.getElementById("searchOverlay");
+const closeBtn = document.getElementById("closeSearchOverlay");
+const searchInput = document.getElementById("popupSearchInput");
+const suggestionsBox = document.getElementById("popupSuggestions");
+const searchBtn = document.getElementById("startSearchBtn");
+
+floatingBtn?.addEventListener("click", () => {
+  overlay.classList.remove("hidden", "animate-fade-out");
+  overlay.classList.add("flex");
+  setTimeout(() => searchInput.focus(), 150);
+});
+
+closeBtn?.addEventListener("click", closeSearch);
+overlay?.addEventListener("click", (e) => { if (e.target === overlay) closeSearch(); });
+
+function closeSearch() {
+  overlay.classList.add("animate-fade-out");
+  setTimeout(() => overlay.classList.add("hidden"), 280);
+  suggestionsBox.classList.add("hidden");
+}
+
+function levenshtein(a, b) {
+  const m = a.length, n = b.length;
+  const dp = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
+
+  for (let i = 0; i <= m; i++) dp[i][0] = i;
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      dp[i][j] = Math.min(
+        dp[i-1][j] + 1,
+        dp[i][j-1] + 1,
+        dp[i-1][j-1] + (a[i-1] === b[j-1] ? 0 : 1)
+      );
+    }
+  }
+  return dp[m][n];
+}
+searchBtn?.addEventListener("click", () => {
+  const q = searchInput.value.trim();
+  if (q.length > 0) openSearchResultsPage(q);
+});
+searchInput?.addEventListener("input", async () => {
+  const query = searchInput.value.trim().toLowerCase();
+  if (!query) return suggestionsBox.classList.add("hidden");
+  const { data: products, error } = await supabase
+    .from("products")
+    .select(`
+      id,
+      name,
+      price,
+      product_images(image_url, is_primary)
+    `);
+
+  if (error || !products) return;
+
+  let results = products.filter(p =>
+    p.name?.toLowerCase().includes(query) ||
+    levenshtein(p.name?.toLowerCase(), query) <= 2
+  );
+
+  results = results.map(p => ({
+    ...p,
+    img:
+      p.product_images?.find(i => i.is_primary)?.image_url ||
+      p.product_images?.[0]?.image_url ||
+      "/placeholder.png"
+  }));
+
+  if (!results.length) {
+    suggestionsBox.innerHTML = `
+      <div class="p-3 text-center text-red-600">لا يوجد نتائج</div>
+    `;
+    return suggestionsBox.classList.remove("hidden");
+  }
+
+  suggestionsBox.innerHTML = results
+    .map(
+      p => `
+      <div class="suggestion-item flex items-center gap-3 cursor-pointer"
+           onclick="goToProduct(${p.id})">
+
+        <img src="${p.img}" 
+             class="w-12 h-12 object-cover rounded border">
+
+        <div>
+          <div class="font-bold text-blue-900 text-sm">${p.name}</div>
+          <div class="text-blue-600 text-xs">${p.price} ج.م</div>
+        </div>
+      </div>
+    `
+    )
+    .join("");
+
+  suggestionsBox.classList.remove("hidden");
+});
+function openSearchResultsPage(query) {
+  window.location.href = `search.html?q=${encodeURIComponent(query)}`;
+}
+
+
+function goToProduct(id) {
+  window.location.href = `product.html?id=${id}`;
+}
 </script>
 
 
