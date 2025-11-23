@@ -648,13 +648,14 @@ async function loadOrders() {
     const { data: orders, error } = await supabase
       .from("orders")
       .select(`
-        id, user_id, product_id, quantity, price, status, created_at, delivery_date, return_reason,
+        id, user_id, product_id, quantity, price, status, created_at, delivery_date, return_reason, seller_id,
         products!orders_product_id_fkey (
           id, name,
           product_images!product_images_product_id_fkey (image_url, is_primary)
         )
       `)
       .eq("user_id", user.id)
+      .order("seller_id", { ascending: true })
       .order("created_at", { ascending: false });
 
     loader.classList.add("hidden");
@@ -687,6 +688,17 @@ async function loadOrders() {
   }
 }
 
+function getShippingProgress(status) {
+  const progressMap = {
+    pending: { step: 1, percentage: 25 },
+    shipped: { step: 3, percentage: 75 },
+    delivered: { step: 4, percentage: 100 },
+    cancelled: { step: 1, percentage: 0 },
+    returned: { step: 1, percentage: 0 }
+  };
+  return progressMap[status] || { step: 1, percentage: 25 };
+}
+
 function renderOrders(orders) {
   const filtered =
     currentFilter === "all"
@@ -698,7 +710,72 @@ function renderOrders(orders) {
     return;
   }
 
-  ordersList.innerHTML = filtered.map(renderOrderCard).join("");
+  // تجميع الطلبات حسب التاجر
+  const groupedBySeller = {};
+  filtered.forEach(order => {
+    const sellerId = order.seller_id || 'default';
+    if (!groupedBySeller[sellerId]) {
+      groupedBySeller[sellerId] = {
+        orders: [],
+        totalAmount: 0,
+        totalItems: 0
+      };
+    }
+    groupedBySeller[sellerId].orders.push(order);
+    groupedBySeller[sellerId].totalAmount += (order.price || 0) * (order.quantity || 1);
+    groupedBySeller[sellerId].totalItems += (order.quantity || 1);
+  });
+
+  ordersList.innerHTML = Object.entries(groupedBySeller).map(([sellerId, sellerData], index) => {
+    const isDefaultSeller = sellerId === 'default';
+    const sellerName = isDefaultSeller ? 'متجر LV12' : `تاجر #${sellerId.slice(0, 8).toUpperCase()}`;
+    const sellerIcon = isDefaultSeller ? '🏪' : '👤';
+    const headerColor = isDefaultSeller ? 'from-blue-600 to-indigo-600' : 'from-purple-600 to-pink-600';
+    const groupId = `seller-${sellerId}`;
+    
+    return `
+      <div class="seller-group mb-6 bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 hover:shadow-2xl transition-all duration-300">
+        <div class="seller-header bg-gradient-to-r ${headerColor} text-white p-4 cursor-pointer hover:opacity-90 transition-opacity" 
+             onclick="toggleSellerGroup('${groupId}')">
+          <div class="flex justify-between items-center">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center text-2xl">
+                ${sellerIcon}
+              </div>
+              <div>
+                <h3 class="text-lg font-bold">${sellerName}</h3>
+                <p class="text-sm opacity-80">كود: ${sellerId}</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-4">
+              <div class="text-right">
+                <div class="text-sm opacity-80">${sellerData.orders.length} طلب • ${sellerData.totalItems} قطعة</div>
+                <div class="text-lg font-bold">${sellerData.totalAmount.toFixed(2)} ج.م</div>
+              </div>
+              <div class="transform transition-transform duration-300" id="arrow-${groupId}">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="seller-orders transition-all duration-500 overflow-hidden" id="${groupId}" style="max-height: 0;">
+          <div class="p-6 space-y-4 bg-gradient-to-b from-gray-50 to-white">
+            ${sellerData.orders.map(renderOrderCard).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+  
+  // فتح أول مجموعة تلقائياً
+  setTimeout(() => {
+    const firstGroup = Object.keys(groupedBySeller)[0];
+    if (firstGroup) {
+      toggleSellerGroup(`seller-${firstGroup}`);
+    }
+  }, 100);
 }
 
 function renderOrderCard(o) {
@@ -718,46 +795,96 @@ function renderOrderCard(o) {
     statusMap[o.status] || ["غير معروف", "status-pending"];
 
   const canReturn = o.status === "delivered";
+  const shippingProgress = getShippingProgress(o.status);
 
   return `
-  <div class="card p-5">
-    <div class="flex justify-between items-center">
+  <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow">
+    <div class="flex justify-between items-center mb-4">
       <div>
-        <h3 class="font-bold text-blue-700">${p.name || "منتج غير متوفر"}</h3>
-        <p class="text-sm text-gray-500">📅 تاريخ الطلب: ${createdAt}</p>
+        <h3 class="font-bold text-blue-700 text-lg">${p.name || "منتج غير متوفر"}</h3>
+        <p class="text-sm text-gray-500">📅 ${createdAt}</p>
       </div>
       <span class="status-badge ${statusClass}">${statusText}</span>
     </div>
+    
+    <!-- شريط الشحن -->
+    <div class="shipping-progress mb-4 bg-white p-3 rounded-lg">
+      <div class="flex justify-between items-center mb-2">
+        <span class="text-sm font-semibold text-gray-700">🚚 حالة الشحن</span>
+        <span class="text-xs text-gray-500">${shippingProgress.percentage}%</span>
+      </div>
+      <div class="w-full bg-gray-200 rounded-full h-2 mb-3">
+        <div class="bg-gradient-to-r from-blue-500 to-green-500 h-2 rounded-full transition-all duration-500" 
+             style="width: ${shippingProgress.percentage}%"></div>
+      </div>
+      <div class="grid grid-cols-4 gap-1 text-xs">
+        <div class="text-center ${shippingProgress.step >= 1 ? 'text-green-600 font-semibold' : 'text-gray-400'}">
+          <div class="mb-1">✓</div>
+          <div>تم الطلب</div>
+        </div>
+        <div class="text-center ${shippingProgress.step >= 2 ? 'text-green-600 font-semibold' : 'text-gray-400'}">
+          <div class="mb-1">📦</div>
+          <div>جاري التحضير</div>
+        </div>
+        <div class="text-center ${shippingProgress.step >= 3 ? 'text-green-600 font-semibold' : 'text-gray-400'}">
+          <div class="mb-1">🚚</div>
+          <div>في الطريق</div>
+        </div>
+        <div class="text-center ${shippingProgress.step >= 4 ? 'text-green-600 font-semibold' : 'text-gray-400'}">
+          <div class="mb-1">🏠</div>
+          <div>تم التسليم</div>
+        </div>
+      </div>
+    </div>
 
-    <div class="flex flex-col md:flex-row gap-4 mt-4">
+    <div class="flex flex-col md:flex-row gap-4">
       <img src="${img}" alt="${p.name}" 
-        class="w-full md:w-1/4 h-44 object-cover rounded-lg border cursor-pointer"
+        class="w-full md:w-32 h-32 object-cover rounded-lg border cursor-pointer hover:scale-105 transition-transform"
         onclick="window.location='product.html?id=${p.id}'" />
 
-      <div class="flex-1 space-y-1">
-        <p>📦 الكمية: <b>${o.quantity}</b></p>
-        <p>💰 السعر الفردي: <b>${o.price.toFixed(2)} ج.م</b></p>
-        <p>💵 الإجمالي: <b class="text-blue-600">${total.toFixed(2)} ج.م</b></p>
-        <p>🗓️ التوصيل المتوقع: ${
-          o.delivery_date
-            ? new Date(o.delivery_date).toLocaleDateString("ar-EG")
-            : "غير محدد"
-        }</p>
+      <div class="flex-1 space-y-2">
+        <div class="grid grid-cols-2 gap-4 text-sm">
+          <p class="flex items-center gap-2"><span class="text-blue-600">📦</span> الكمية: <b>${o.quantity}</b></p>
+          <p class="flex items-center gap-2"><span class="text-green-600">💰</span> السعر: <b>${o.price.toFixed(2)} ج.م</b></p>
+          <p class="flex items-center gap-2"><span class="text-purple-600">💵</span> الإجمالي: <b class="text-blue-600">${total.toFixed(2)} ج.م</b></p>
+          <p class="flex items-center gap-2"><span class="text-orange-600">🗓️</span> التوصيل: ${
+            o.delivery_date
+              ? new Date(o.delivery_date).toLocaleDateString("ar-EG")
+              : "غير محدد"
+          }</p>
+        </div>
 
         ${
           o.return_reason
-            ? `<p class="text-red-600">🔁 سبب الإرجاع: ${o.return_reason}</p>`
+            ? `<div class="bg-red-50 border border-red-200 p-2 rounded text-red-600 text-sm">🔁 سبب الإرجاع: ${o.return_reason}</div>`
             : ""
         }
 
         ${
           canReturn
-            ? `<button onclick="returnOrder('${o.id}')" class="mt-3 bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1.5 rounded-lg shadow">🔁 طلب استرجاع</button>`
+            ? `<button onclick="returnOrder('${o.id}')" class="mt-2 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white px-4 py-2 rounded-lg shadow-lg transition-all text-sm">🔁 طلب استرجاع</button>`
             : ""
         }
       </div>
     </div>
   </div>`;
+}
+
+function toggleSellerGroup(groupId) {
+  const group = document.getElementById(groupId);
+  const arrow = document.getElementById(`arrow-${groupId}`);
+  
+  if (!group || !arrow) return;
+  
+  const isExpanded = group.style.maxHeight !== '0px' && group.style.maxHeight !== '';
+  
+  if (isExpanded) {
+    group.style.maxHeight = '0px';
+    arrow.style.transform = 'rotate(0deg)';
+  } else {
+    group.style.maxHeight = group.scrollHeight + 'px';
+    arrow.style.transform = 'rotate(180deg)';
+  }
 }
 
 async function returnOrder(orderId) {

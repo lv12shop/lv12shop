@@ -72,15 +72,100 @@
   <meta name="referrer" content="no-referrer-when-downgrade">
 
   <style>
-    body { font-family: "Cairo", sans-serif; background: #f8fafc; color:#0f172a; }
-    .card { background:#fff; border-radius:12px; box-shadow:0 8px 30px rgba(2,6,23,0.06); }
-    .btn-primary { background: linear-gradient(90deg,#2563eb,#1d4ed8); color:white; padding:.6rem 1rem; border-radius:10px; }
-    .btn-primary:hover { filter:brightness(.95); }
-    .small-muted { color:#6b7280; font-size:.95rem; }
-    .green { color:#16a34a; }
-    .toast { position: fixed; bottom: 20px; left:50%; transform:translateX(-50%); z-index:60; padding:10px 14px; border-radius:10px; color:#fff; display:none; }
-    input[type="file"] { display:block; }
-    .note { background:#f1f5f9; padding:.5rem .75rem; border-radius:.5rem; font-size:.95rem; }
+    body { 
+      font-family: "Cairo", sans-serif; 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background-attachment: fixed;
+      color: #0f172a; 
+      min-height: 100vh;
+    }
+    
+    .payment-option:has(input:checked) {
+      border-color: #3b82f6;
+      background: linear-gradient(135deg, #eff6ff, #dbeafe);
+      transform: scale(1.02);
+    }
+    
+    .cart-item {
+      background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(248,250,252,0.95));
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 20px;
+      padding: 20px;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .cart-item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #3b82f6, #8b5cf6, #06b6d4);
+      transform: scaleX(0);
+      transition: transform 0.3s ease;
+    }
+    
+    .cart-item:hover::before {
+      transform: scaleX(1);
+    }
+    
+    .cart-item:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    }
+    
+    .quantity-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.8);
+      border-radius: 12px;
+      padding: 4px;
+    }
+    
+    .quantity-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      border: none;
+      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .quantity-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 4px 12px rgba(59,130,246,0.4);
+    }
+    
+    .toast { 
+      position: fixed; 
+      bottom: 20px; 
+      left: 50%; 
+      transform: translateX(-50%); 
+      z-index: 60; 
+      padding: 16px 24px; 
+      border-radius: 16px; 
+      color: #fff; 
+      display: none;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+    
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .animate-slide-in {
+      animation: slideIn 0.5s ease-out;
+    }
   </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -391,59 +476,163 @@ menuOverlay.addEventListener("click", () => {
 
 
 
-  <main class="flex-1 max-w-6xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <section class="lg:col-span-2 card p-6">
-      <h2 class="text-xl font-bold mb-4">سلة المشتريات</h2>
+  <main class="flex-1 max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <section class="lg:col-span-2">
+      <div class="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
+        <div class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-6">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+              🛍️
+            </div>
+            <div>
+              <h2 class="text-2xl font-bold">سلة المشتريات</h2>
+              <p class="text-blue-100 text-sm">مراجعة وتعديل مشترياتك</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="p-6">
+          <div id="cartList" class="space-y-4"></div>
 
-      <div id="cartList" class="space-y-4"></div>
-
-      <div id="empty" class="text-center small-muted py-8 hidden">
-        🛍️ السلة فارغة — <a href="shop.html" class="text-blue-600 underline">اذهب للتسوق الآن</a>
-      </div>
-
-      <div class="note mt-4">
-        تكلفة التوصيل: <b>10% لكل قطعة</b> (تُحسب لكل صنف). <br>
-        مدة التوصيل المتوقعة: <b>حتى 3 أيام</b>. سيتم التواصل معك عند بدء معالجة الطلب.
+          <div id="empty" class="text-center py-12 hidden">
+            <div class="w-24 h-24 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center text-4xl">
+              🛍️
+            </div>
+            <h3 class="text-xl font-bold text-gray-600 mb-2">سلتك فارغة</h3>
+            <p class="text-gray-500 mb-4">ابدأ بإضافة منتجات رائعة إلى سلتك</p>
+            <a href="shop.html" class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all">
+              🛍️ ابدأ التسوق الآن
+            </a>
+          </div>
+        </div>
+        
+        <div class="bg-gradient-to-r from-amber-50 to-orange-50 border-t border-amber-200 p-4">
+          <div class="flex items-start gap-3">
+            <div class="w-8 h-8 bg-amber-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
+              ℹ️
+            </div>
+            <div class="text-sm text-amber-800">
+              <p class="font-semibold mb-1">معلومات التوصيل:</p>
+              <p>• تكلفة التوصيل: <span class="font-bold">10% لكل قطعة</span></p>
+              <p>• مدة التوصيل: <span class="font-bold">حتى 3 أيام عمل</span></p>
+              <p>• سيتم التواصل معك عند بدء معالجة الطلب</p>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
-    <aside class="card p-6">
-      <h3 class="text-lg font-bold mb-3">ملخص الطلب</h3>
+    <aside class="space-y-6">
+      <div class="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
+        <div class="bg-gradient-to-r from-emerald-600 to-teal-600 text-white p-6">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+              📊
+            </div>
+            <h3 class="text-xl font-bold">ملخص الطلب</h3>
+          </div>
+        </div>
+        
+        <div class="p-6 space-y-4">
+          <div class="space-y-3">
+            <div class="flex justify-between items-center py-2 border-b border-gray-100">
+              <span class="text-gray-600">عدد الأصناف</span>
+              <span id="itemCount" class="font-semibold">0</span>
+            </div>
+            <div class="flex justify-between items-center py-2 border-b border-gray-100">
+              <span class="text-gray-600">المجموع الفرعي</span>
+              <span id="subtotal" class="font-semibold">0 ج.م</span>
+            </div>
+            <div class="flex justify-between items-center py-2 border-b border-gray-100">
+              <span class="text-gray-600">رسوم التوصيل</span>
+              <span id="deliveryFee" class="font-semibold text-orange-600">0 ج.م</span>
+            </div>
+            <div class="flex justify-between items-center py-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl px-4">
+              <span class="font-bold text-lg">الإجمالي</span>
+              <span id="grandTotal" class="font-bold text-2xl text-blue-600">0 ج.م</span>
+            </div>
+          </div>
 
-      <div class="space-y-2 mb-4">
-        <div class="flex justify-between small-muted"><span>عدد الأصناف</span><span id="itemCount">0</span></div>
-        <div class="flex justify-between small-muted"><span>المجموع الفرعي</span><span id="subtotal">0 ج.م</span></div>
-        <div class="flex justify-between small-muted"><span>رسوم التوصيل (10%)</span><span id="deliveryFee">0 ج.م</span></div>
-        <div class="flex justify-between font-bold text-blue-700 text-lg"><span>الإجمالي</span><span id="grandTotal">0 ج.م</span></div>
+        </div>
       </div>
+      
+      <div class="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
+        <div class="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-6">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+              👤
+            </div>
+            <h3 class="text-xl font-bold">بيانات التوصيل</h3>
+          </div>
+        </div>
+        
+        <div class="p-6">
 
-      <hr class="my-3" />
-
-      <div class="space-y-2">
+      <div id="customerInfo" class="space-y-2">
         <input id="custName" placeholder="الاسم الكامل" class="w-full border p-2 rounded" />
         <input id="custPhone" placeholder="رقم الهاتف" class="w-full border p-2 rounded" />
         <input id="custAddress" placeholder="العنوان الكامل" class="w-full border p-2 rounded" />
       </div>
-
-      <div class="mt-3">
-        <label class="block small-muted mb-1">تاريخ / وقت التوصيل (اختياري)</label>
-        <input id="deliveryDate" type="date" class="w-full border p-2 rounded" />
-        <input id="deliveryTime" type="time" class="w-full border p-2 rounded mt-2" />
+      
+      <div class="mt-3 text-center">
+        <button id="editInfoBtn" class="hidden bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded text-sm">✏️ تعديل البيانات</button>
+        <button id="saveInfoBtn" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm">💾 حفظ البيانات</button>
       </div>
 
-      <div class="mt-4">
-        <label class="block font-semibold mb-2">طريقة الدفع</label>
-        <div class="space-y-2">
-          <label class="flex items-center gap-2">
-            <input type="radio" name="pay" value="cod" checked /> <span>💵 الدفع عند الاستلام (كاش)</span>
-          </label>
-          <label class="flex items-center gap-2">
-            <input type="radio" name="pay" value="vodafone" /> <span>📱 فودافون كاش</span>
-          </label>
-          <label class="flex items-center gap-2">
-  <input type="radio" name="pay" value="wallet" /> <span>💰 الدفع من الرصيد (رصيدي)</span>
-</label>
         </div>
+      </div>
+      
+      <div class="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
+        <div class="bg-gradient-to-r from-indigo-600 to-blue-600 text-white p-6">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+              💳
+            </div>
+            <h3 class="text-xl font-bold">طريقة الدفع</h3>
+          </div>
+        </div>
+        
+        <div class="p-6">
+          <div class="space-y-3">
+            <label class="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-xl cursor-pointer hover:border-blue-300 transition-colors payment-option">
+              <input type="radio" name="pay" value="cod" checked class="w-5 h-5 text-blue-600" />
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                  💵
+                </div>
+                <div>
+                  <div class="font-semibold">الدفع عند الاستلام</div>
+                  <div class="text-sm text-gray-500">ادفع عند وصول الطلب</div>
+                </div>
+              </div>
+            </label>
+            
+            <label class="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-xl cursor-pointer hover:border-blue-300 transition-colors payment-option">
+              <input type="radio" name="pay" value="vodafone" class="w-5 h-5 text-blue-600" />
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                  📱
+                </div>
+                <div>
+                  <div class="font-semibold">فودافون كاش</div>
+                  <div class="text-sm text-gray-500">ادفع باستخدام محفظتك</div>
+                </div>
+              </div>
+            </label>
+            
+            <label class="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-xl cursor-pointer hover:border-blue-300 transition-colors payment-option">
+              <input type="radio" name="pay" value="wallet" class="w-5 h-5 text-blue-600" />
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                  💰
+                </div>
+                <div>
+                  <div class="font-semibold">الدفع من المحفظة</div>
+                  <div class="text-sm text-gray-500">استخدم رصيدك المتاح</div>
+                </div>
+              </div>
+            </label>
+          </div>
       </div>
 
       <div id="vodafoneArea" class="mt-3 hidden">
@@ -458,8 +647,24 @@ menuOverlay.addEventListener("click", () => {
         في حالة الدفع عند الاستلام: سنطلب رقم هاتفك للتواصل عند التسليم.
       </div>
 
-      <button id="checkoutBtn" class="btn-primary w-full mt-4">✅ إتمام الشراء</button>
-      <button id="clearBtn" class="w-full mt-2 bg-red-600 text-white py-2 rounded">🗑️ تفريغ السلة</button>
+        </div>
+      </div>
+      
+      <div class="space-y-3">
+        <button id="checkoutBtn" class="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold py-4 px-6 rounded-2xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 text-lg">
+          <div class="flex items-center justify-center gap-3">
+            <span class="text-2xl">✅</span>
+            <span>إتمام الشراء</span>
+          </div>
+        </button>
+        
+        <button id="clearBtn" class="w-full bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">
+          <div class="flex items-center justify-center gap-2">
+            <span>🗑️</span>
+            <span>تفريغ السلة</span>
+          </div>
+        </button>
+      </div>
     </aside>
   </main>
 <section>
@@ -661,9 +866,10 @@ const toastEl = document.getElementById("toast");
 const custName = document.getElementById("custName");
 const custPhone = document.getElementById("custPhone");
 const custAddress = document.getElementById("custAddress");
-const deliveryDate = document.getElementById("deliveryDate");
-const deliveryTime = document.getElementById("deliveryTime");
 const vodafoneNumber = document.getElementById("vodafoneNumber");
+const editInfoBtn = document.getElementById("editInfoBtn");
+const saveInfoBtn = document.getElementById("saveInfoBtn");
+const customerInfo = document.getElementById("customerInfo");
 
 
 let cart = JSON.parse(localStorage.getItem("cart") || "[]");
@@ -715,23 +921,40 @@ async function renderCart() {
     const subtotalItem = price * qty;
 
     const div = document.createElement("div");
-    div.className = "flex items-center justify-between gap-4 border-b pb-3";
+    div.className = "cart-item animate-slide-in";
     div.innerHTML = `
-      <div class="flex items-center gap-3 cursor-pointer" onclick="goToProduct(${it.id})">
-        <img src="${imgUrl}" class="w-20 h-16 rounded object-cover" />
-        <div>
-          <div class="font-semibold">${escapeHtml(it.name)}</div>
-          <div class="small-muted text-sm">${formatEGP(price)} / وحدة</div>
+      <div class="flex items-center gap-4">
+        <div class="relative group cursor-pointer" onclick="goToProduct(${it.id})">
+          <img src="${imgUrl}" class="w-24 h-24 rounded-2xl object-cover shadow-lg group-hover:scale-105 transition-transform duration-300" />
+          <div class="absolute inset-0 bg-black/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+            <span class="text-white font-bold text-sm">👁️ عرض</span>
+          </div>
         </div>
-      </div>
-      <div class="text-right">
-        <div class="flex items-center gap-2 justify-end">
-          <button class="px-2 py-1 bg-gray-200 rounded" onclick="decrease(${idx}); event.stopPropagation()">-</button>
-          <input type="number" min="1" value="${qty}" style="width:60px" onchange="setQty(${idx}, this.value)" />
-          <button class="px-2 py-1 bg-gray-200 rounded" onclick="increase(${idx}); event.stopPropagation()">+</button>
+        
+        <div class="flex-1">
+          <h3 class="font-bold text-lg text-gray-800 mb-1 cursor-pointer hover:text-blue-600 transition-colors" onclick="goToProduct(${it.id})">
+            ${escapeHtml(it.name)}
+          </h3>
+          <p class="text-gray-500 text-sm mb-3">${formatEGP(price)} للوحدة</p>
+          
+          <div class="flex items-center justify-between">
+            <div class="quantity-controls">
+              <button class="quantity-btn" onclick="decrease(${idx}); event.stopPropagation()">−</button>
+              <input type="number" min="1" value="${qty}" 
+                     class="w-16 text-center border-0 bg-transparent font-bold text-gray-800" 
+                     onchange="setQty(${idx}, this.value)" />
+              <button class="quantity-btn" onclick="increase(${idx}); event.stopPropagation()">+</button>
+            </div>
+            
+            <div class="text-right">
+              <div class="text-2xl font-bold text-blue-600 mb-1">${formatEGP(subtotalItem)}</div>
+              <button onclick="removeItem(${idx}); event.stopPropagation()" 
+                      class="text-red-500 hover:text-red-700 font-semibold text-sm hover:bg-red-50 px-3 py-1 rounded-lg transition-all">
+                🗑️ حذف
+              </button>
+            </div>
+          </div>
         </div>
-        <div class="mt-2 text-blue-700 font-bold">${formatEGP(subtotalItem)}</div>
-        <div class="mt-1 text-sm"><button onclick="removeItem(${idx}); event.stopPropagation()" class="text-red-600">حذف</button></div>
       </div>
     `;
     cartList.appendChild(div);
@@ -846,6 +1069,11 @@ async function loadPaymentProfile() {
     custName.value = data.full_name;
     custPhone.value = data.phone;
     custAddress.value = data.address;
+    
+    // تعطيل الحقول وإظهار زر التعديل
+    disableCustomerInfo(true);
+    editInfoBtn.classList.remove("hidden");
+    saveInfoBtn.classList.add("hidden");
 
     if (data.pay_method === "vodafone") {
       document.querySelector('input[value="vodafone"]').checked = true;
@@ -854,6 +1082,57 @@ async function loadPaymentProfile() {
     }
   }
 }
+
+function disableCustomerInfo(disabled) {
+  custName.disabled = disabled;
+  custPhone.disabled = disabled;
+  custAddress.disabled = disabled;
+  if (disabled) {
+    customerInfo.classList.add("opacity-75");
+  } else {
+    customerInfo.classList.remove("opacity-75");
+  }
+}
+
+async function saveCustomerInfo() {
+  if (!currentUser) return;
+  
+  const name = custName.value.trim();
+  const phone = custPhone.value.trim();
+  const address = custAddress.value.trim();
+  
+  if (!name || !phone || !address) {
+    showToast("❌ يرجى تعبئة جميع الحقول", false);
+    return;
+  }
+  
+  const { error } = await supabase
+    .from("payment_profiles")
+    .upsert({
+      user_id: currentUser.id,
+      full_name: name,
+      phone: phone,
+      address: address
+    }, { onConflict: "user_id" });
+    
+  if (error) {
+    showToast("❌ فشل حفظ البيانات", false);
+    return;
+  }
+  
+  disableCustomerInfo(true);
+  editInfoBtn.classList.remove("hidden");
+  saveInfoBtn.classList.add("hidden");
+  showToast("✅ تم حفظ البيانات بنجاح");
+}
+
+editInfoBtn.addEventListener("click", () => {
+  disableCustomerInfo(false);
+  editInfoBtn.classList.add("hidden");
+  saveInfoBtn.classList.remove("hidden");
+});
+
+saveInfoBtn.addEventListener("click", saveCustomerInfo);
 async function loadWallet() {
   if (!currentUser) return;
 
@@ -963,9 +1242,7 @@ checkoutBtn.addEventListener("click", async () => {
   const selectedPay = document.querySelector('input[name="pay"]:checked')?.value || "cod";
   const payRef = vodafoneNumber.value.trim() || null;
 
-  const deliveryISO = deliveryDate.value
-    ? new Date(`${deliveryDate.value}T${deliveryTime.value || "12:00"}`).toISOString()
-    : new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString();
+  const deliveryISO = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString();
 
   const totals = calcTotals();
   const grand = Number(totals.grand || 0);
@@ -982,17 +1259,14 @@ checkoutBtn.addEventListener("click", async () => {
 
   if (selectedPay === "wallet") {
     if (walletBalance < grand) {
-      showToast("❌ الرصيد غير كافٍ في المحفظة", false);
+      showToast("❌ الرصيد غير كافٍ في المحفظة لإتمام الطلب", false);
       return;
     }
-
     walletDeducted = grand;
     remainingToPay = 0;
-  }
-
-  else if (walletBalance > 0) {
-    walletDeducted = Math.min(walletBalance, grand);
-    remainingToPay = +(grand - walletDeducted).toFixed(2);
+  } else {
+    walletDeducted = 0;
+    remainingToPay = grand;
   }
 
   const newBalance = +(walletBalance - walletDeducted).toFixed(2);
