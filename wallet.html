@@ -40,12 +40,19 @@
 <style>
   body {
     font-family: "Cairo", sans-serif;
-    background: linear-gradient(135deg, #0b1120, #111827, #1e293b);
+    background: linear-gradient(135deg, #0a0f1c 0%, #1a1f3a 25%, #0f1419 50%, #1e293b 75%, #0b1120 100%);
+    background-size: 400% 400%;
+    animation: gradientShift 15s ease infinite;
     color: #f1f5f9;
     margin: 0;
     padding: 0;
     overflow-x: hidden;
     min-height: 100vh;
+  }
+  
+  @keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
   }
 
   .card, .task-card, .tab-content {
@@ -195,6 +202,14 @@ async function checkAuthAndRedirect() {
 
 // تشغيل التحقق عند تحميل الصفحة
 checkAuthAndRedirect();
+
+// Initialize toggle button when page loads
+document.addEventListener('DOMContentLoaded', () => {
+  const toggleBtn = document.getElementById('toggleBalanceBtn');
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', toggleBalance);
+  }
+});
 </script>
 <header class="sticky top-0 z-50 backdrop-blur-xl bg-white/10 border-b border-white/20 shadow-lg px-5 py-3 flex flex-wrap justify-between items-center">
   <a href="index.html" class="flex items-center gap-3 group">
@@ -401,80 +416,143 @@ menuOverlay.addEventListener("click", () => {
 </script>
 
 <main class="max-w-5xl mx-auto px-4 py-10 text-white">
- <div class="relative overflow-hidden bg-gradient-to-br from-[#0ea5e9]/40 via-[#1e3a8a]/30 to-[#020617]/60 backdrop-blur-2xl border border-white/10 rounded-3xl p-8 shadow-[0_0_30px_rgba(14,165,233,0.25)] text-center mb-10 transition transform hover:scale-[1.02] hover:shadow-[0_0_40px_rgba(14,165,233,0.35)] duration-500">
+<div class="relative overflow-hidden bg-gradient-to-br from-[#0a0f1c] via-[#1a1f3a] to-[#0f1419] backdrop-blur-3xl border-2 border-gradient-to-r from-cyan-500/30 via-blue-500/20 to-purple-500/30 rounded-[2rem] p-10 shadow-[0_0_60px_rgba(14,165,233,0.4),inset_0_1px_0_rgba(255,255,255,0.1)] text-center mb-12 transition-all duration-700 hover:scale-[1.03] hover:shadow-[0_0_80px_rgba(14,165,233,0.6)] group">
 
-  <div class="absolute inset-0 opacity-40 bg-[radial-gradient(ellipse_at_top_right,rgba(56,189,248,0.4),transparent_70%)] animate-pulse"></div>
+  <!-- خلفية متحركة متطورة -->
+  <div class="absolute inset-0 opacity-30">
+    <div class="absolute top-0 left-0 w-full h-full bg-[conic-gradient(from_0deg_at_50%_50%,rgba(14,165,233,0.3)_0deg,rgba(168,85,247,0.2)_120deg,rgba(34,197,94,0.3)_240deg,rgba(14,165,233,0.3)_360deg)] animate-spin" style="animation-duration: 20s;"></div>
+    <div class="absolute inset-2 bg-gradient-to-br from-[#0a0f1c] via-[#1a1f3a] to-[#0f1419] rounded-[1.5rem]"></div>
+  </div>
 
-  <div class="relative z-10">
-    <h2 class="text-2xl md:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-cyan-300 tracking-wide mb-2">
-      💰 رصيدك الحالي
-    </h2>
+  <!-- شبكة نقاط متحركة -->
+  <div class="absolute inset-0 opacity-20">
+    <div class="absolute w-2 h-2 bg-cyan-400 rounded-full top-8 left-12 animate-pulse" style="animation-delay: 0s;"></div>
+    <div class="absolute w-1 h-1 bg-blue-400 rounded-full top-16 right-20 animate-pulse" style="animation-delay: 1s;"></div>
+    <div class="absolute w-1.5 h-1.5 bg-purple-400 rounded-full bottom-12 left-16 animate-pulse" style="animation-delay: 2s;"></div>
+    <div class="absolute w-1 h-1 bg-emerald-400 rounded-full bottom-20 right-12 animate-pulse" style="animation-delay: 0.5s;"></div>
+  </div>
 
-    <div id="walletAmount"
-      class="text-6xl md:text-7xl font-black text-emerald-400 my-6 drop-shadow-[0_0_20px_rgba(16,185,129,0.5)]">
-      <span id="walletAmountValue">--</span> <span class="text-base">ج.م</span>
+  <div class="relative z-20">
+    <div class="flex items-center justify-center gap-4 mb-6">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-500">
+          <span class="text-2xl">💎</span>
+        </div>
+        <h2 class="text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-blue-400 to-purple-400 tracking-wide">
+          محفظتك الذكية
+        </h2>
+      </div>
+      
+      <button id="toggleBalanceBtn" class="relative bg-gradient-to-r from-white/10 to-white/5 hover:from-white/20 hover:to-white/10 p-3 rounded-2xl transition-all duration-500 group/btn border border-white/10 hover:border-cyan-400/50 shadow-lg hover:shadow-cyan-400/25">
+        <svg id="eyeIcon" class="w-6 h-6 text-cyan-400 group-hover/btn:text-cyan-300 transition-colors duration-300" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+        </svg>
+        <div class="absolute inset-0 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 rounded-2xl opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300"></div>
+      </button>
     </div>
 
-    <div id="walletOwner" class="text-sm text-gray-300">
+    <div class="mb-8">
+      <div class="text-sm text-gray-400 mb-2 font-medium">الرصيد المتاح</div>
+      <div id="walletAmount" class="relative">
+        <div class="text-5xl md:text-6xl font-black bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-400 text-transparent bg-clip-text drop-shadow-[0_0_30px_rgba(16,185,129,0.8)] transition-all duration-500 group-hover:scale-105">
+          <span id="walletAmountValue">--</span>
+        </div>
+        <div class="text-xl text-gray-300 mt-2 font-semibold">جنيه مصري</div>
+        
+        <!-- تأثير الوهج -->
+        <div class="absolute inset-0 bg-gradient-to-r from-emerald-400/20 via-cyan-400/20 to-blue-400/20 blur-3xl opacity-50 group-hover:opacity-80 transition-opacity duration-500"></div>
+      </div>
+    </div>
+
+    <!-- معلومات إضافية -->
+    <div class="flex justify-center items-center gap-6 text-sm">
+      <div class="flex items-center gap-2 text-gray-400">
+        <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+        <span>نشط</span>
+      </div>
+      <div class="w-px h-4 bg-gray-600"></div>
+      <div id="walletOwner" class="text-gray-300 font-medium"></div>
     </div>
   </div>
 
-  <div class="absolute -bottom-10 -right-10 w-40 h-40 bg-sky-500/20 blur-3xl rounded-full"></div>
-  <div class="absolute -top-10 -left-10 w-40 h-40 bg-emerald-500/20 blur-3xl rounded-full"></div>
+  <!-- تأثيرات الخلفية المتطورة -->
+  <div class="absolute -top-20 -right-20 w-60 h-60 bg-gradient-to-br from-cyan-500/20 to-blue-500/10 blur-3xl rounded-full group-hover:scale-125 transition-transform duration-1000"></div>
+  <div class="absolute -bottom-20 -left-20 w-60 h-60 bg-gradient-to-br from-purple-500/20 to-emerald-500/10 blur-3xl rounded-full group-hover:scale-125 transition-transform duration-1000"></div>
+  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 blur-2xl rounded-full animate-pulse"></div>
 </div>
 
-<div class="flex flex-wrap justify-center gap-3 mb-10 relative">
+<div class="relative mb-12">
+  <!-- خلفية متوهجة -->
+  <div class="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-blue-600/15 to-purple-500/10 blur-3xl rounded-[3rem] -z-10"></div>
+  
+  <div class="flex flex-wrap justify-center gap-4 p-2 bg-white/5 backdrop-blur-xl rounded-[2rem] border border-white/10 shadow-[0_0_40px_rgba(14,165,233,0.2)]">
+    <button class="tab active-tab group relative overflow-hidden px-8 py-4 rounded-2xl text-sm md:text-base font-bold text-white bg-gradient-to-r from-cyan-600 via-blue-600 to-purple-600 shadow-[0_0_25px_rgba(14,165,233,0.4)] transition-all duration-500 hover:scale-105 hover:shadow-[0_0_35px_rgba(14,165,233,0.6)]" data-tab="balance">
+      <div class="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+      <span class="relative flex items-center gap-2">
+        <span class="text-lg">💎</span>
+        الرصيد
+      </span>
+    </button>
 
-  <div class="absolute inset-0 bg-gradient-to-r from-sky-500/10 via-blue-600/5 to-cyan-500/10 blur-2xl rounded-3xl -z-10"></div>
+    <button class="tab group relative overflow-hidden bg-white/10 hover:bg-gradient-to-r hover:from-cyan-600/20 hover:to-blue-600/20 text-gray-200 hover:text-white px-8 py-4 rounded-2xl text-sm md:text-base font-semibold transition-all duration-500 hover:scale-105 hover:shadow-[0_0_20px_rgba(255,255,255,0.2)] border border-white/10 hover:border-cyan-400/30" data-tab="tasks">
+      <span class="relative flex items-center gap-2">
+        <span class="text-lg">🎯</span>
+        المهام اليومية
+      </span>
+    </button>
 
-  <button
-    class="tab active-tab px-6 py-3 rounded-2xl text-sm md:text-base font-semibold text-white 
-           bg-gradient-to-r from-sky-600 to-blue-700 shadow-[0_0_15px_rgba(14,165,233,0.3)]
-           hover:shadow-[0_0_25px_rgba(14,165,233,0.4)] transition-all duration-300 transform hover:-translate-y-1"
-    data-tab="balance">
-    💵 الرصيد
-  </button>
+    <button class="tab group relative overflow-hidden bg-white/10 hover:bg-gradient-to-r hover:from-cyan-600/20 hover:to-blue-600/20 text-gray-200 hover:text-white px-8 py-4 rounded-2xl text-sm md:text-base font-semibold transition-all duration-500 hover:scale-105 hover:shadow-[0_0_20px_rgba(255,255,255,0.2)] border border-white/10 hover:border-cyan-400/30" data-tab="referrals">
+      <span class="relative flex items-center gap-2">
+        <span class="text-lg">🤝</span>
+        الدعوات
+      </span>
+    </button>
 
-  <button
-    class="tab bg-white/10 hover:bg-white/20 text-sky-100 px-6 py-3 rounded-2xl text-sm md:text-base font-semibold
-           transition-all duration-300 hover:shadow-[0_0_15px_rgba(255,255,255,0.2)] transform hover:-translate-y-1"
-    data-tab="tasks">
-    🎯 المهام اليومية
-  </button>
+    <button class="tab group relative overflow-hidden bg-white/10 hover:bg-gradient-to-r hover:from-cyan-600/20 hover:to-blue-600/20 text-gray-200 hover:text-white px-8 py-4 rounded-2xl text-sm md:text-base font-semibold transition-all duration-500 hover:scale-105 hover:shadow-[0_0_20px_rgba(255,255,255,0.2)] border border-white/10 hover:border-cyan-400/30" data-tab="withdraw">
+      <span class="relative flex items-center gap-2">
+        <span class="text-lg">💳</span>
+        سحب رصيد
+      </span>
+    </button>
 
-  <button
-    class="tab bg-white/10 hover:bg-white/20 text-sky-100 px-6 py-3 rounded-2xl text-sm md:text-base font-semibold
-           transition-all duration-300 hover:shadow-[0_0_15px_rgba(255,255,255,0.2)] transform hover:-translate-y-1"
-    data-tab="referrals">
-    🤝 الدعوات
-  </button>
-
-  <button
-    class="tab bg-white/10 hover:bg-white/20 text-sky-100 px-6 py-3 rounded-2xl text-sm md:text-base font-semibold
-           transition-all duration-300 hover:shadow-[0_0_15px_rgba(255,255,255,0.2)] transform hover:-translate-y-1"
-    data-tab="withdraw">
-    💳 سحب رصيد
-  </button>
-
-  <button
-    class="tab bg-white/10 hover:bg-white/20 text-sky-100 px-6 py-3 rounded-2xl text-sm md:text-base font-semibold
-           transition-all duration-300 hover:shadow-[0_0_15px_rgba(255,255,255,0.2)] transform hover:-translate-y-1"
-    data-tab="topup">
-    ⬆️ شحن رصيد
-  </button>
+    <button class="tab group relative overflow-hidden bg-white/10 hover:bg-gradient-to-r hover:from-cyan-600/20 hover:to-blue-600/20 text-gray-200 hover:text-white px-8 py-4 rounded-2xl text-sm md:text-base font-semibold transition-all duration-500 hover:scale-105 hover:shadow-[0_0_20px_rgba(255,255,255,0.2)] border border-white/10 hover:border-cyan-400/30" data-tab="topup">
+      <span class="relative flex items-center gap-2">
+        <span class="text-lg">⬆️</span>
+        شحن رصيد
+      </span>
+    </button>
+  </div>
 </div>
-<section id="balance" class="tab-content bg-white/5 border border-white/10 p-6 rounded-2xl shadow-lg">
-  <h3 class="font-bold text-lg mb-4 text-sky-300 flex items-center gap-2">
-    📜 سجل العمليات
-  </h3>
-
-  <div id="transactions" class="text-sm text-gray-300 space-y-2">
-    <div class="loader" style="margin:18px auto;"></div>
+<section id="balance" class="tab-content bg-gradient-to-br from-white/5 via-white/3 to-white/5 border-2 border-gradient-to-r from-cyan-500/20 to-blue-500/20 p-8 rounded-3xl shadow-[0_0_40px_rgba(14,165,233,0.2)] backdrop-blur-xl">
+  <div class="flex items-center justify-between mb-6">
+    <h3 class="font-black text-2xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400 flex items-center gap-3">
+      <div class="w-10 h-10 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center">
+        <span class="text-lg">📊</span>
+      </div>
+      سجل العمليات
+    </h3>
+    <div class="text-xs text-gray-400 bg-white/5 px-3 py-1 rounded-full border border-white/10">
+      آخر التحديثات
+    </div>
   </div>
 
-  <div class="text-center mt-4">
-    <button id="showAllBtn" class="hidden bg-gradient-to-r from-sky-600 to-blue-700 text-white px-4 py-2 rounded-lg text-sm hover:from-sky-500 hover:to-blue-600 transition">
-      👀 عرض الكل
+  <div id="transactions" class="space-y-3">
+    <div class="flex justify-center items-center py-12">
+      <div class="relative">
+        <div class="w-12 h-12 border-4 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin"></div>
+        <div class="absolute inset-0 w-12 h-12 border-4 border-transparent border-t-blue-500/50 rounded-full animate-spin" style="animation-direction: reverse; animation-duration: 0.8s;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="text-center mt-6">
+    <button id="showAllBtn" class="hidden bg-gradient-to-r from-cyan-600 via-blue-600 to-purple-600 hover:from-cyan-500 hover:via-blue-500 hover:to-purple-500 text-white px-6 py-3 rounded-2xl text-sm font-semibold transition-all duration-300 shadow-lg hover:shadow-cyan-500/25 hover:scale-105">
+      <span class="flex items-center gap-2">
+        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+        </svg>
+        عرض جميع العمليات
+      </span>
     </button>
   </div>
 </section>
@@ -894,8 +972,14 @@ function toast(msg, ok=true){
 
 document.querySelectorAll('.tab').forEach(btn=>{
   btn.addEventListener('click', ()=>{
-    document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active-tab'));
+    document.querySelectorAll('.tab').forEach(b=>{
+      b.classList.remove('active-tab');
+      b.classList.remove('bg-gradient-to-r', 'from-cyan-600', 'via-blue-600', 'to-purple-600');
+      b.classList.add('bg-white/10');
+    });
     btn.classList.add('active-tab');
+    btn.classList.remove('bg-white/10');
+    btn.classList.add('bg-gradient-to-r', 'from-cyan-600', 'via-blue-600', 'to-purple-600');
     document.querySelectorAll('.tab-content').forEach(s=>s.classList.add('hidden'));
     const id = btn.dataset.tab;
     document.getElementById(id).classList.remove('hidden');
@@ -936,6 +1020,9 @@ async function checkAuth() {
   }
 }
 
+let balanceHidden = false;
+let actualBalance = 0;
+
 async function loadWallet(){
   try{
     if (!currentUser?.id) {
@@ -952,12 +1039,12 @@ async function loadWallet(){
       throw error;
     }
     const bal = data?.balance ?? 0;
+    actualBalance = bal;
     // update nav badge (small) if exists
     const badge = document.getElementById('walletBalance');
     if (badge) badge.textContent = `${Number(bal).toFixed(2)} ج.م`;
     // update main large display value
-    const mainVal = document.getElementById('walletAmountValue');
-    if (mainVal) mainVal.textContent = Number(bal).toFixed(2);
+    updateBalanceDisplay();
     console.log('loadWallet balance:', bal);
     return bal;
   }catch(err){
@@ -967,12 +1054,74 @@ async function loadWallet(){
   }
 }
 
+function updateBalanceDisplay() {
+  const mainVal = document.getElementById('walletAmountValue');
+  const transactionsSection = document.getElementById('transactions');
+  const balanceSection = document.getElementById('balance');
+  
+  if (mainVal) {
+    mainVal.textContent = balanceHidden ? '••••••' : Number(actualBalance).toFixed(2);
+  }
+  
+  // إخفاء/إظهار العمليات والمحتوى الحساس
+  if (balanceHidden) {
+    if (transactionsSection) {
+      transactionsSection.innerHTML = `
+        <div class="flex flex-col items-center justify-center py-16 text-center">
+          <div class="w-20 h-20 bg-gradient-to-br from-gray-600 to-gray-700 rounded-full flex items-center justify-center mb-4 shadow-lg">
+            <svg class="w-10 h-10 text-gray-300" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/>
+            </svg>
+          </div>
+          <h3 class="text-xl font-bold text-gray-300 mb-2">المحتوى مخفي</h3>
+          <p class="text-gray-400 text-sm max-w-sm">تم إخفاء سجل العمليات لحماية خصوصيتك. اضغط على أيقونة العين لإظهار المحتوى.</p>
+          <div class="mt-6 flex gap-2">
+            <div class="w-3 h-3 bg-gray-500 rounded-full animate-pulse"></div>
+            <div class="w-3 h-3 bg-gray-500 rounded-full animate-pulse" style="animation-delay: 0.2s"></div>
+            <div class="w-3 h-3 bg-gray-500 rounded-full animate-pulse" style="animation-delay: 0.4s"></div>
+          </div>
+        </div>
+      `;
+    }
+  } else {
+    // إعادة تحميل العمليات عند الإظهار
+    if (transactionsSection && currentUser) {
+      loadTransactions();
+    }
+  }
+}
+
+function toggleBalance() {
+  balanceHidden = !balanceHidden;
+  updateBalanceDisplay();
+  
+  const eyeIcon = document.getElementById('eyeIcon');
+  if (eyeIcon) {
+    eyeIcon.innerHTML = balanceHidden ? 
+      '<path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/>' :
+      '<path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>';
+  }
+}
+
+// Add event listener for toggle button
+document.addEventListener('DOMContentLoaded', () => {
+  const toggleBtn = document.getElementById('toggleBalanceBtn');
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', toggleBalance);
+  }
+});
+
 async function loadTransactions(showAll = false) {
   try {
     if (!currentUser?.id) {
       console.warn('loadTransactions: no currentUser');
       const container = document.getElementById('transactions');
-      if (container) container.innerHTML = `<div class="text-gray-500 text-center p-4">يجب تسجيل الدخول لعرض السجل</div>`;
+      if (container) container.innerHTML = `<div class="text-gray-500 text-center p-8">يجب تسجيل الدخول لعرض السجل</div>`;
+      return;
+    }
+
+    // لا تحمل العمليات إذا كان الرصيد مخفي
+    if (balanceHidden) {
       return;
     }
 
@@ -985,14 +1134,22 @@ async function loadTransactions(showAll = false) {
     const container = document.getElementById('transactions');
     if (error) {
       console.error('loadTransactions supabase error', error);
-      if (container) container.innerHTML = `<div class="text-red-500 text-center p-4">⚠️ فشل تحميل سجل العمليات</div>`;
+      if (container) container.innerHTML = `<div class="text-red-500 text-center p-8 bg-red-500/10 rounded-2xl border border-red-500/20">⚠️ فشل تحميل سجل العمليات</div>`;
       return;
     }
 
     console.log('loadTransactions count:', (data || []).length);
 
     if (!data || !data.length) {
-      container.innerHTML = `<div class="text-gray-500 text-center p-4">لا يوجد عمليات بعد</div>`;
+      container.innerHTML = `
+        <div class="text-center py-16">
+          <div class="w-16 h-16 bg-gradient-to-br from-gray-600 to-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span class="text-2xl">📝</span>
+          </div>
+          <h3 class="text-lg font-semibold text-gray-300 mb-2">لا توجد عمليات بعد</h3>
+          <p class="text-gray-500 text-sm">ستظهر هنا جميع عمليات المحفظة الخاصة بك</p>
+        </div>
+      `;
       document.getElementById('showAllBtn')?.classList.add('hidden');
       return;
     }
@@ -1000,38 +1157,59 @@ async function loadTransactions(showAll = false) {
     const limit = 5;
     const displayedData = showAll ? data : data.slice(0, limit);
 
-    container.innerHTML = displayedData.map(t => `
-      <div class="p-3 flex justify-between border-b border-white/10 hover:bg-white/5 rounded transition">
-        <div>
-          <div class="font-medium text-white/90">${t.note || t.type}</div>
-          <div class="text-xs text-gray-400">${new Date(t.created_at).toLocaleString()}</div>
+    container.innerHTML = displayedData.map(t => {
+      const isPositive = t.amount > 0;
+      const icon = isPositive ? '💰' : '💸';
+      const amountColor = isPositive ? 'text-emerald-400' : 'text-red-400';
+      const bgColor = isPositive ? 'from-emerald-500/10 to-green-500/5' : 'from-red-500/10 to-orange-500/5';
+      const borderColor = isPositive ? 'border-emerald-500/20' : 'border-red-500/20';
+      
+      return `
+        <div class="group relative overflow-hidden bg-gradient-to-r ${bgColor} border ${borderColor} p-5 rounded-2xl hover:scale-[1.02] transition-all duration-300 shadow-lg hover:shadow-xl">
+          <div class="flex justify-between items-start">
+            <div class="flex items-start gap-4">
+              <div class="w-12 h-12 bg-gradient-to-br from-white/10 to-white/5 rounded-xl flex items-center justify-center border border-white/10">
+                <span class="text-xl">${icon}</span>
+              </div>
+              <div>
+                <div class="font-bold text-white text-lg mb-1">${t.note || t.type}</div>
+                <div class="text-sm text-gray-400 flex items-center gap-2">
+                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                  </svg>
+                  ${new Date(t.created_at).toLocaleDateString('ar-EG', { 
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </div>
+              </div>
+            </div>
+            <div class="text-right">
+              <div class="font-black text-xl ${amountColor} mb-1">
+                ${t.amount > 0 ? '+' : ''}${Number(t.amount).toFixed(2)}
+              </div>
+              <div class="text-xs text-gray-400">جنيه مصري</div>
+            </div>
+          </div>
+          
+          <!-- تأثير الوهج عند التمرير -->
+          <div class="absolute inset-0 bg-gradient-to-r from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"></div>
         </div>
-        <div class="${t.amount > 0 ? 'text-green-400' : 'text-red-400'} font-bold">
-          ${t.amount > 0 ? '+' : ''}${Number(t.amount).toFixed(2)} ج.م
-        </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
 
-    let showAllBtn = document.getElementById('showAllBtn');
-    if (!showAllBtn) {
-      showAllBtn = document.createElement('button');
-      showAllBtn.id = 'showAllBtn';
-      showAllBtn.className =
-        'mt-4 w-full bg-gradient-to-r from-sky-600 to-blue-700 text-white py-2 rounded-lg hover:from-sky-500 hover:to-blue-600 transition text-sm';
-      container.parentElement.appendChild(showAllBtn);
-    }
-
-    if (data.length > limit) {
-      showAllBtn.classList.remove('hidden');
-      showAllBtn.textContent = showAll ? '🔽 عرض أقل' : '👀 عرض الكل';
-      showAllBtn.onclick = () => loadTransactions(!showAll);
+    if (data.length > limit && !showAll) {
+      document.getElementById('showAllBtn')?.classList.remove('hidden');
     } else {
-      showAllBtn.classList.add('hidden');
+      document.getElementById('showAllBtn')?.classList.add('hidden');
     }
   } catch (err) {
     console.error('loadTransactions', err);
-    document.getElementById('transactions').innerHTML =
-      `<div class="text-red-500 text-center p-4">⚠️ فشل تحميل سجل العمليات</div>`;
+    const container = document.getElementById('transactions');
+    if (container) container.innerHTML = `<div class="text-red-500 text-center p-8 bg-red-500/10 rounded-2xl border border-red-500/20">⚠️ خطأ في تحميل العمليات</div>`;
   }
 }function showCelebration() {
   const confettiColors = ['#22c55e', '#06b6d4', '#facc15', '#ef4444'];
