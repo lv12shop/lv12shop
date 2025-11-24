@@ -1000,17 +1000,58 @@ new Swiper(".adSwiper", {
     window.sendNotification = sendNotification;
     window.initShopNotifications = initNotifications;
     
-    // Send notification for specific events
+    // إشعارات محددة للأحداث المختلفة
     window.notifyNewOrder = (orderId, total) => {
       sendNotification(`🛒 طلب جديد رقم ${orderId}`, `المبلغ: ${total} ج.م`);
     };
     
     window.notifyOrderUpdate = (orderId, status) => {
-      sendNotification(`📦 تحديث الطلب ${orderId}`, `الحالة: ${status}`);
+      const statusText = {
+        'pending': 'في الانتظار',
+        'confirmed': 'تم التأكيد', 
+        'shipped': 'تم الشحن',
+        'delivered': 'تم التسليم',
+        'cancelled': 'تم الإلغاء'
+      };
+      sendNotification(`📦 تحديث الطلب ${orderId}`, `الحالة: ${statusText[status] || status}`);
     };
     
-    window.notifyWalletUpdate = (balance) => {
-      sendNotification(`💰 تحديث المحفظة`, `الرصيد الجديد: ${balance} ج.م`);
+    window.notifyWalletUpdate = (newBalance, oldBalance = 0) => {
+      const diff = newBalance - oldBalance;
+      if (diff > 0) {
+        sendNotification(`💰 تم إضافة ${diff.toFixed(2)} ج.م للمحفظة`, `الرصيد الجديد: ${newBalance.toFixed(2)} ج.م`);
+      } else if (diff < 0) {
+        sendNotification(`💸 تم خصم ${Math.abs(diff).toFixed(2)} ج.م من المحفظة`, `الرصيد الجديد: ${newBalance.toFixed(2)} ج.م`);
+      }
+    };
+    
+    window.notifyNewProduct = (productName, price, category) => {
+      sendNotification(`🆕 منتج جديد: ${productName}`, `السعر: ${price} ج.م - الفئة: ${category}`);
+    };
+    
+    window.notifyReviewReply = (productName, replyText) => {
+      sendNotification(`💬 رد على تقييمك`, `منتج: ${productName}`);
+    };
+    
+    window.notifyMerchantOrder = (orderId, customerName, total) => {
+      sendNotification(`🛒 طلب جديد من ${customerName}`, `رقم الطلب: ${orderId} - المبلغ: ${total} ج.م`);
+    };
+    
+    window.notifyDiscount = (productName, oldPrice, newPrice) => {
+      const discount = Math.round(((oldPrice - newPrice) / oldPrice) * 100);
+      sendNotification(`🔥 خصم ${discount}% على ${productName}`, `من ${oldPrice} إلى ${newPrice} ج.م`);
+    };
+    
+    window.notifySupportReply = (message) => {
+      sendNotification(`📞 رد من الدعم الفني`, message.substring(0, 50) + '...');
+    };
+    
+    window.notifyLowStock = (productName, quantity) => {
+      sendNotification(`⚠️ مخزون منخفض: ${productName}`, `الكمية المتبقية: ${quantity}`);
+    };
+    
+    window.notifyAppUpdate = (version) => {
+      sendNotification(`📱 تحديث التطبيق متاح`, `الإصدار الجديد: ${version}`);
     };
 
     async function renderFeatured() {
@@ -1079,13 +1120,58 @@ new Swiper(".adSwiper", {
       }catch(e){console.error('updateWalletBadge', e)}
     }
 
+    async function getUserRole() {
+      try {
+        const { data } = await client.auth.getSession();
+        const user = data?.session?.user;
+        if (!user) return null;
+        
+        const { data: profile } = await client
+          .from('users')
+          .select('role, is_merchant')
+          .eq('id', user.id)
+          .single();
+        
+        return {
+          id: user.id,
+          role: profile?.role || 'user',
+          isMerchant: profile?.is_merchant || false
+        };
+      } catch (e) {
+        console.error('getUserRole error', e);
+        return null;
+      }
+    }
+
+    window.sendTargetedNotification = async (title, message, targetRole = null, targetUserId = null) => {
+      const userInfo = await getUserRole();
+      if (!userInfo) return;
+      
+      if (targetUserId && userInfo.id === targetUserId) {
+        sendNotification(title, message);
+        return;
+      }
+      
+      if (targetRole) {
+        if (targetRole === 'merchant' && userInfo.isMerchant) {
+          sendNotification(title, message);
+        } else if (targetRole === 'admin' && userInfo.role === 'admin') {
+          sendNotification(title, message);
+        } else if (targetRole === 'user' && userInfo.role === 'user') {
+          sendNotification(title, message);
+        }
+        return;
+      }
+      
+      sendNotification(title, message);
+    };
+
     async function initRealtimeNotifications(){
       try{
         if ('Notification' in window) {
           const perm = await Notification.requestPermission();
           if (perm === 'granted') {
             console.log('✅ Notifications enabled');
-            // Test notification
             setTimeout(() => {
               sendNotification('مرحباً بك في LV12 Shop', 'تم تفعيل الإشعارات بنجاح!');
             }, 2000);
@@ -1102,7 +1188,11 @@ new Swiper(".adSwiper", {
           }
         }
 
-        // Listen to all database changes
+        const { data: sessionData } = await client.auth.getSession();
+        const currentUser = sessionData?.session?.user;
+        const currentUserId = currentUser?.id;
+
+        // منتجات جديدة
         const productChannel = client.channel('public:products')
           .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'products' }, payload => {
             const p = payload.new;
@@ -1110,40 +1200,117 @@ new Swiper(".adSwiper", {
           })
           .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'products' }, payload => {
             const p = payload.new;
-            sendNotification(`📝 تحديث منتج: ${p.name}`, `السعر الجديد: ${Number(p.price||0).toFixed(0)} ج.م`);
+            if (p.discount_price && p.discount_price < p.price) {
+              sendNotification(`🔥 خصم على: ${p.name}`, `من ${p.price} إلى ${p.discount_price} ج.م`);
+            }
           })
           .subscribe();
 
+        // طلبات جديدة للتجار
         const orderChannel = client.channel('public:orders')
-          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, payload => {
+          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, async payload => {
             const o = payload.new;
-            sendNotification(`🛒 طلب جديد رقم ${o.id}`, `المبلغ: ${Number(o.total||0).toFixed(0)} ج.م`);
+            
+            // إشعار للتاجر إذا كان الطلب له
+            if (currentUserId) {
+              const { data: orderItems } = await client
+                .from('order_items')
+                .select('product_id, products(seller_id)')
+                .eq('order_id', o.id);
+              
+              const isMyOrder = orderItems?.some(item => item.products?.seller_id === currentUserId);
+              if (isMyOrder) {
+                sendNotification(`🛒 طلب جديد رقم ${o.id}`, `المبلغ: ${Number(o.total||0).toFixed(0)} ج.م`);
+              }
+            }
           })
           .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders' }, payload => {
             const o = payload.new;
-            sendNotification(`📦 تحديث الطلب ${o.id}`, `الحالة: ${o.status}`);
+            if (currentUserId === o.user_id) {
+              const statusText = {
+                'pending': 'في الانتظار',
+                'confirmed': 'تم التأكيد',
+                'shipped': 'تم الشحن',
+                'delivered': 'تم التسليم',
+                'cancelled': 'تم الإلغاء'
+              };
+              sendNotification(`📦 تحديث الطلب ${o.id}`, `الحالة: ${statusText[o.status] || o.status}`);
+            }
           })
           .subscribe();
 
-        const userChannel = client.channel('public:users')
-          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'users' }, payload => {
-            const u = payload.new;
-            sendNotification(`👤 مستخدم جديد`, `انضم: ${u.name || u.email}`);
-          })
-          .subscribe();
-
+        // تحديثات المحفظة
         const walletChannel = client.channel('public:wallet')
           .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'wallet' }, payload => {
             const w = payload.new;
-            sendNotification(`💰 تحديث المحفظة`, `الرصيد الجديد: ${Number(w.balance||0).toFixed(2)} ج.م`);
+            if (currentUserId === w.user_id) {
+              const oldBalance = Number(payload.old?.balance || 0);
+              const newBalance = Number(w.balance || 0);
+              const diff = newBalance - oldBalance;
+              
+              if (diff > 0) {
+                sendNotification(`💰 تم إضافة ${diff.toFixed(2)} ج.م للمحفظة`, `الرصيد الجديد: ${newBalance.toFixed(2)} ج.م`);
+              } else if (diff < 0) {
+                sendNotification(`💸 تم خصم ${Math.abs(diff).toFixed(2)} ج.م من المحفظة`, `الرصيد الجديد: ${newBalance.toFixed(2)} ج.م`);
+              }
+            }
           })
           .subscribe();
 
+        // ردود على التقييمات
+        const reviewChannel = client.channel('public:reviews')
+          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'reviews' }, async payload => {
+            const r = payload.new;
+            if (r.parent_id && currentUserId) {
+              const { data: parentReview } = await client
+                .from('reviews')
+                .select('user_id, product_id, products(name)')
+                .eq('id', r.parent_id)
+                .single();
+              
+              if (parentReview?.user_id === currentUserId) {
+                sendNotification(`💬 رد على تقييمك`, `منتج: ${parentReview.products?.name}`);
+              }
+            }
+          })
+          .subscribe();
+
+        // إشعارات عامة
+        const notificationChannel = client.channel('public:notifications')
+          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, payload => {
+            const n = payload.new;
+            if (!currentUserId || n.user_id === currentUserId || !n.user_id) {
+              sendNotification(n.title || 'إشعار جديد', n.message || '');
+            }
+          })
+          .subscribe();
+
+        // تحديثات المستخدمين الجدد (للإدارة)
+        const userChannel = client.channel('public:users')
+          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'users' }, payload => {
+            const u = payload.new;
+            if (currentUser?.user_metadata?.role === 'admin') {
+              sendNotification(`👤 مستخدم جديد`, `انضم: ${u.name || u.email}`);
+            }
+          })
+          .subscribe();
+
+        // تحديثات التطبيق
         const activityChannel = client.channel('public:user_activity')
           .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'user_activity' }, payload => {
             const a = payload.new;
-            if (a.type.includes('APK') || a.type.includes('تطبيق')) {
+            if (a.type.includes('APK') || a.type.includes('تطبيق') || a.type.includes('update')) {
               sendNotification(`📱 ${a.type}`, a.details || 'تحديث جديد متاح');
+            }
+          })
+          .subscribe();
+
+        // رسائل الدعم
+        const supportChannel = client.channel('public:support_messages')
+          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'support_messages' }, payload => {
+            const m = payload.new;
+            if (currentUserId === m.user_id && m.is_admin_reply) {
+              sendNotification(`📞 رد من الدعم الفني`, m.message?.substring(0, 50) + '...');
             }
           })
           .subscribe();
