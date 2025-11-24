@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>رفع APK - لوحة التحكم</title>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<style>
+body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+.container { max-width: 500px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; }
+input[type="file"] { width: 100%; padding: 10px; margin: 10px 0; border: 2px dashed #ccc; }
+button { background: #007bff; color: white; padding: 15px 30px; border: none; border-radius: 5px; cursor: pointer; width: 100%; }
+button:hover { background: #0056b3; }
+.progress { width: 100%; height: 20px; background: #f0f0f0; border-radius: 10px; margin: 10px 0; }
+.progress-bar { height: 100%; background: #28a745; border-radius: 10px; width: 0%; transition: width 0.3s; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h2>رفع ملف APK إلى قاعدة البيانات</h2>
+  
+  <input type="file" id="apkFile" accept=".apk" />
+  <button onclick="uploadAPK()">رفع APK</button>
+  
+  <div class="progress" style="display: none;">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
+  
+  <div id="status"></div>
+</div>
+
+<script>
+const SUPABASE_URL = "https://nszhzfysitppxssplqfb.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zemh6ZnlzaXRwcHhzc3BscWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA4OTcsImV4cCI6MjA3MzgwNjg5N30.5KvK4bhqkZ_GpIfED4qecIMfeubAJYwSFJslULwOp-w";
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+async function uploadAPK() {
+  const fileInput = document.getElementById('apkFile');
+  const file = fileInput.files[0];
+  
+  if (!file) {
+    alert('يرجى اختيار ملف APK');
+    return;
+  }
+  
+  if (!file.name.endsWith('.apk')) {
+    alert('يرجى اختيار ملف APK صحيح');
+    return;
+  }
+  
+  const status = document.getElementById('status');
+  const progress = document.querySelector('.progress');
+  const progressBar = document.getElementById('progressBar');
+  
+  status.innerHTML = 'جاري الرفع...';
+  progress.style.display = 'block';
+  
+  try {
+    const { data, error } = await supabase.storage
+      .from('avatars')
+      .upload('lv12apk', file, {
+        cacheControl: '3600',
+        upsert: true
+      });
+    
+    if (error) {
+      throw error;
+    }
+    
+    progressBar.style.width = '100%';
+    status.innerHTML = '✅ تم رفع APK بنجاح!';
+    
+    // Log upload activity
+    await supabase.from('user_activity').insert({
+      user_display: 'Admin',
+      type: 'رفع APK جديد',
+      details: `حجم الملف: ${(file.size / 1024 / 1024).toFixed(2)} MB`
+    });
+    
+  } catch (error) {
+    status.innerHTML = '❌ فشل في رفع الملف: ' + error.message;
+    console.error('Upload error:', error);
+  }
+}
+</script>
+
+</body>
+</html>

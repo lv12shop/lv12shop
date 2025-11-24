@@ -996,8 +996,22 @@ new Swiper(".adSwiper", {
       }
     }
 
+    // Global notification functions
     window.sendNotification = sendNotification;
     window.initShopNotifications = initNotifications;
+    
+    // Send notification for specific events
+    window.notifyNewOrder = (orderId, total) => {
+      sendNotification(`🛒 طلب جديد رقم ${orderId}`, `المبلغ: ${total} ج.م`);
+    };
+    
+    window.notifyOrderUpdate = (orderId, status) => {
+      sendNotification(`📦 تحديث الطلب ${orderId}`, `الحالة: ${status}`);
+    };
+    
+    window.notifyWalletUpdate = (balance) => {
+      sendNotification(`💰 تحديث المحفظة`, `الرصيد الجديد: ${balance} ج.م`);
+    };
 
     async function renderFeatured() {
       try {
@@ -1088,36 +1102,51 @@ new Swiper(".adSwiper", {
           }
         }
 
-        const channel = client.channel('public:products').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'products' }, payload => {
-          const p = payload.new;
-          console.log('🆕 New product realtime:', p?.name);
-          
-          // Send notification immediately
-          sendNotification(`🆕 منتج جديد: ${p.name}`, `سعر: ${Number(p.price||0).toFixed(0)} ج.م`);
-          
-          // Also send via service worker
-          if (navigator.serviceWorker.controller) {
-            navigator.serviceWorker.controller.postMessage({
-              type: 'SEND_NOTIFICATION',
-              title: `🆕 منتج جديد: ${p.name}`,
-              body: `سعر: ${Number(p.price||0).toFixed(0)} ج.م`,
-              data: { url: `product.html?id=${p.id}` }
-            });
-          }
+        // Listen to all database changes
+        const productChannel = client.channel('public:products')
+          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'products' }, payload => {
+            const p = payload.new;
+            sendNotification(`🆕 منتج جديد: ${p.name}`, `سعر: ${Number(p.price||0).toFixed(0)} ج.م`);
+          })
+          .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'products' }, payload => {
+            const p = payload.new;
+            sendNotification(`📝 تحديث منتج: ${p.name}`, `السعر الجديد: ${Number(p.price||0).toFixed(0)} ج.م`);
+          })
+          .subscribe();
 
-          // Update UI
-          try{
-            const el = document.getElementById('featuredProducts');
-            if (el) {
-              const node = document.createElement('a');
-              node.href = `product.html?id=${p.id}`;
-              node.className = 'group block w-44 bg-[#0b1220] p-3 rounded-2xl border border-white/6 hover:scale-105 transition shadow';
-              node.innerHTML = `<div class="w-full h-36 bg-gray-900 rounded-lg overflow-hidden mb-2"><img src="${(p.product_images?.[0]?.image_url)||'/placeholder.png'}" class="w-full h-full object-cover"/></div><div class="text-sm text-white font-semibold truncate">${escapeHtml(p.name)}</div><div class="text-xs text-gray-300">${Number(p.price||0).toFixed(2)} ج.م</div>`;
-              const gallery = el.querySelector('.flex');
-              if (gallery) gallery.prepend(node);
+        const orderChannel = client.channel('public:orders')
+          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, payload => {
+            const o = payload.new;
+            sendNotification(`🛒 طلب جديد رقم ${o.id}`, `المبلغ: ${Number(o.total||0).toFixed(0)} ج.م`);
+          })
+          .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders' }, payload => {
+            const o = payload.new;
+            sendNotification(`📦 تحديث الطلب ${o.id}`, `الحالة: ${o.status}`);
+          })
+          .subscribe();
+
+        const userChannel = client.channel('public:users')
+          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'users' }, payload => {
+            const u = payload.new;
+            sendNotification(`👤 مستخدم جديد`, `انضم: ${u.name || u.email}`);
+          })
+          .subscribe();
+
+        const walletChannel = client.channel('public:wallet')
+          .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'wallet' }, payload => {
+            const w = payload.new;
+            sendNotification(`💰 تحديث المحفظة`, `الرصيد الجديد: ${Number(w.balance||0).toFixed(2)} ج.م`);
+          })
+          .subscribe();
+
+        const activityChannel = client.channel('public:user_activity')
+          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'user_activity' }, payload => {
+            const a = payload.new;
+            if (a.type.includes('APK') || a.type.includes('تطبيق')) {
+              sendNotification(`📱 ${a.type}`, a.details || 'تحديث جديد متاح');
             }
-          }catch(e){console.warn('add realtime product UI', e)}
-        }).subscribe();
+          })
+          .subscribe();
 
       }catch(e){console.error('initRealtimeNotifications', e)}
     }

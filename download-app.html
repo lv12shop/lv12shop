@@ -98,7 +98,6 @@ document.getElementById('downloadBtn').addEventListener('click', async () => {
   loading.style.display = 'block';
   
   try {
-    // Get APK file from Supabase Storage
     const { data, error } = await supabase.storage
       .from('avatars')
       .download('lv12apk');
@@ -109,7 +108,6 @@ document.getElementById('downloadBtn').addEventListener('click', async () => {
       return;
     }
     
-    // Create download link
     const blob = new Blob([data], { type: 'application/vnd.android.package-archive' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
