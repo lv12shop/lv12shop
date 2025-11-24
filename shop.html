@@ -996,63 +996,8 @@ new Swiper(".adSwiper", {
       }
     }
 
-    // Global notification functions
     window.sendNotification = sendNotification;
     window.initShopNotifications = initNotifications;
-    
-    // إشعارات محددة للأحداث المختلفة
-    window.notifyNewOrder = (orderId, total) => {
-      sendNotification(`🛒 طلب جديد رقم ${orderId}`, `المبلغ: ${total} ج.م`);
-    };
-    
-    window.notifyOrderUpdate = (orderId, status) => {
-      const statusText = {
-        'pending': 'في الانتظار',
-        'confirmed': 'تم التأكيد', 
-        'shipped': 'تم الشحن',
-        'delivered': 'تم التسليم',
-        'cancelled': 'تم الإلغاء'
-      };
-      sendNotification(`📦 تحديث الطلب ${orderId}`, `الحالة: ${statusText[status] || status}`);
-    };
-    
-    window.notifyWalletUpdate = (newBalance, oldBalance = 0) => {
-      const diff = newBalance - oldBalance;
-      if (diff > 0) {
-        sendNotification(`💰 تم إضافة ${diff.toFixed(2)} ج.م للمحفظة`, `الرصيد الجديد: ${newBalance.toFixed(2)} ج.م`);
-      } else if (diff < 0) {
-        sendNotification(`💸 تم خصم ${Math.abs(diff).toFixed(2)} ج.م من المحفظة`, `الرصيد الجديد: ${newBalance.toFixed(2)} ج.م`);
-      }
-    };
-    
-    window.notifyNewProduct = (productName, price, category) => {
-      sendNotification(`🆕 منتج جديد: ${productName}`, `السعر: ${price} ج.م - الفئة: ${category}`);
-    };
-    
-    window.notifyReviewReply = (productName, replyText) => {
-      sendNotification(`💬 رد على تقييمك`, `منتج: ${productName}`);
-    };
-    
-    window.notifyMerchantOrder = (orderId, customerName, total) => {
-      sendNotification(`🛒 طلب جديد من ${customerName}`, `رقم الطلب: ${orderId} - المبلغ: ${total} ج.م`);
-    };
-    
-    window.notifyDiscount = (productName, oldPrice, newPrice) => {
-      const discount = Math.round(((oldPrice - newPrice) / oldPrice) * 100);
-      sendNotification(`🔥 خصم ${discount}% على ${productName}`, `من ${oldPrice} إلى ${newPrice} ج.م`);
-    };
-    
-    window.notifySupportReply = (message) => {
-      sendNotification(`📞 رد من الدعم الفني`, message.substring(0, 50) + '...');
-    };
-    
-    window.notifyLowStock = (productName, quantity) => {
-      sendNotification(`⚠️ مخزون منخفض: ${productName}`, `الكمية المتبقية: ${quantity}`);
-    };
-    
-    window.notifyAppUpdate = (version) => {
-      sendNotification(`📱 تحديث التطبيق متاح`, `الإصدار الجديد: ${version}`);
-    };
 
     async function renderFeatured() {
       try {
@@ -1120,58 +1065,13 @@ new Swiper(".adSwiper", {
       }catch(e){console.error('updateWalletBadge', e)}
     }
 
-    async function getUserRole() {
-      try {
-        const { data } = await client.auth.getSession();
-        const user = data?.session?.user;
-        if (!user) return null;
-        
-        const { data: profile } = await client
-          .from('users')
-          .select('role, is_merchant')
-          .eq('id', user.id)
-          .single();
-        
-        return {
-          id: user.id,
-          role: profile?.role || 'user',
-          isMerchant: profile?.is_merchant || false
-        };
-      } catch (e) {
-        console.error('getUserRole error', e);
-        return null;
-      }
-    }
-
-    window.sendTargetedNotification = async (title, message, targetRole = null, targetUserId = null) => {
-      const userInfo = await getUserRole();
-      if (!userInfo) return;
-      
-      if (targetUserId && userInfo.id === targetUserId) {
-        sendNotification(title, message);
-        return;
-      }
-      
-      if (targetRole) {
-        if (targetRole === 'merchant' && userInfo.isMerchant) {
-          sendNotification(title, message);
-        } else if (targetRole === 'admin' && userInfo.role === 'admin') {
-          sendNotification(title, message);
-        } else if (targetRole === 'user' && userInfo.role === 'user') {
-          sendNotification(title, message);
-        }
-        return;
-      }
-      
-      sendNotification(title, message);
-    };
-
     async function initRealtimeNotifications(){
       try{
         if ('Notification' in window) {
           const perm = await Notification.requestPermission();
           if (perm === 'granted') {
             console.log('✅ Notifications enabled');
+            // Test notification
             setTimeout(() => {
               sendNotification('مرحباً بك في LV12 Shop', 'تم تفعيل الإشعارات بنجاح!');
             }, 2000);
@@ -1188,132 +1088,36 @@ new Swiper(".adSwiper", {
           }
         }
 
-        const { data: sessionData } = await client.auth.getSession();
-        const currentUser = sessionData?.session?.user;
-        const currentUserId = currentUser?.id;
+        const channel = client.channel('public:products').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'products' }, payload => {
+          const p = payload.new;
+          console.log('🆕 New product realtime:', p?.name);
+          
+          // Send notification immediately
+          sendNotification(`🆕 منتج جديد: ${p.name}`, `سعر: ${Number(p.price||0).toFixed(0)} ج.م`);
+          
+          // Also send via service worker
+          if (navigator.serviceWorker.controller) {
+            navigator.serviceWorker.controller.postMessage({
+              type: 'SEND_NOTIFICATION',
+              title: `🆕 منتج جديد: ${p.name}`,
+              body: `سعر: ${Number(p.price||0).toFixed(0)} ج.م`,
+              data: { url: `product.html?id=${p.id}` }
+            });
+          }
 
-        // منتجات جديدة
-        const productChannel = client.channel('public:products')
-          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'products' }, payload => {
-            const p = payload.new;
-            sendNotification(`🆕 منتج جديد: ${p.name}`, `سعر: ${Number(p.price||0).toFixed(0)} ج.م`);
-          })
-          .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'products' }, payload => {
-            const p = payload.new;
-            if (p.discount_price && p.discount_price < p.price) {
-              sendNotification(`🔥 خصم على: ${p.name}`, `من ${p.price} إلى ${p.discount_price} ج.م`);
+          // Update UI
+          try{
+            const el = document.getElementById('featuredProducts');
+            if (el) {
+              const node = document.createElement('a');
+              node.href = `product.html?id=${p.id}`;
+              node.className = 'group block w-44 bg-[#0b1220] p-3 rounded-2xl border border-white/6 hover:scale-105 transition shadow';
+              node.innerHTML = `<div class="w-full h-36 bg-gray-900 rounded-lg overflow-hidden mb-2"><img src="${(p.product_images?.[0]?.image_url)||'/placeholder.png'}" class="w-full h-full object-cover"/></div><div class="text-sm text-white font-semibold truncate">${escapeHtml(p.name)}</div><div class="text-xs text-gray-300">${Number(p.price||0).toFixed(2)} ج.م</div>`;
+              const gallery = el.querySelector('.flex');
+              if (gallery) gallery.prepend(node);
             }
-          })
-          .subscribe();
-
-        // طلبات جديدة للتجار
-        const orderChannel = client.channel('public:orders')
-          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, async payload => {
-            const o = payload.new;
-            
-            // إشعار للتاجر إذا كان الطلب له
-            if (currentUserId) {
-              const { data: orderItems } = await client
-                .from('order_items')
-                .select('product_id, products(seller_id)')
-                .eq('order_id', o.id);
-              
-              const isMyOrder = orderItems?.some(item => item.products?.seller_id === currentUserId);
-              if (isMyOrder) {
-                sendNotification(`🛒 طلب جديد رقم ${o.id}`, `المبلغ: ${Number(o.total||0).toFixed(0)} ج.م`);
-              }
-            }
-          })
-          .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders' }, payload => {
-            const o = payload.new;
-            if (currentUserId === o.user_id) {
-              const statusText = {
-                'pending': 'في الانتظار',
-                'confirmed': 'تم التأكيد',
-                'shipped': 'تم الشحن',
-                'delivered': 'تم التسليم',
-                'cancelled': 'تم الإلغاء'
-              };
-              sendNotification(`📦 تحديث الطلب ${o.id}`, `الحالة: ${statusText[o.status] || o.status}`);
-            }
-          })
-          .subscribe();
-
-        // تحديثات المحفظة
-        const walletChannel = client.channel('public:wallet')
-          .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'wallet' }, payload => {
-            const w = payload.new;
-            if (currentUserId === w.user_id) {
-              const oldBalance = Number(payload.old?.balance || 0);
-              const newBalance = Number(w.balance || 0);
-              const diff = newBalance - oldBalance;
-              
-              if (diff > 0) {
-                sendNotification(`💰 تم إضافة ${diff.toFixed(2)} ج.م للمحفظة`, `الرصيد الجديد: ${newBalance.toFixed(2)} ج.م`);
-              } else if (diff < 0) {
-                sendNotification(`💸 تم خصم ${Math.abs(diff).toFixed(2)} ج.م من المحفظة`, `الرصيد الجديد: ${newBalance.toFixed(2)} ج.م`);
-              }
-            }
-          })
-          .subscribe();
-
-        // ردود على التقييمات
-        const reviewChannel = client.channel('public:reviews')
-          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'reviews' }, async payload => {
-            const r = payload.new;
-            if (r.parent_id && currentUserId) {
-              const { data: parentReview } = await client
-                .from('reviews')
-                .select('user_id, product_id, products(name)')
-                .eq('id', r.parent_id)
-                .single();
-              
-              if (parentReview?.user_id === currentUserId) {
-                sendNotification(`💬 رد على تقييمك`, `منتج: ${parentReview.products?.name}`);
-              }
-            }
-          })
-          .subscribe();
-
-        // إشعارات عامة
-        const notificationChannel = client.channel('public:notifications')
-          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, payload => {
-            const n = payload.new;
-            if (!currentUserId || n.user_id === currentUserId || !n.user_id) {
-              sendNotification(n.title || 'إشعار جديد', n.message || '');
-            }
-          })
-          .subscribe();
-
-        // تحديثات المستخدمين الجدد (للإدارة)
-        const userChannel = client.channel('public:users')
-          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'users' }, payload => {
-            const u = payload.new;
-            if (currentUser?.user_metadata?.role === 'admin') {
-              sendNotification(`👤 مستخدم جديد`, `انضم: ${u.name || u.email}`);
-            }
-          })
-          .subscribe();
-
-        // تحديثات التطبيق
-        const activityChannel = client.channel('public:user_activity')
-          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'user_activity' }, payload => {
-            const a = payload.new;
-            if (a.type.includes('APK') || a.type.includes('تطبيق') || a.type.includes('update')) {
-              sendNotification(`📱 ${a.type}`, a.details || 'تحديث جديد متاح');
-            }
-          })
-          .subscribe();
-
-        // رسائل الدعم
-        const supportChannel = client.channel('public:support_messages')
-          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'support_messages' }, payload => {
-            const m = payload.new;
-            if (currentUserId === m.user_id && m.is_admin_reply) {
-              sendNotification(`📞 رد من الدعم الفني`, m.message?.substring(0, 50) + '...');
-            }
-          })
-          .subscribe();
+          }catch(e){console.warn('add realtime product UI', e)}
+        }).subscribe();
 
       }catch(e){console.error('initRealtimeNotifications', e)}
     }
@@ -1337,22 +1141,8 @@ new Swiper(".adSwiper", {
 </script>
 
 
-<div id="appDownloadBanner" class="px-4 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white flex items-center justify-between gap-4 shadow-lg z-50">
-  <div class="flex items-center gap-3">
-    <span class="text-2xl">📱</span>
-    <div>
-      <div class="font-bold">حمل تطبيق LV12 Shop</div>
-      <div class="text-sm opacity-90">تجربة أفضل مع إشعارات فورية</div>
-    </div>
-  </div>
-  <div class="flex items-center gap-3">
-    <a href="download-app.html" class="bg-white text-blue-600 px-4 py-2 rounded-lg font-semibold">تحميل</a>
-    <button id="dismissAppBanner" class="text-white/70 px-3 py-2">×</button>
-  </div>
-</div>
 <main id="products" class="w-full px-2 sm:px-4 py-4 sm:py-8 space-y-6 sm:space-y-10 pb-20">
 
-  <!-- فئات المنتجات -->
   <section class="relative px-2">
     <div class="flex items-center justify-between mb-4">
       <h2 class="text-lg sm:text-2xl font-black flex items-center gap-2">
@@ -1363,7 +1153,6 @@ new Swiper(".adSwiper", {
     <div id="categoriesBar" class="flex gap-2 sm:gap-3 overflow-x-auto pb-3 snap-x snap-mandatory hide-scrollbar"></div>
   </section>
 
-  <!-- عروض اليوم -->
   <section id="todayDeals" class="relative bg-gradient-to-br from-amber-500 via-orange-500 to-red-500 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xl overflow-hidden mx-2">
     <div class="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.1"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"%3E%3C/path%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-20"></div>
     <div class="absolute top-0 left-0 w-32 h-32 bg-yellow-300/30 rounded-full blur-3xl animate-pulse"></div>
@@ -1384,7 +1173,6 @@ new Swiper(".adSwiper", {
     </div>
   </section>
 
-  <!-- قسم الخصومات -->
   <section id="discountsSection" class="relative bg-gradient-to-br from-rose-500 via-pink-500 to-fuchsia-600 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xl overflow-hidden mx-2">
     <div class="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="%23ffffff" fill-opacity="0.08" fill-rule="evenodd"%3E%3Cpath d="M0 40L40 0H20L0 20M40 40V20L20 40"%3E%3C/path%3E%3C/g%3E%3C/svg%3E')] opacity-30"></div>
     <div class="absolute bottom-0 right-0 w-32 h-32 bg-purple-300/30 rounded-full blur-3xl animate-pulse" style="animation-delay: 0.5s"></div>
@@ -1402,10 +1190,8 @@ new Swiper(".adSwiper", {
     </div>
   </section>
 
-  <!-- الفئات -->
   <section id="categorySections" class="space-y-6 px-2"></section>
 
-  <!-- جميع المنتجات -->
   <section class="relative px-2">
     <div class="flex items-center justify-between mb-4">
       <h2 class="text-lg sm:text-2xl font-black flex items-center gap-2">
@@ -1416,7 +1202,6 @@ new Swiper(".adSwiper", {
     <div id="allProductsGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3"></div>
   </section>
 
-  <!-- منتجات أقل من 100 -->
   <section id="under100Wrapper" class="relative bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-4 sm:p-6 shadow-lg mx-2">
     <div class="flex items-center justify-between mb-4">
       <h2 class="text-lg sm:text-xl font-black text-emerald-700 flex items-center gap-2">
@@ -1427,7 +1212,6 @@ new Swiper(".adSwiper", {
     <div id="under100" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3"></div>
   </section>
 
-  <!-- منتجات أقل من 200 -->
   <section id="under200Wrapper" class="relative bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-4 sm:p-6 shadow-lg mx-2">
     <div class="flex items-center justify-between mb-4">
       <h2 class="text-lg sm:text-xl font-black text-blue-700 flex items-center gap-2">
@@ -1438,7 +1222,6 @@ new Swiper(".adSwiper", {
     <div id="under200" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3"></div>
   </section>
 
-  <!-- قد يعجبك -->
   <section id="interestWrapper" class="relative bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-4 sm:p-6 shadow-lg mx-2">
     <div class="flex items-center justify-between mb-4">
       <h2 class="text-lg sm:text-xl font-black text-purple-700 flex items-center gap-2">
