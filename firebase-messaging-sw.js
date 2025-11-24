@@ -4,7 +4,6 @@ const SUPABASE_URL = "https://nszhzfysitppxssplqfb.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zemh6ZnlzaXRwcHhzc3BscWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA4OTcsImV4cCI6MjA3MzgwNjg5N30.5KvK4bhqkZ_GpIfED4qecIMfeubAJYwSFJslULwOp-w";
 const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// Send notification from service worker
 function sendNotification(title, body, data = {}) {
   return self.registration.showNotification(title, {
     body: body,
@@ -18,7 +17,6 @@ function sendNotification(title, body, data = {}) {
   });
 }
 
-// Check for updates periodically
 setInterval(async () => {
   try {
     const { data: products } = await client
@@ -40,7 +38,7 @@ setInterval(async () => {
   } catch (error) {
     console.log('Product check failed:', error);
   }
-}, 60000); // Check every minute
+}, 60000); 
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
@@ -58,7 +56,6 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-// Handle messages from main thread
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SEND_NOTIFICATION') {
     sendNotification(event.data.title, event.data.body, event.data.data);

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>Debug Database</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <h1>Database Debug</h1>
+  <div id="results"></div>
+
+  <script>
+    const supabase = window.supabase.createClient(
+      "https://nszhzfysitppxssplqfb.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zemh6ZnlzaXRwcHhzc3BscWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA4OTcsImV4cCI6MjA3MzgwNjg5N30.5KvK4bhqkZ_GpIfED4qecIMfeubAJYwSFJslULwOp-w"
+    );
+
+    async function debugDatabase() {
+      const results = document.getElementById('results');
+      
+      try {
+        // Test products table
+        console.log('🔍 Testing products table...');
+        const { data: products, error: productsError } = await supabase
+          .from('products')
+          .select('id, name, price, discount_price, seller_id')
+          .limit(5);
+        
+        results.innerHTML += `<h2>Products (first 5):</h2>`;
+        results.innerHTML += `<pre>${JSON.stringify(products, null, 2)}</pre>`;
+        
+        if (productsError) {
+          results.innerHTML += `<p style="color: red;">Products Error: ${productsError.message}</p>`;
+        }
+
+        // Test sellers table
+        console.log('🔍 Testing sellers table...');
+        const { data: sellers, error: sellersError } = await supabase
+          .from('sellers')
+          .select('*')
+          .limit(5);
+        
+        results.innerHTML += `<h2>Sellers (first 5):</h2>`;
+        results.innerHTML += `<pre>${JSON.stringify(sellers, null, 2)}</pre>`;
+        
+        if (sellersError) {
+          results.innerHTML += `<p style="color: red;">Sellers Error: ${sellersError.message}</p>`;
+        }
+
+        // Test discount products
+        console.log('🔍 Testing discount products...');
+        const { data: discountProducts, error: discountError } = await supabase
+          .from('products')
+          .select('id, name, price, discount_price')
+          .not('discount_price', 'is', null)
+          .gt('discount_price', 0)
+          .limit(10);
+        
+        results.innerHTML += `<h2>Discount Products:</h2>`;
+        results.innerHTML += `<pre>${JSON.stringify(discountProducts, null, 2)}</pre>`;
+        
+        if (discountError) {
+          results.innerHTML += `<p style="color: red;">Discount Error: ${discountError.message}</p>`;
+        }
+
+        // Filter actual discounted products
+        const actualDiscounts = discountProducts?.filter(p => 
+          p.discount_price && p.discount_price > 0 && p.discount_price < p.price
+        ) || [];
+        
+        results.innerHTML += `<h2>Actual Discounted Products (${actualDiscounts.length}):</h2>`;
+        results.innerHTML += `<pre>${JSON.stringify(actualDiscounts, null, 2)}</pre>`;
+
+      } catch (error) {
+        results.innerHTML += `<p style="color: red;">General Error: ${error.message}</p>`;
+        console.error('Debug error:', error);
+      }
+    }
+
+    debugDatabase();
+  </script>
+</body>
+</html>

@@ -441,18 +441,17 @@ footer a:hover {
 </header>
 
 
-<div id="pwaInstallBanner" class="hidden px-4 py-3 bg-gradient-to-r from-yellow-400 to-amber-500 text-black flex items-center justify-between gap-4 shadow-lg z-50" role="dialog" aria-live="polite">
+<div id="appDownloadBanner" class="px-4 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white flex items-center justify-between gap-4 shadow-lg z-50">
   <div class="flex items-center gap-3">
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L15 8H9L12 2Z" fill="currentColor" opacity="0.9"/><path d="M4 10H20V20H4V10Z" fill="currentColor" opacity="0.95"/></svg>
+    <span class="text-2xl">📱</span>
     <div>
-      <div class="font-bold">تثبيت تطبيق LV12</div>
-      <div class="text-sm opacity-80">احصل على تجربة أسرع وإشعارات بالعروض والمنتجات الجديدة</div>
+      <div class="font-bold">حمل تطبيق LV12 Shop</div>
+      <div class="text-sm opacity-90">تجربة أفضل مع إشعارات فورية</div>
     </div>
   </div>
-
   <div class="flex items-center gap-3">
-    <button id="pwaInstallBtn" class="bg-black/90 text-white px-4 py-2 rounded-lg font-semibold">تثبيت الآن</button>
-    <button id="pwaDismissBtn" class="text-black/70 px-3 py-2">إغلاق</button>
+    <a href="download-app.html" class="bg-white text-blue-600 px-4 py-2 rounded-lg font-semibold">تحميل</a>
+    <button id="dismissAppBanner" class="text-white/70 px-3 py-2">×</button>
   </div>
 </div>
 
@@ -1084,28 +1083,43 @@ new Swiper(".adSwiper", {
       try{
         if ('Notification' in window) {
           const perm = await Notification.requestPermission();
-          if (perm !== 'granted') console.warn('Notification permission:', perm);
+          if (perm === 'granted') {
+            console.log('✅ Notifications enabled');
+            // Test notification
+            setTimeout(() => {
+              sendNotification('مرحباً بك في LV12 Shop', 'تم تفعيل الإشعارات بنجاح!');
+            }, 2000);
+          }
         }
 
         let swReg = null;
         if ('serviceWorker' in navigator) {
-          try{ swReg = await navigator.serviceWorker.register('/sw.js'); console.log('sw registered'); } catch(e){console.warn('sw register failed', e); }
+          try{ 
+            swReg = await navigator.serviceWorker.register('/sw.js'); 
+            console.log('✅ Service Worker registered'); 
+          } catch(e){
+            console.warn('⚠️ SW register failed', e); 
+          }
         }
 
         const channel = client.channel('public:products').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'products' }, payload => {
           const p = payload.new;
-          console.log('new product realtime', p?.id, p?.name);
-          const title = `🆕 منتج جديد: ${p.name}`;
-          const body = (p.short_desc || '').slice(0,80) || `سعر: ${Number(p.price||0).toFixed(2)} ج.م`;
-          const icon = (p.product_images?.[0]?.image_url) || '/lv12.png';
-          const url = `product.html?id=${p.id}`;
-          if (swReg && swReg.showNotification) {
-            swReg.showNotification(title, { body, icon, data:{url} });
-          } else if (Notification.permission === 'granted') {
-            const n = new Notification(title, { body, icon });
-            n.onclick = () => { window.open(url, '_blank'); };
+          console.log('🆕 New product realtime:', p?.name);
+          
+          // Send notification immediately
+          sendNotification(`🆕 منتج جديد: ${p.name}`, `سعر: ${Number(p.price||0).toFixed(0)} ج.م`);
+          
+          // Also send via service worker
+          if (navigator.serviceWorker.controller) {
+            navigator.serviceWorker.controller.postMessage({
+              type: 'SEND_NOTIFICATION',
+              title: `🆕 منتج جديد: ${p.name}`,
+              body: `سعر: ${Number(p.price||0).toFixed(0)} ج.م`,
+              data: { url: `product.html?id=${p.id}` }
+            });
           }
 
+          // Update UI
           try{
             const el = document.getElementById('featuredProducts');
             if (el) {
@@ -4547,6 +4561,7 @@ async function loadUserProfile() {
 document.addEventListener("DOMContentLoaded", loadUserProfile);
 </script>
 
+<script src="app-banner.js"></script>
 </body>
 </html>
 

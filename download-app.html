@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>تحميل تطبيق LV12 Shop</title>
+<link rel="icon" href="/lv12.png">
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<style>
+body {
+  font-family: 'Cairo', sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  margin: 0;
+  padding: 20px;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.container {
+  background: rgba(255,255,255,0.95);
+  border-radius: 20px;
+  padding: 40px;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+  max-width: 400px;
+  width: 100%;
+}
+.app-icon {
+  width: 120px;
+  height: 120px;
+  border-radius: 25px;
+  margin: 0 auto 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+h1 {
+  color: #333;
+  margin-bottom: 10px;
+  font-size: 24px;
+}
+p {
+  color: #666;
+  margin-bottom: 30px;
+  line-height: 1.6;
+}
+.download-btn {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  border-radius: 50px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.3s;
+  text-decoration: none;
+  display: inline-block;
+  margin: 10px;
+}
+.download-btn:hover {
+  transform: translateY(-2px);
+}
+.download-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.loading {
+  display: none;
+  margin-top: 20px;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <img src="/lv12.png" alt="LV12 Shop" class="app-icon">
+  <h1>تطبيق LV12 Shop</h1>
+  <p>حمل التطبيق الآن واستمتع بتجربة تسوق أفضل مع إشعارات فورية للعروض والمنتجات الجديدة</p>
+  
+  <button id="downloadBtn" class="download-btn">📱 تحميل التطبيق</button>
+  <a href="shop.html" class="download-btn" style="background: #28a745;">🌐 فتح الموقع</a>
+  
+  <div id="loading" class="loading">
+    <p>جاري تحضير التطبيق...</p>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = "https://nszhzfysitppxssplqfb.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zemh6ZnlzaXRwcHhzc3BscWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA4OTcsImV4cCI6MjA3MzgwNjg5N30.5KvK4bhqkZ_GpIfED4qecIMfeubAJYwSFJslULwOp-w";
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+document.getElementById('downloadBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('downloadBtn');
+  const loading = document.getElementById('loading');
+  
+  btn.disabled = true;
+  loading.style.display = 'block';
+  
+  try {
+    // Get APK file from Supabase Storage
+    const { data, error } = await supabase.storage
+      .from('avatars')
+      .download('lv12apk');
+    
+    if (error) {
+      alert('عذراً، لم نتمكن من تحميل التطبيق. يرجى المحاولة لاحقاً.');
+      console.error('Download error:', error);
+      return;
+    }
+    
+    // Create download link
+    const blob = new Blob([data], { type: 'application/vnd.android.package-archive' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'LV12Shop.apk';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    alert('تم بدء التحميل! تأكد من السماح بتثبيت التطبيقات من مصادر غير معروفة في إعدادات هاتفك.');
+    
+  } catch (error) {
+    alert('حدث خطأ أثناء التحميل. يرجى المحاولة لاحقاً.');
+    console.error('Download failed:', error);
+  } finally {
+    btn.disabled = false;
+    loading.style.display = 'none';
+  }
+});
+
+// PWA Install prompt
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  
+  // Show PWA install option
+  const pwaBtn = document.createElement('button');
+  pwaBtn.textContent = '📲 تثبيت كتطبيق ويب';
+  pwaBtn.className = 'download-btn';
+  pwaBtn.style.background = '#17a2b8';
+  pwaBtn.onclick = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        console.log('PWA installed');
+      }
+      deferredPrompt = null;
+    }
+  };
+  document.querySelector('.container').insertBefore(pwaBtn, document.getElementById('loading'));
+});
+</script>
+
+</body>
+</html>
