@@ -1,0 +1,35 @@
+<?xml version='1.0' encoding='utf-8'?>
+<widget id="com.lv12shop.app" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <name>LV12 Shop</name>
+    <description>متجر LV12 - تسوق ذكي وسريع</description>
+    <author email="support@lv12shop.shop" href="https://lv12shop.shop">LV12 Team</author>
+    
+    <content src="index.html" />
+    
+    <preference name="DisallowOverscroll" value="true" />
+    <preference name="android-minSdkVersion" value="22" />
+    <preference name="android-targetSdkVersion" value="33" />
+    
+    <platform name="android">
+        <allow-intent href="market:*" />
+        <icon density="ldpi" src="www/res/icon/android/ldpi.png" />
+        <icon density="mdpi" src="www/res/icon/android/mdpi.png" />
+        <icon density="hdpi" src="www/res/icon/android/hdpi.png" />
+        <icon density="xhdpi" src="www/res/icon/android/xhdpi.png" />
+        <icon density="xxhdpi" src="www/res/icon/android/xxhdpi.png" />
+        <icon density="xxxhdpi" src="www/res/icon/android/xxxhdpi.png" />
+    </platform>
+    
+    <allow-navigation href="*" />
+    <allow-intent href="http://*/*" />
+    <allow-intent href="https://*/*" />
+    <allow-intent href="tel:*" />
+    <allow-intent href="sms:*" />
+    <allow-intent href="mailto:*" />
+    
+    <plugin name="cordova-plugin-whitelist" spec="1" />
+    <plugin name="cordova-plugin-statusbar" spec="2" />
+    <plugin name="cordova-plugin-device" spec="2" />
+    <plugin name="cordova-plugin-splashscreen" spec="5" />
+    <plugin name="cordova-plugin-local-notification" spec="0.9.0-beta.2" />
+</widget>
