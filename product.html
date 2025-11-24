@@ -464,10 +464,42 @@
       min-width: 160px;
     }
 
-    #relatedProducts {
+    #relatedProducts,
+    #interestProducts {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 20px;
+      gap: 12px;
+    }
+
+    @media (max-width: 640px) {
+      #relatedProducts,
+      #interestProducts {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+      }
+    }
+
+    @media (min-width: 641px) and (max-width: 768px) {
+      #relatedProducts,
+      #interestProducts {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+      }
+    }
+
+    @media (min-width: 769px) and (max-width: 1024px) {
+      #relatedProducts,
+      #interestProducts {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+      }
+    }
+
+    @media (min-width: 1025px) {
+      #relatedProducts,
+      #interestProducts {
+        grid-template-columns: repeat(5, 1fr);
+        gap: 20px;
+      }
     }
 
     .related-card {
@@ -599,11 +631,207 @@
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
     }
 
+    /* تصميم كروت المنتجات المحسن للهاتف */
+    .product-card {
+      background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,0.95) 100%);
+      border: 1px solid rgba(226, 232, 240, 0.8);
+      border-radius: 16px;
+      padding: 12px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .product-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+      border-color: rgba(99, 102, 241, 0.3);
+    }
+
+    .product-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, #6366f1, #8b5cf6, #ec4899);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .product-card:hover::before {
+      opacity: 1;
+    }
+
+    .product-image-container-card {
+      position: relative;
+      width: 100%;
+      height: 80px;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #f8fafc;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .product-image-card {
+      max-width: 90%;
+      max-height: 90%;
+      object-fit: contain;
+      transition: transform 0.3s ease;
+    }
+
+    .product-card:hover .product-image-card {
+      transform: scale(1.05);
+    }
+
+    .product-info-card {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .product-title-card {
+      font-size: 13px;
+      font-weight: 600;
+      color: #1e293b;
+      line-height: 1.3;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      margin: 0;
+      min-height: 32px;
+    }
+
+    .product-price-card {
+      font-size: 14px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin: 4px 0;
+    }
+
+    .product-rating-card {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      color: #64748b;
+    }
+
+    .product-rating-card .stars {
+      color: #fbbf24;
+      font-size: 12px;
+    }
+
+    .product-badge-card {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: white;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 8px;
+      z-index: 2;
+    }
+
+    .product-actions-card {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .btn-add-cart-card {
+      flex: 1;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    .btn-add-cart-card:hover {
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      transform: translateY(-1px);
+    }
+
+    .btn-quick-view-card {
+      background: rgba(99, 102, 241, 0.1);
+      color: #6366f1;
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      padding: 8px;
+      border-radius: 8px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-quick-view-card:hover {
+      background: rgba(99, 102, 241, 0.2);
+      border-color: rgba(99, 102, 241, 0.4);
+    }
+
     /* Mobile responsive image sizes */
     @media (max-width: 640px) {
       .related-card img,
       .interest-card img {
         height: 80px;
+      }
+      
+      .product-card {
+        padding: 10px;
+      }
+      
+      .product-image-container-card {
+        height: 70px;
+      }
+      
+      .product-title-card {
+        font-size: 12px;
+        min-height: 30px;
+      }
+      
+      .product-price-card {
+        font-size: 13px;
+      }
+      
+      .product-rating-card {
+        font-size: 10px;
+      }
+      
+      .btn-add-cart-card {
+        padding: 6px 8px;
+        font-size: 10px;
+      }
+      
+      .btn-quick-view-card {
+        padding: 6px;
+        font-size: 11px;
       }
     }
 
@@ -611,6 +839,58 @@
       .related-card img,
       .interest-card img {
         height: 70px;
+      }
+      
+      .product-image-container-card {
+        height: 60px;
+      }
+    }
+
+    /* تحسينات للشاشات المتوسطة */
+    @media (min-width: 641px) and (max-width: 1024px) {
+      .product-title-card {
+        font-size: 14px;
+      }
+      
+      .product-price-card {
+        font-size: 15px;
+      }
+    }
+
+    /* تحسينات للشاشات الكبيرة */
+    @media (min-width: 1025px) {
+      .product-card {
+        padding: 16px;
+      }
+      
+      .product-title-card {
+        font-size: 15px;
+        min-height: 36px;
+      }
+      
+      .product-price-card {
+        font-size: 16px;
+      }
+      
+      .btn-add-cart-card {
+        padding: 10px 14px;
+        font-size: 12px;
+      }
+    }
+
+    /* تأثيرات التحميل */
+    .product-skeleton {
+      background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+      background-size: 200% 100%;
+      animation: loading 1.5s infinite;
+    }
+
+    @keyframes loading {
+      0% {
+        background-position: 200% 0;
+      }
+      100% {
+        background-position: -200% 0;
       }
     }
 
@@ -1147,10 +1427,227 @@
       }, 3000);
     }
 
+    // Create optimized product card for mobile
+    function createOptimizedProductCard(product) {
+      const img = product.product_images?.find(i => i.is_primary)?.image_url || 
+                  product.product_images?.[0]?.image_url || 
+                  '/placeholder.png';
+      
+      const discount = product.old_price && product.old_price > product.price ? 
+                      Math.round(((product.old_price - product.price) / product.old_price) * 100) : 0;
+      
+      const isNew = new Date(product.created_at).toDateString() === new Date().toDateString();
+      
+      return `
+        <div class="product-card" onclick="window.location.href='product.html?id=${product.id}'">
+          ${discount > 0 ? `<div class="product-badge-card">-${discount}%</div>` : ''}
+          ${isNew ? `<div class="product-badge-card" style="background: linear-gradient(135deg, #10b981, #059669); top: 8px; left: 8px;">جديد</div>` : ''}
+          
+          <div class="product-image-container-card">
+            <img src="${img}" alt="${product.name}" class="product-image-card" loading="lazy">
+          </div>
+          
+          <div class="product-info-card">
+            <h4 class="product-title-card">${product.name}</h4>
+            
+            <div class="product-price-card">
+              ${Number(product.price || 0).toFixed(0)} ج.م
+              ${product.old_price && product.old_price > product.price ? 
+                `<span style="font-size: 11px; color: #9ca3af; text-decoration: line-through; margin-right: 4px;">${Number(product.old_price).toFixed(0)} ج.م</span>` : ''}
+            </div>
+            
+            <div class="product-rating-card">
+              <span class="stars">★★★★☆</span>
+              <span>(${Math.floor(Math.random() * 50) + 10})</span>
+            </div>
+            
+            <div class="product-actions-card">
+              <button class="btn-add-cart-card" onclick="event.stopPropagation(); addToCartFromCard(${product.id})">
+                🛒 أضف
+              </button>
+              <button class="btn-quick-view-card" onclick="event.stopPropagation(); window.location.href='product.html?id=${product.id}'">
+                👁️
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Add to cart from product card
+    async function addToCartFromCard(productId) {
+      try {
+        // Get product details
+        const { data: product, error } = await supabase
+          .from('products')
+          .select('*')
+          .eq('id', productId)
+          .single();
+
+        if (error || !product) {
+          showToast('حدث خطأ في إضافة المنتج للسلة');
+          return;
+        }
+
+        // Add to cart logic (similar to existing cart functionality)
+        let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+        const existingItem = cart.find(item => item.id === productId);
+        
+        if (existingItem) {
+          existingItem.quantity += 1;
+        } else {
+          cart.push({
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            image: product.product_images?.[0]?.image_url || '/placeholder.png',
+            quantity: 1
+          });
+        }
+        
+        localStorage.setItem('cart', JSON.stringify(cart));
+        updateCartBadge();
+        showToast('تم إضافة المنتج للسلة بنجاح!');
+      } catch (error) {
+        console.error('Error adding to cart:', error);
+        showToast('حدث خطأ في إضافة المنتج للسلة');
+      }
+    }
+
+    // Update cart badge
+    function updateCartBadge() {
+      const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+      const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+      const badge = document.getElementById('cartBadge');
+      
+      if (badge) {
+        if (totalItems > 0) {
+          badge.textContent = totalItems;
+          badge.classList.remove('hidden');
+        } else {
+          badge.classList.add('hidden');
+        }
+      }
+    }
+
+    // Load related products with optimized design
+    async function loadRelatedProducts() {
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get('id');
+        
+        if (!productId) return;
+
+        // Get current product to find similar ones
+        const { data: currentProduct } = await supabase
+          .from('products')
+          .select('category_id')
+          .eq('id', productId)
+          .single();
+
+        // Get related products from same category
+        const { data: products, error } = await supabase
+          .from('products')
+          .select(`
+            id,
+            name,
+            price,
+            old_price,
+            created_at,
+            product_images(image_url, is_primary)
+          `)
+          .eq('category_id', currentProduct?.category_id)
+          .neq('id', productId)
+          .limit(10);
+
+        if (error || !products || products.length === 0) {
+          // If no related products, get random products
+          const { data: randomProducts } = await supabase
+            .from('products')
+            .select(`
+              id,
+              name,
+              price,
+              old_price,
+              created_at,
+              product_images(image_url, is_primary)
+            `)
+            .neq('id', productId)
+            .limit(10);
+          
+          if (randomProducts && randomProducts.length > 0) {
+            document.getElementById('relatedProducts').innerHTML = 
+              randomProducts.map(createOptimizedProductCard).join('');
+          }
+          return;
+        }
+
+        document.getElementById('relatedProducts').innerHTML = 
+          products.map(createOptimizedProductCard).join('');
+      } catch (error) {
+        console.error('Error loading related products:', error);
+      }
+    }
+
+    // Load interest products with optimized design
+    async function loadInterestProducts() {
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get('id');
+        
+        // Get popular/trending products
+        const { data: products, error } = await supabase
+          .from('products')
+          .select(`
+            id,
+            name,
+            price,
+            old_price,
+            created_at,
+            visits,
+            product_images(image_url, is_primary)
+          `)
+          .neq('id', productId || 0)
+          .order('visits', { ascending: false })
+          .limit(10);
+
+        if (error || !products || products.length === 0) {
+          // Fallback to recent products
+          const { data: recentProducts } = await supabase
+            .from('products')
+            .select(`
+              id,
+              name,
+              price,
+              old_price,
+              created_at,
+              product_images(image_url, is_primary)
+            `)
+            .neq('id', productId || 0)
+            .order('created_at', { ascending: false })
+            .limit(10);
+          
+          if (recentProducts && recentProducts.length > 0) {
+            document.getElementById('interestProducts').innerHTML = 
+              recentProducts.map(createOptimizedProductCard).join('');
+          }
+          return;
+        }
+
+        document.getElementById('interestProducts').innerHTML = 
+          products.map(createOptimizedProductCard).join('');
+      } catch (error) {
+        console.error('Error loading interest products:', error);
+      }
+    }
+
     // Initialize when DOM is loaded
     document.addEventListener('DOMContentLoaded', function() {
       setupBuyNowButton();
       checkUserLoginForReviews();
+      updateCartBadge();
+      loadRelatedProducts();
+      loadInterestProducts();
     });
 
     // Check login status when page becomes visible
@@ -1628,62 +2125,62 @@ menuOverlay.addEventListener("click", () => {
       </div>
     </section>
 
-    <section class="glass-card p-8 mt-8 overflow-hidden relative">
+    <section class="glass-card p-4 sm:p-6 lg:p-8 mt-8 overflow-hidden relative">
       <!-- خلفية متحركة -->
       <div class="absolute inset-0 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 opacity-60"></div>
-      <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-200 to-purple-200 rounded-full opacity-20 transform translate-x-16 -translate-y-16"></div>
-      <div class="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-pink-200 to-indigo-200 rounded-full opacity-20 transform -translate-x-12 translate-y-12"></div>
+      <div class="absolute top-0 right-0 w-20 h-20 sm:w-32 sm:h-32 bg-gradient-to-br from-blue-200 to-purple-200 rounded-full opacity-20 transform translate-x-10 sm:translate-x-16 -translate-y-10 sm:-translate-y-16"></div>
+      <div class="absolute bottom-0 left-0 w-16 h-16 sm:w-24 sm:h-24 bg-gradient-to-tr from-pink-200 to-indigo-200 rounded-full opacity-20 transform -translate-x-8 sm:-translate-x-12 translate-y-8 sm:translate-y-12"></div>
       
       <div class="relative z-10">
-        <div class="text-center mb-10">
-          <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full mb-4 shadow-lg">
-            <span class="text-2xl">🛍️</span>
+        <div class="text-center mb-6 sm:mb-8 lg:mb-10">
+          <div class="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full mb-3 sm:mb-4 shadow-lg">
+            <span class="text-lg sm:text-2xl">🛍️</span>
           </div>
-          <h3 class="text-3xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-4 leading-tight">
+          <h3 class="text-xl sm:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-2 sm:mb-4 leading-tight">
             منتجات مشابهة
           </h3>
-          <p class="text-gray-600 text-base max-w-md mx-auto leading-relaxed">
+          <p class="text-gray-600 text-sm sm:text-base max-w-md mx-auto leading-relaxed px-4">
             اكتشف مجموعة مختارة من المنتجات المميزة التي قد تنال إعجابك
           </p>
-          <div class="w-20 h-1 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full mx-auto mt-4"></div>
+          <div class="w-16 sm:w-20 h-1 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full mx-auto mt-3 sm:mt-4"></div>
         </div>
         
-        <div id="relatedProducts" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6"></div>
+        <div id="relatedProducts" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-6"></div>
         
         <!-- زر عرض المزيد -->
-        <div class="text-center mt-8">
-          <button onclick="window.location.href='shop.html'" class="btn-modern bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 px-8 py-3 text-white font-semibold rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">
+        <div class="text-center mt-6 sm:mt-8">
+          <button onclick="window.location.href='shop.html'" class="btn-modern bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 px-6 sm:px-8 py-2.5 sm:py-3 text-sm sm:text-base text-white font-semibold rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">
             🔍 تصفح المزيد من المنتجات
           </button>
         </div>
       </div>
     </section>
 
-    <section class="glass-card p-8 mt-8 overflow-hidden relative">
+    <section class="glass-card p-4 sm:p-6 lg:p-8 mt-8 overflow-hidden relative">
       <!-- خلفية متحركة -->
       <div class="absolute inset-0 bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 opacity-60"></div>
-      <div class="absolute top-0 left-0 w-28 h-28 bg-gradient-to-br from-pink-200 to-purple-200 rounded-full opacity-20 transform -translate-x-14 -translate-y-14"></div>
-      <div class="absolute bottom-0 right-0 w-36 h-36 bg-gradient-to-tr from-indigo-200 to-pink-200 rounded-full opacity-20 transform translate-x-18 translate-y-18"></div>
+      <div class="absolute top-0 left-0 w-18 h-18 sm:w-28 sm:h-28 bg-gradient-to-br from-pink-200 to-purple-200 rounded-full opacity-20 transform -translate-x-9 sm:-translate-x-14 -translate-y-9 sm:-translate-y-14"></div>
+      <div class="absolute bottom-0 right-0 w-24 h-24 sm:w-36 sm:h-36 bg-gradient-to-tr from-indigo-200 to-pink-200 rounded-full opacity-20 transform translate-x-12 sm:translate-x-18 translate-y-12 sm:translate-y-18"></div>
       
       <div class="relative z-10">
-        <div class="text-center mb-10">
-          <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-pink-500 to-indigo-600 rounded-full mb-4 shadow-lg">
-            <span class="text-2xl">✨</span>
+        <div class="text-center mb-6 sm:mb-8 lg:mb-10">
+          <div class="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r from-pink-500 to-indigo-600 rounded-full mb-3 sm:mb-4 shadow-lg">
+            <span class="text-lg sm:text-2xl">✨</span>
           </div>
-          <h2 class="text-3xl font-bold bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent mb-4 leading-tight">
+          <h2 class="text-xl sm:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent mb-2 sm:mb-4 leading-tight">
             قد يعجبك أيضاً
           </h2>
-          <p class="text-gray-600 text-base max-w-md mx-auto leading-relaxed">
+          <p class="text-gray-600 text-sm sm:text-base max-w-md mx-auto leading-relaxed px-4">
             منتجات مختارة بعناية خصيصاً لك بناءً على اهتماماتك وتفضيلاتك
           </p>
-          <div class="w-20 h-1 bg-gradient-to-r from-pink-500 to-indigo-500 rounded-full mx-auto mt-4"></div>
+          <div class="w-16 sm:w-20 h-1 bg-gradient-to-r from-pink-500 to-indigo-500 rounded-full mx-auto mt-3 sm:mt-4"></div>
         </div>
         
-        <div id="interestProducts" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6"></div>
+        <div id="interestProducts" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-6"></div>
         
         <!-- زر استكشاف المزيد -->
-        <div class="text-center mt-8">
-          <button onclick="window.location.href='shop.html'" class="btn-modern bg-gradient-to-r from-pink-500 to-indigo-600 hover:from-pink-600 hover:to-indigo-700 px-8 py-3 text-white font-semibold rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">
+        <div class="text-center mt-6 sm:mt-8">
+          <button onclick="window.location.href='shop.html'" class="btn-modern bg-gradient-to-r from-pink-500 to-indigo-600 hover:from-pink-600 hover:to-indigo-700 px-6 sm:px-8 py-2.5 sm:py-3 text-sm sm:text-base text-white font-semibold rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">
             🎯 استكشف المزيد من التوصيات
           </button>
         </div>
