@@ -96,7 +96,101 @@ body {
 
 <img src="lv12.png" alt="LV12 Shop" class="logo">
 
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
 <script>
+const firebaseConfig = {
+  apiKey: "AIzaSyDXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+  authDomain: "your-project.firebaseapp.com",
+  projectId: "your-project-id",
+  storageBucket: "your-project.appspot.com",
+  messagingSenderId: "123456789012",
+  appId: "1:123456789012:web:abcdefghijklmnop"
+};
+
+firebase.initializeApp(firebaseConfig);
+
+const SUPABASE_URL = "https://nszhzfysitppxssplqfb.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zemh6ZnlzaXRwcHhzc3BscWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA4OTcsImV4cCI6MjA3MzgwNjg5N30.5KvK4bhqkZ_GpIfED4qecIMfeubAJYwSFJslULwOp-w";
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// Send custom notifications
+function sendNotification(title, body) {
+  if (Notification.permission === 'granted') {
+    const notification = new Notification(title, {
+      body: body,
+      icon: '/lv12.jpg',
+      badge: '/lv12.jpg',
+      requireInteraction: true
+    });
+    
+    notification.onclick = () => {
+      window.focus();
+      notification.close();
+    };
+  }
+}
+
+async function initNotifications() {
+  if ('Notification' in window) {
+    const permission = await Notification.requestPermission();
+    if (permission === 'granted') {
+      console.log('Notifications enabled');
+      
+      // Welcome notification
+      setTimeout(() => {
+        sendNotification('مرحباً بك في LV12 Shop', 'تم تفعيل الإشعارات بنجاح!');
+      }, 2000);
+      
+      // Check for updates periodically
+      setInterval(checkForUpdates, 30000);
+    }
+  }
+}
+
+// Check for new orders/updates
+async function checkForUpdates() {
+  try {
+    const user = JSON.parse(localStorage.getItem('lv12_user') || '{}');
+    if (user.id) {
+      const { data: orders } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1);
+      
+      if (orders && orders.length > 0) {
+        const lastCheck = localStorage.getItem('last_order_check');
+        const orderTime = new Date(orders[0].created_at).getTime();
+        
+        if (!lastCheck || orderTime > parseInt(lastCheck)) {
+          sendNotification('طلب جديد!', `تم استلام طلبك رقم ${orders[0].id}`);
+          localStorage.setItem('last_order_check', Date.now().toString());
+        }
+      }
+    }
+  } catch (error) {
+    console.log('Update check failed:', error);
+  }
+}
+
+function showNotification(payload) {
+  const title = payload.notification?.title || 'إشعار جديد';
+  const body = payload.notification?.body || 'لديك رسالة جديدة';
+  
+  if (Notification.permission === 'granted') {
+    new Notification(title, {
+      body: body,
+      icon: '/lv12.jpg',
+      badge: '/lv12.jpg',
+      tag: 'lv12-notification'
+    });
+  }
+}
+
 const linksToPreload = [
   "shop.html",
   "product.html",
@@ -107,9 +201,8 @@ const linksToPreload = [
 
 linksToPreload.forEach(url => fetch(url).catch(()=>{}));
 
-setTimeout(() => {
-  window.location.href = "shop.html";
-}, 700);
+initNotifications();
+
 async function logUserActivity(type) {
   const user = JSON.parse(localStorage.getItem('lv12_user') || '{}');
   await supabase.from('user_activity').insert({
@@ -120,6 +213,10 @@ async function logUserActivity(type) {
 }
 
 logUserActivity('زيارة المتجر');
+
+setTimeout(() => {
+  window.location.href = "shop.html";
+}, 700);
 
 </script>
 
