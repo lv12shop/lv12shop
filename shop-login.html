@@ -258,7 +258,7 @@ searchInput?.addEventListener("input", async () => {
     img:
       p.product_images?.find(i => i.is_primary)?.image_url ||
       p.product_images?.[0]?.image_url ||
-      "/placeholder.png"
+      "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect width='200' height='200' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' font-family='Arial' font-size='14' fill='%23999'%3ENo Image%3C/text%3E%3C/svg%3E"
   }));
 
   if (!results.length) {
@@ -474,12 +474,11 @@ menuOverlay.addEventListener("click", () => {
       msg.className = "text-center mt-4 text-sm " + cls;
     }
   </script>
-<script>
-  const supabase = window.supabase.createClient(
-    "https://nszhzfysitppxssplqfb.supabase.co",
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zemh6ZnlzaXRwcHhzc3BscWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA4OTcsImV4cCI6MjA3MzgwNjg5N30.5KvK4bhqkZ_GpIfED4qecIMfeubAJYwSFJslULwOp-w"
-  );
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
 
+<script>
+  
   const form = document.getElementById("login-form");
   const message = document.getElementById("message");
 

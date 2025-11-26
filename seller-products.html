@@ -171,7 +171,7 @@ searchInput?.addEventListener("input", async () => {
     img:
       p.product_images?.find(i => i.is_primary)?.image_url ||
       p.product_images?.[0]?.image_url ||
-      "/placeholder.png"
+      "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect width='200' height='200' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' font-family='Arial' font-size='14' fill='%23999'%3ENo Image%3C/text%3E%3C/svg%3E"
   }));
 
   if (!results.length) {
@@ -514,14 +514,11 @@ footer a:hover {
     
     <div id="productsGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4"></div>
   </div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
 
   <script>
-    const supabase = window.supabase.createClient(
-      "https://nszhzfysitppxssplqfb.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zemh6ZnlzaXRwcHhzc3BscWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA4OTcsImV4cCI6MjA3MzgwNjg5N30.5KvK4bhqkZ_GpIfED4qecIMfeubAJYwSFJslULwOp-w"
-
-    )
-
+ 
     let allProducts = [];
     let currentView = 'grid';
     
@@ -536,7 +533,7 @@ footer a:hover {
 
       try {
         const [sellerResult, productsResult] = await Promise.all([
-          supabase.from("sellers").select("name, phone").eq("id", sellerId).single(),
+          supabase.from("profiles").select("full_name, store_name, phone").eq("id", sellerId).single(),
           supabase.from("products")
             .select(`
               id, name, price, discount_price, stock, created_at,
@@ -552,13 +549,13 @@ footer a:hover {
           return;
         }
 
-        const sellerName = sellerResult.data?.name || "بائع غير معروف";
+        const sellerName = sellerResult.data?.store_name || sellerResult.data?.full_name || "بائع غير معروف";
         document.getElementById('sellerInfo').textContent = `بائع: ${sellerName}`;
         
         allProducts = productsResult.data.map(p => ({
           ...p,
           image: p.product_images?.find(i => i.is_primary)?.image_url || 
-                 p.product_images?.[0]?.image_url || '/placeholder.png',
+                 p.product_images?.[0]?.image_url || 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\'%3E%3Crect width=\'200\' height=\'200\' fill=\'%23f3f4f6\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' font-family=\'Arial\' font-size=\'14\' fill=\'%23999\'%3ENo Image%3C/text%3E%3C/svg%3E',
           finalPrice: p.discount_price && p.discount_price < p.price ? p.discount_price : p.price,
           hasDiscount: p.discount_price && p.discount_price < p.price,
           discountPercent: p.discount_price && p.discount_price < p.price ? 

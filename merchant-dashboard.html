@@ -338,9 +338,58 @@ menuOverlay.addEventListener("click", () => {
       <input id="productQuantity" type="number" placeholder="الكمية" class="border rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500" required />
     </div>
 
-<select id="productCategory" class="w-full border rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500">
+<select id="productCategory" class="w-full border rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500" onchange="toggleSizeWeightFields()">
   <option>🔄 جاري تحميل الفئات...</option>
 </select>
+
+    <!-- حقول المقاسات والأوزان -->
+    <div id="sizeWeightFields" class="hidden space-y-3 mt-3 p-3 bg-gray-50 rounded-lg border">
+      <div id="sizesSection" class="hidden">
+        <label class="block font-semibold text-gray-800 mb-2">📏 المقاسات المتاحة</label>
+        <div class="grid grid-cols-3 gap-2">
+          <label class="flex items-center"><input type="checkbox" class="size-option" value="XS"> XS</label>
+          <label class="flex items-center"><input type="checkbox" class="size-option" value="S"> S</label>
+          <label class="flex items-center"><input type="checkbox" class="size-option" value="M"> M</label>
+          <label class="flex items-center"><input type="checkbox" class="size-option" value="L"> L</label>
+          <label class="flex items-center"><input type="checkbox" class="size-option" value="XL"> XL</label>
+          <label class="flex items-center"><input type="checkbox" class="size-option" value="XXL"> XXL</label>
+        </div>
+        <div class="mt-2">
+          <input id="customSizes" type="text" placeholder="مقاسات أخرى (مفصولة بفاصلة)" class="w-full border rounded p-2 text-sm">
+        </div>
+      </div>
+      
+      <div id="shoeSizesSection" class="hidden">
+        <label class="block font-semibold text-gray-800 mb-2">👟 مقاسات الأحذية</label>
+        <div class="grid grid-cols-4 gap-2">
+          <label class="flex items-center"><input type="checkbox" class="shoe-size-option" value="36"> 36</label>
+          <label class="flex items-center"><input type="checkbox" class="shoe-size-option" value="37"> 37</label>
+          <label class="flex items-center"><input type="checkbox" class="shoe-size-option" value="38"> 38</label>
+          <label class="flex items-center"><input type="checkbox" class="shoe-size-option" value="39"> 39</label>
+          <label class="flex items-center"><input type="checkbox" class="shoe-size-option" value="40"> 40</label>
+          <label class="flex items-center"><input type="checkbox" class="shoe-size-option" value="41"> 41</label>
+          <label class="flex items-center"><input type="checkbox" class="shoe-size-option" value="42"> 42</label>
+          <label class="flex items-center"><input type="checkbox" class="shoe-size-option" value="43"> 43</label>
+          <label class="flex items-center"><input type="checkbox" class="shoe-size-option" value="44"> 44</label>
+          <label class="flex items-center"><input type="checkbox" class="shoe-size-option" value="45"> 45</label>
+          <label class="flex items-center"><input type="checkbox" class="shoe-size-option" value="46"> 46</label>
+          <label class="flex items-center"><input type="checkbox" class="shoe-size-option" value="47"> 47</label>
+        </div>
+      </div>
+      
+      <div id="weightSection" class="hidden">
+        <label class="block font-semibold text-gray-800 mb-2">⚖️ الوزن/الحجم</label>
+        <div class="grid grid-cols-2 gap-2">
+          <input id="productWeight" type="number" step="0.1" placeholder="الوزن (كيلو)" class="border rounded p-2 text-sm">
+          <select id="weightUnit" class="border rounded p-2 text-sm">
+            <option value="kg">كيلوجرام</option>
+            <option value="g">جرام</option>
+            <option value="l">لتر</option>
+            <option value="ml">مللي لتر</option>
+          </select>
+        </div>
+      </div>
+    </div>
 
     <textarea id="productDesc" rows="4" placeholder="وصف المنتج" class="w-full border rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500"></textarea>
 
@@ -431,7 +480,7 @@ function getProductImage(p) {
     return p.image;
   }
 
-  return "/placeholder.png";
+  return "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect width='200' height='200' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' font-family='Arial' font-size='14' fill='%23999'%3ENo Image%3C/text%3E%3C/svg%3E";
 }
 async function getPrimaryImage(productId) {
   const { data } = await supabase
@@ -488,6 +537,10 @@ function buildProductCard(p, views, sales, color = "blue") {
 
       <p class="text-xs text-gray-500 mt-1 lg:text-sm">الفئة: ${p.category || "—"}</p>
       <p class="text-xs text-gray-600 font-semibold lg:text-sm">الكمية: ${quantity}</p>
+      
+      ${p.sizes ? `<p class="text-xs text-blue-600 mt-1">📏 المقاسات: ${Array.isArray(p.sizes) ? p.sizes.join(', ') : p.sizes}</p>` : ''}
+      ${p.shoe_sizes ? `<p class="text-xs text-purple-600 mt-1">👟 مقاسات: ${Array.isArray(p.shoe_sizes) ? p.shoe_sizes.join(', ') : p.shoe_sizes}</p>` : ''}
+      ${p.weight ? `<p class="text-xs text-green-600 mt-1">⚖️ الوزن: ${p.weight} ${p.weight_unit || 'كج'}</p>` : ''}
 
       <div class="flex justify-between text-xs text-gray-500 mt-2 lg:text-sm">
         <span>👁️ ${views}</span>
@@ -683,13 +736,10 @@ footer a:hover {
 }
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
 
   <script>
-    const SUPABASE_URL = "https://nszhzfysitppxssplqfb.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zemh6ZnlzaXRwcHhzc3BscWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA4OTcsImV4cCI6MjA3MzgwNjg5N30.5KvK4bhqkZ_GpIfED4qecIMfeubAJYwSFJslULwOp-w";
-    
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
+ 
 
 async function loadCategories() {
   const sel = document.getElementById("productCategory");
@@ -966,6 +1016,17 @@ else {
   }
 }
 
+// جمع بيانات المقاسات والأوزان
+const sizes = Array.from(document.querySelectorAll('.size-option:checked')).map(el => el.value);
+const customSizesValue = document.getElementById('customSizes')?.value?.trim();
+if (customSizesValue) {
+  sizes.push(...customSizesValue.split(',').map(s => s.trim()).filter(Boolean));
+}
+
+const shoeSizes = Array.from(document.querySelectorAll('.shoe-size-option:checked')).map(el => el.value);
+const weight = document.getElementById('productWeight')?.value;
+const weightUnit = document.getElementById('weightUnit')?.value;
+
 const payload = {
   seller_id: currentUser.id,
   name,
@@ -984,6 +1045,12 @@ const payload = {
   cities: selectedCities.length ? selectedCities : null,
   delivery_time: document.getElementById("deliveryByCity")?.value || null,
   delivery_by_city: deliveryByCity || null,
+
+  // بيانات المقاسات والأوزان
+  sizes: sizes.length ? sizes : null,
+  shoe_sizes: shoeSizes.length ? shoeSizes : null,
+  weight: weight ? parseFloat(weight) : null,
+  weight_unit: weightUnit || null,
 
   status: "pending",
   created_at: new Date().toISOString()
@@ -1004,6 +1071,12 @@ const payload = {
 
   el("productForm").reset();
   el("imagesPreview").innerHTML = "";
+  
+  // إعادة تعيين حقول المقاسات والأوزان
+  document.querySelectorAll('.size-option, .shoe-size-option').forEach(cb => cb.checked = false);
+  document.getElementById('customSizes').value = '';
+  document.getElementById('productWeight').value = '';
+  document.getElementById('sizeWeightFields').classList.add('hidden');
 }
 
 function toast(msg, ok = true) {
@@ -1054,6 +1127,34 @@ await loadRejectedProducts();
 
 function escapeHtml(s=''){ return String(s||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#039;"}[m])); }
 function shortId(u){ return (u||'').toString().slice(0,8); }
+
+function toggleSizeWeightFields() {
+  const category = document.getElementById('productCategory').value.toLowerCase();
+  const sizeWeightFields = document.getElementById('sizeWeightFields');
+  const sizesSection = document.getElementById('sizesSection');
+  const shoeSizesSection = document.getElementById('shoeSizesSection');
+  const weightSection = document.getElementById('weightSection');
+  
+  sizeWeightFields.classList.add('hidden');
+  sizesSection.classList.add('hidden');
+  shoeSizesSection.classList.add('hidden');
+  weightSection.classList.add('hidden');
+  
+  if (category.includes('تيشرت') || category.includes('قميص') || category.includes('قمصان') || category.includes('بنطلون') || category.includes('بناطيل') || category.includes('فستان') || category.includes('فساتين') || category.includes('جاكيت') || category.includes('جاكيتات') || category.includes('بلوز')) {
+    sizeWeightFields.classList.remove('hidden');
+    sizesSection.classList.remove('hidden');
+  }
+  
+  if (category.includes('أحذية') || category.includes('حذاء') || category.includes('صندل') || category.includes('صنادل') || category.includes('شبشب')) {
+    sizeWeightFields.classList.remove('hidden');
+    shoeSizesSection.classList.remove('hidden');
+  }
+  
+  if (category.includes('بالكيلو') || category.includes('بالوزن') || category.includes('مكسرات') || category.includes('بهارات') || category.includes('فواكه مجففة') || category.includes('خضروات') || category.includes('حلويات')) {
+    sizeWeightFields.classList.remove('hidden');
+    weightSection.classList.remove('hidden');
+  }
+}
 
 document.addEventListener("DOMContentLoaded", () => {
   if(!supabase) return console.error("supabase غير مُهيأ — ضع مفتاح anon الصحيح");

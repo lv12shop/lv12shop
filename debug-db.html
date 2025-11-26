@@ -8,13 +8,11 @@
 <body>
   <h1>Database Debug</h1>
   <div id="results"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
 
   <script>
-    const supabase = window.supabase.createClient(
-      "https://nszhzfysitppxssplqfb.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zemh6ZnlzaXRwcHhzc3BscWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA4OTcsImV4cCI6MjA3MzgwNjg5N30.5KvK4bhqkZ_GpIfED4qecIMfeubAJYwSFJslULwOp-w"
-    );
-
+  
     async function debugDatabase() {
       const results = document.getElementById('results');
       

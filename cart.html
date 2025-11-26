@@ -324,7 +324,7 @@ searchInput?.addEventListener("input", async () => {
     img:
       p.product_images?.find(i => i.is_primary)?.image_url ||
       p.product_images?.[0]?.image_url ||
-      "/placeholder.png"
+      "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect width='200' height='200' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' font-family='Arial' font-size='14' fill='%23999'%3ENo Image%3C/text%3E%3C/svg%3E"
   }));
 
   if (!results.length) {
@@ -842,12 +842,10 @@ footer a:hover {
   color: var(--primary);
 }
 </style>
-  <script>
-const SUPABASE_URL = "https://nszhzfysitppxssplqfb.supabase.co";
-const SUPABASE_ANON_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zemh6ZnlzaXRwcHhzc3BscWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA4OTcsImV4cCI6MjA3MzgwNjg5N30.5KvK4bhqkZ_GpIfED4qecIMfeubAJYwSFJslULwOp-w";
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  <script>
 
 const cartList = document.getElementById("cartList");
 const emptyEl = document.getElementById("empty");
@@ -886,6 +884,30 @@ function showToast(msg, ok = true) {
 
 function formatEGP(v) {
   return `${Number(v).toFixed(2)} ج.م`;
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function renderProductOptions(options) {
+  let optionsHtml = '';
+  
+  if (options.size) {
+    optionsHtml += `<span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full mr-1 mb-1">المقاس: ${options.size}</span>`;
+  }
+  
+  if (options.shoeSize) {
+    optionsHtml += `<span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full mr-1 mb-1">مقاس الحذاء: ${options.shoeSize}</span>`;
+  }
+  
+  if (options.weight) {
+    optionsHtml += `<span class="inline-block bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full mr-1 mb-1">الوزن: ${options.weight} ${options.weightUnit || 'كيلو'}</span>`;
+  }
+  
+  return optionsHtml ? `<div class="mb-2">${optionsHtml}</div>` : '';
 }
 
 function calcTotals() {
@@ -935,7 +957,9 @@ async function renderCart() {
           <h3 class="font-bold text-lg text-gray-800 mb-1 cursor-pointer hover:text-blue-600 transition-colors" onclick="goToProduct(${it.id})">
             ${escapeHtml(it.name)}
           </h3>
-          <p class="text-gray-500 text-sm mb-3">${formatEGP(price)} للوحدة</p>
+          <p class="text-gray-500 text-sm mb-1">${formatEGP(price)} للوحدة</p>
+          ${it.options ? renderProductOptions(it.options) : ''}
+          <div class="mb-2"></div>
           
           <div class="flex items-center justify-between">
             <div class="quantity-controls">
@@ -1287,30 +1311,44 @@ checkoutBtn.addEventListener("click", async () => {
     ? (remainingToPay > 0 ? "mixed" : "wallet")
     : selectedPay;
 
-  const orders = cart.map(p => ({
-    user_id: currentUser.id,
-    seller_id: p.seller_id,       
+  const orders = cart.map(p => {
+    const orderData = {
+      user_id: currentUser.id,
+      seller_id: p.seller_id,       
 
-    name: custName.value.trim(),
-    phone: custPhone.value.trim(),
-    address: custAddress.value.trim(),
+      name: custName.value.trim(),
+      phone: custPhone.value.trim(),
+      address: custAddress.value.trim(),
 
-    product_id: p.id,
-    quantity: p.quantity || 1,
-    price: p.price,
-    total_price: p.price * (p.quantity || 1),
+      product_id: p.id,
+      quantity: p.quantity || 1,
+      price: p.price,
+      total_price: p.price * (p.quantity || 1),
 
-    status: "pending",
-    delivery_status: "pending",
+      status: "pending",
+      delivery_status: "pending",
 
-    payment_method: finalPaymentMethod,
-    payment_ref: payRef,
-    wallet_paid: walletDeducted,
-    remaining_to_pay: remainingToPay,
+      payment_method: finalPaymentMethod,
+      payment_ref: payRef,
+      wallet_paid: walletDeducted,
+      remaining_to_pay: remainingToPay,
 
-    delivery_date: deliveryISO,
-    created_at: new Date().toISOString(),
-  }));
+      delivery_date: deliveryISO,
+      created_at: new Date().toISOString(),
+    };
+    
+    // Add product options if available
+    if (p.options) {
+      if (p.options.size) orderData.selected_size = p.options.size;
+      if (p.options.shoeSize) orderData.selected_shoe_size = p.options.shoeSize;
+      if (p.options.weight) {
+        orderData.selected_weight = p.options.weight;
+        orderData.selected_weight_unit = p.options.weightUnit;
+      }
+    }
+    
+    return orderData;
+  });
 
   const { data: insertedOrders } = await supabase.from("orders").insert(orders).select();
 

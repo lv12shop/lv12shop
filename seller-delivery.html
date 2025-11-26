@@ -285,11 +285,11 @@
     </div>
   </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
 
 <script>
-const SUPABASE_URL = "https://nszhzfysitppxssplqfb.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zemh6ZnlzaXRwcHhzc3BscWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA4OTcsImV4cCI6MjA3MzgwNjg5N30.5KvK4bhqkZ_GpIfED4qecIMfeubAJYwSFJslULwOp-w";
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
   const AMIRI_FONT = '';
 
 let page = 1, pageSize = 10, totalCount = 0;
@@ -381,19 +381,34 @@ async function loadOrders(skipFallback = false) {
       .from('orders')
       .select(`
         id,
+        user_id,
+        product_id,
         name,
         phone,
         address,
         quantity,
+        price,
+        total_price,
         status,
+        delivery_status,
         payment_method,
+        payment_ref,
+        wallet_paid,
+        remaining_to_pay,
         delivery_date,
         delivery_time,
-        created_at,
-        product_id,
-        price,
         notes,
+        seller_notes,
+        return_reason,
+        tracking_number,
+        tracking_company,
+        order_group_id,
+        selected_size,
+        selected_shoe_size,
+        selected_weight,
+        selected_weight_unit,
         seller_id,
+        created_at,
         products:products!orders_product_id_fkey (
           id, name, price, product_images(image_url, is_primary)
         )
@@ -772,6 +787,9 @@ function renderOrdersList(){
           <div class="prod-sub">العنوان: ${o.address||'-'}</div>
           <div class="prod-sub">الكمية: ${o.quantity||1} · ${o.delivery_date||'-'} ${o.delivery_time||''}</div>
           <div class="prod-sub">رمز المنتج: ${generateProductNumber(o, prod, 1)}</div>
+          ${o.selected_size ? `<div class="prod-sub">المقاس: ${o.selected_size}</div>` : ''}
+          ${o.selected_shoe_size ? `<div class="prod-sub">مقاس الحذاء: ${o.selected_shoe_size}</div>` : ''}
+          ${o.selected_weight ? `<div class="prod-sub">الوزن: ${o.selected_weight} ${o.selected_weight_unit || 'كج'}</div>` : ''}
           <div class="prod-sub" title="ملاحظات">ملاحظات: ${o.notes ? (o.notes.length>80? o.notes.slice(0,80)+'…' : o.notes) : '-'}</div>
         </div>
         <div style="min-width:76px;text-align:center">
