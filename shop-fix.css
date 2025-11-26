@@ -1,0 +1,31 @@
+/* إصلاح عرض الصور في جميع الأقسام */
+.product-card-modern img,
+#categoriesBar img,
+#todayDealsCarousel img,
+#discountsGrid img,
+#allProductsGrid img,
+#under100 img,
+#under200 img {
+  width: 100% !important;
+  height: 140px !important;
+  object-fit: contain !important;
+  padding: 8px !important;
+  background: #f9fafb !important;
+}
+
+@media (min-width: 640px) {
+  .product-card-modern img {
+    height: 180px !important;
+    padding: 12px !important;
+  }
+}
+
+/* إصلاح الصور في السلايدر الأفقي */
+#categorySections img,
+.hide-scrollbar img {
+  width: 100% !important;
+  height: 120px !important;
+  object-fit: contain !important;
+  padding: 8px !important;
+  background: #f9fafb !important;
+}

@@ -1,227 +1,176 @@
-// Supabase Configuration
-const SUPABASE_URL = "https://nszhzfysitppxssplqfb.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zemh6ZnlzaXRwcHhzc3BscWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzA4OTcsImV4cCI6MjA3MzgwNjg5N30.5KvK4bhqkZ_GpIfED4qecIMfeubAJYwSFJslULwOp-w";
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// تحميل وعرض المنتجات بشكل محسّن
+if (typeof window.allProducts === 'undefined') window.allProducts = [];
+if (typeof window.client === 'undefined') window.client = supabase;
 
-// Helper Functions
-function escapeHtml(text) {
-  const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-  return String(text || '').replace(/[&<>"']/g, m => map[m]);
+async function loadProducts() {
+  if (window.allProducts.length > 0) return;
+  try {
+    const { data, error } = await window.client
+      .from('products')
+      .select(`
+        id, name, price, discount_price, discount_start, discount_end,
+        category, stock, views, created_at,
+        product_images(image_url, is_primary, ordering)
+      `)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    const now = new Date();
+    window.allProducts = data.map(p => {
+      const imgs = (p.product_images || []).sort((a,b) => (a.ordering||0) - (b.ordering||0));
+      const mainImg = imgs.find(i => i.is_primary)?.image_url || imgs[0]?.image_url || '/lv12.png';
+      
+      const discountActive = p.discount_price && 
+        p.discount_start && p.discount_end &&
+        new Date(p.discount_start) <= now && 
+        new Date(p.discount_end) >= now;
+
+      return { ...p, mainImg, discountActive };
+    });
+
+    renderAllSections(window.allProducts);
+  } catch (err) {
+    console.error('❌ خطأ في تحميل المنتجات:', err);
+  }
 }
 
-function calculateDiscount(oldPrice, newPrice) {
-  if (!oldPrice || !newPrice || oldPrice <= newPrice) return 0;
-  return Math.round(((oldPrice - newPrice) / oldPrice) * 100);
-}
-
-function isToday(dateString) {
-  if (!dateString) return false;
-  const date = new Date(dateString);
-  const today = new Date();
-  return date.getDate() === today.getDate() &&
-         date.getMonth() === today.getMonth() &&
-         date.getFullYear() === today.getFullYear();
-}
-
-// Product Card Template
-function createProductCard(product) {
-  const img = product.product_images?.find(i => i.is_primary)?.image_url || 
-              product.product_images?.[0]?.image_url || 
-              '/placeholder.png';
-  
-  const discount = calculateDiscount(product.old_price, product.price);
-  const isNew = isToday(product.created_at);
+function renderProductCard(p) {
+  const price = p.discount_price || p.price;
+  const hasDiscount = p.discount_price && p.discount_price < p.price;
+  const discountPercent = hasDiscount ? Math.round(((p.price - p.discount_price) / p.price) * 100) : 0;
   
   return `
-    <div class="product-card-modern" onclick="window.location.href='product.html?id=${product.id}'">
-      <div class="relative overflow-hidden">
-        <img src="${img}" alt="${escapeHtml(product.name)}" loading="lazy">
-        ${discount > 0 ? `<div class="discount-badge">-${discount}%</div>` : ''}
-        ${isNew ? `<div class="new-badge">جديد</div>` : ''}
-      </div>
-      <div class="product-info">
-        <h3 class="product-title">${escapeHtml(product.name)}</h3>
-        <div class="product-price">
-          <span class="price-current">${Number(product.price || 0).toFixed(0)} ج.م</span>
-          ${product.old_price && product.old_price > product.price ? 
-            `<span class="price-old">${Number(product.old_price).toFixed(0)} ج.م</span>` : ''}
+    <div class="product-card-modern" onclick="location.href='product.html?id=${p.id}'">
+      ${hasDiscount ? `<div class="discount-badge">-${discountPercent}%</div>` : ''}
+      <img src="${p.mainImg}" alt="${escapeHtml(p.name)}" loading="lazy" style="width:100%!important;height:140px!important;object-fit:contain!important;padding:8px!important;background:#f9fafb!important">
+      <div class="p-3">
+        <h3 class="font-bold text-gray-800 text-sm mb-1 truncate">${escapeHtml(p.name)}</h3>
+        <div class="flex items-center gap-2">
+          <span class="text-blue-700 font-bold text-sm">${price} ج.م</span>
+          ${hasDiscount ? `<span class="line-through text-gray-400 text-xs">${p.price}</span>` : ''}
         </div>
       </div>
     </div>
   `;
 }
 
-// Load Today's Deals (Products created today)
-async function loadTodayDeals() {
-  try {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    const { data: products, error } = await supabase
-      .from('products')
-      .select('id, name, price, old_price, created_at, product_images(image_url, is_primary)')
-      .gte('created_at', today.toISOString())
-      .order('created_at', { ascending: false })
-      .limit(10);
-
-    const container = document.getElementById('todayDealsCarousel');
-    if (error || !products || products.length === 0) {
-      document.getElementById('todayDeals').style.display = 'none';
-      return;
-    }
-
-    container.innerHTML = products.map(p => {
-      const img = p.product_images?.find(i => i.is_primary)?.image_url || 
-                  p.product_images?.[0]?.image_url || '/placeholder.png';
-      const discount = calculateDiscount(p.old_price, p.price);
-      
-      return `
-        <div class="min-w-[140px] sm:min-w-[180px] carousel-item cursor-pointer" onclick="window.location.href='product.html?id=${p.id}'">
-          <div class="bg-white rounded-xl sm:rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
-            <div class="relative">
-              <img src="${img}" class="w-full h-32 sm:h-40 object-cover" alt="${escapeHtml(p.name)}">
-              ${discount > 0 ? `<div class="absolute top-1 right-1 bg-red-500 text-white px-2 py-0.5 rounded text-xs font-bold">-${discount}%</div>` : ''}
-              <div class="absolute top-1 left-1 bg-green-500 text-white px-2 py-0.5 rounded text-xs font-bold">جديد</div>
-            </div>
-            <div class="p-2 sm:p-3">
-              <h3 class="text-xs sm:text-sm font-bold text-gray-800 mb-1 line-clamp-2">${escapeHtml(p.name)}</h3>
-              <div class="flex items-center gap-1 sm:gap-2">
-                <span class="text-sm sm:text-lg font-black text-orange-600">${Number(p.price || 0).toFixed(0)} ج.م</span>
-                ${p.old_price && p.old_price > p.price ? 
-                  `<span class="text-xs text-gray-400 line-through">${Number(p.old_price).toFixed(0)} ج.م</span>` : ''}
-              </div>
-            </div>
-          </div>
-        </div>
-      `;
-    }).join('');
-  } catch (e) {
-    console.error('loadTodayDeals error:', e);
-  }
+function renderAllSections(products) {
+  renderCategories(products);
+  renderTodayDeals(products);
+  renderDiscounts(products);
+  renderAllProducts(products);
+  renderPriceSections(products);
 }
 
-// Load Discounted Products
-async function loadDiscounts() {
-  try {
-    const { data: products, error } = await supabase
-      .from('products')
-      .select('id, name, price, old_price, created_at, product_images(image_url, is_primary)')
-      .not('old_price', 'is', null)
-      .gt('old_price', 0)
-      .order('created_at', { ascending: false })
-      .limit(10);
+function renderCategories(products) {
+  const bar = document.getElementById('categoriesBar');
+  const container = document.getElementById('categorySections');
+  if (!bar || !container) return;
 
-    const container = document.getElementById('discountsGrid');
-    if (error || !products || products.length === 0) {
-      document.getElementById('discountsSection').style.display = 'none';
-      return;
-    }
+  const groups = {};
+  products.forEach(p => {
+    const cat = (p.category || 'غير مصنف').trim();
+    if (!groups[cat]) groups[cat] = [];
+    groups[cat].push(p);
+  });
 
-    // Filter products that actually have discounts
-    const discountedProducts = products.filter(p => p.old_price > p.price);
-    
-    if (discountedProducts.length === 0) {
-      document.getElementById('discountsSection').style.display = 'none';
-      return;
-    }
+  bar.innerHTML = Object.keys(groups).map(cat => `
+    <div class="category-item" onclick="goToCategory('${encodeURIComponent(cat)}')">${cat}</div>
+  `).join('');
 
-    container.innerHTML = discountedProducts.map(createProductCard).join('');
-  } catch (e) {
-    console.error('loadDiscounts error:', e);
-  }
-}
-
-// Load Categories
-async function loadCategories() {
-  try {
-    const { data: categories, error } = await supabase
-      .from('categories')
-      .select('id, name, image_url')
-      .order('name');
-
-    if (error || !categories) return;
-
-    const container = document.getElementById('categoriesBar');
-    container.innerHTML = categories.map(cat => `
-      <div class="category-item" onclick="window.location.href='category.html?id=${cat.id}'">
-        ${escapeHtml(cat.name)}
+  container.innerHTML = Object.keys(groups).map(cat => `
+    <section class="bg-white p-4 rounded-3xl shadow-md mb-6">
+      <div class="flex justify-between items-center mb-3">
+        <h2 class="font-bold text-xl text-blue-900">${cat}</h2>
+        <button class="text-blue-600 text-sm font-semibold hover:underline" 
+                onclick="goToCategory('${encodeURIComponent(cat)}')">عرض الكل →</button>
       </div>
-    `).join('');
-  } catch (e) {
-    console.error('loadCategories error:', e);
-  }
+      <div class="flex gap-3 overflow-x-auto snap-x pb-2 hide-scrollbar">
+        ${groups[cat].slice(0, 10).map(p => `
+          <div class="min-w-[150px] bg-white rounded-xl border p-2 shadow-sm hover:shadow-md transition cursor-pointer snap-center"
+               onclick="location.href='product.html?id=${p.id}'">
+            <img src="${p.mainImg}" style="width:100%;height:120px;object-fit:contain;padding:8px;background:#f9fafb" class="rounded-lg mb-1">
+            <p class="text-sm font-semibold text-gray-800 truncate">${escapeHtml(p.name)}</p>
+            <p class="text-xs text-blue-600 font-bold mt-1">${p.discount_price || p.price} ج.م</p>
+          </div>
+        `).join('')}
+      </div>
+    </section>
+  `).join('');
 }
 
-// Load All Products
-async function loadAllProducts() {
-  try {
-    const { data: products, error } = await supabase
-      .from('products')
-      .select('id, name, price, old_price, created_at, product_images(image_url, is_primary)')
-      .order('created_at', { ascending: false })
-      .limit(20);
+function renderTodayDeals(products) {
+  const container = document.getElementById('todayDealsCarousel');
+  if (!container) return;
 
-    if (error || !products) return;
+  const now = new Date();
+  const today = new Date().toDateString();
+  const deals = products.filter(p => 
+    new Date(p.created_at).toDateString() === today
+  ).slice(0, 10);
 
-    const container = document.getElementById('allProductsGrid');
-    container.innerHTML = products.map(createProductCard).join('');
-  } catch (e) {
-    console.error('loadAllProducts error:', e);
+  if (!deals.length) {
+    container.innerHTML = '<p class="text-white/80 text-sm">لا توجد منتجات جديدة اليوم</p>';
+    return;
   }
+
+  container.innerHTML = deals.map(p => `
+    <div class="min-w-[150px] bg-white/10 backdrop-blur-sm rounded-xl p-2 cursor-pointer hover:bg-white/20 transition snap-center"
+         onclick="location.href='product.html?id=${p.id}'">
+      <img src="${p.mainImg}" style="width:100%;height:120px;object-fit:contain;padding:8px;background:rgba(255,255,255,0.05)" class="rounded-lg mb-1">
+      <p class="text-white text-sm font-semibold truncate">${escapeHtml(p.name)}</p>
+      <p class="text-yellow-300 text-xs font-bold">${p.discount_price || p.price} ج.م</p>
+    </div>
+  `).join('');
 }
 
-// Load Products Under Price
-async function loadProductsUnderPrice(maxPrice, containerId, wrapperId) {
-  try {
-    const { data: products, error } = await supabase
-      .from('products')
-      .select('id, name, price, old_price, created_at, product_images(image_url, is_primary)')
-      .lt('price', maxPrice)
-      .order('price', { ascending: true })
-      .limit(10);
+function renderDiscounts(products) {
+  const container = document.getElementById('discountsGrid');
+  if (!container) return;
 
-    if (error || !products || products.length === 0) {
-      document.getElementById(wrapperId).style.display = 'none';
-      return;
-    }
-
-    const container = document.getElementById(containerId);
-    container.innerHTML = products.map(createProductCard).join('');
-  } catch (e) {
-    console.error(`loadProductsUnderPrice ${maxPrice} error:`, e);
+  const discounted = products.filter(p => p.discountActive).slice(0, 8);
+  
+  if (!discounted.length) {
+    container.innerHTML = '<p class="col-span-full text-white/80 text-sm text-center py-4">لا توجد خصومات حالياً</p>';
+    return;
   }
+
+  container.innerHTML = discounted.map(p => renderProductCard(p)).join('');
 }
 
-// Load Interest Products (Random)
-async function loadInterestProducts() {
-  try {
-    const { data: products, error } = await supabase
-      .from('products')
-      .select('id, name, price, old_price, created_at, product_images(image_url, is_primary)')
-      .order('visits', { ascending: false })
-      .limit(10);
-
-    if (error || !products || products.length === 0) {
-      document.getElementById('interestWrapper').style.display = 'none';
-      return;
-    }
-
-    const container = document.getElementById('interestProducts');
-    container.innerHTML = products.map(createProductCard).join('');
-  } catch (e) {
-    console.error('loadInterestProducts error:', e);
-  }
+function renderAllProducts(products) {
+  const container = document.getElementById('allProductsGrid');
+  if (!container) return;
+  container.innerHTML = products.slice(0, 20).map(p => renderProductCard(p)).join('');
 }
 
-// Initialize All
-document.addEventListener('DOMContentLoaded', async () => {
-  await Promise.all([
-    loadCategories(),
-    loadTodayDeals(),
-    loadDiscounts(),
-    loadAllProducts(),
-    loadProductsUnderPrice(100, 'under100', 'under100Wrapper'),
-    loadProductsUnderPrice(200, 'under200', 'under200Wrapper'),
-    loadInterestProducts()
-  ]);
-});
+function renderPriceSections(products) {
+  const under100 = products.filter(p => (p.discount_price || p.price) <= 100);
+  const under200 = products.filter(p => {
+    const price = p.discount_price || p.price;
+    return price > 100 && price <= 200;
+  });
+
+  const c1 = document.getElementById('under100');
+  const c2 = document.getElementById('under200');
+  
+  if (c1) c1.innerHTML = under100.slice(0, 8).map(p => renderProductCard(p)).join('');
+  if (c2) c2.innerHTML = under200.slice(0, 8).map(p => renderProductCard(p)).join('');
+}
+
+function goToCategory(cat) {
+  window.location.href = `category.html?name=${cat}`;
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', loadProducts);
+} else {
+  loadProducts();
+}

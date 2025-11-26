@@ -3,6 +3,8 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
+  <link rel="stylesheet" href="shop-fix.css">
+
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.5/dist/umd/supabase.min.js"></script>
@@ -1026,8 +1028,8 @@ new Swiper(".adSwiper", {
             <div class="grid grid-cols-2 gap-3 h-full">
               ${products.slice(0,4).map(p => `
                 <a href="product.html?id=${p.id}" class="group relative bg-gradient-to-br from-blue-900/80 to-purple-900/80 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/20 hover:scale-105 hover:border-yellow-400/50 transition-all duration-300 shadow-2xl">
-                  <div class="absolute inset-0">
-                    <img src="${(p.product_images?.[0]?.image_url) || 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\'%3E%3Crect width=\'200\' height=\'200\' fill=\'%23f3f4f6\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' font-family=\'Arial\' font-size=\'14\' fill=\'%23999\'%3ENo Image%3C/text%3E%3C/svg%3E'}" class="w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity" alt="${escapeHtml(p.name)}" />
+                  <div class="absolute inset-0 p-4 flex items-center justify-center">
+                    <img src="${(p.product_images?.[0]?.image_url) || 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\'%3E%3Crect width=\'200\' height=\'200\' fill=\'%23f3f4f6\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' font-family=\'Arial\' font-size=\'14\' fill=\'%23999\'%3ENo Image%3C/text%3E%3C/svg%3E'}" class="max-w-[80%] max-h-[80%] object-contain opacity-60 group-hover:opacity-80 transition-opacity" alt="${escapeHtml(p.name)}" />
                   </div>
                   <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent"></div>
                   <div class="relative z-10 p-3 h-full flex flex-col justify-end">
@@ -1298,6 +1300,21 @@ new Swiper(".adSwiper", {
     border-color: rgba(99,102,241,0.2);
   }
   
+  .product-card-modern img {
+    width: 100% !important;
+    height: 140px !important;
+    object-fit: contain !important;
+    padding: 8px !important;
+    background: #f9fafb !important;
+  }
+  
+  @media (min-width: 640px) {
+    .product-card-modern img {
+      height: 180px !important;
+      padding: 12px !important;
+    }
+  }
+  
   @media (min-width: 640px) {
     .product-card-modern:hover {
       transform: translateY(-6px);
@@ -1307,29 +1324,6 @@ new Swiper(".adSwiper", {
   
   .product-card-modern:active {
     transform: scale(0.98);
-  }
-  
-  .product-card-modern img {
-    width: 100%;
-    height: 140px;
-    object-fit: cover;
-    transition: transform .3s ease;
-  }
-  
-  @media (min-width: 640px) {
-    .product-card-modern img {
-      height: 180px;
-    }
-  }
-  
-  .product-card-modern:hover img {
-    transform: scale(1.08);
-  }
-  
-  @media (min-width: 640px) {
-    .product-card-modern:hover img {
-      transform: scale(1.12);
-    }
   }
   .product-card-modern .discount-badge {
     position: absolute;
