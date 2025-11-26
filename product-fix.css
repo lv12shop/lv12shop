@@ -1,0 +1,48 @@
+/* تحسين عرض صور المنتج */
+#mainImage {
+  width: 100%;
+  max-height: 500px;
+  object-fit: contain !important;
+  padding: 16px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+}
+
+#thumbs img {
+  width: 80px;
+  height: 80px;
+  object-fit: contain !important;
+  padding: 8px;
+  background: white;
+  border-radius: 12px;
+  border: 2px solid #e5e7eb;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+#thumbs img:hover,
+#thumbs img.active {
+  border-color: #14b8a6;
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(20,184,166,0.3);
+}
+
+/* تحسين responsive */
+@media (max-width: 1024px) {
+  #mainImage {
+    max-height: 400px;
+  }
+}
+
+@media (max-width: 640px) {
+  #mainImage {
+    max-height: 300px;
+    padding: 12px;
+  }
+  
+  #thumbs img {
+    width: 60px;
+    height: 60px;
+  }
+}
