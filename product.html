@@ -1772,6 +1772,7 @@ menuOverlay.addEventListener("click", () => {
           <div class="product-info py-8">
             <h1 id="pName" class="product-title"></h1>
             <p id="pDesc" class="product-description text-gray-600 leading-relaxed"></p>
+            <button id="toggleDescBtn" class="hidden text-blue-600 hover:text-blue-800 font-semibold text-sm mt-2 transition">عرض المزيد</button>
 
             <div class="price-section mt-6">
               <div class="flex items-center gap-3">
@@ -2251,7 +2252,24 @@ async function loadProduct() {
     `).join('');
 
     pName.textContent = data.name ?? '';
-    pDesc.textContent = data.description || 'لا يوجد وصف';
+    
+    const fullDesc = data.description || 'لا يوجد وصف';
+    const toggleBtn = document.getElementById('toggleDescBtn');
+    let isExpanded = false;
+    
+    if (fullDesc.length > 60) {
+      pDesc.textContent = fullDesc.substring(0, 60) + '...';
+      toggleBtn.classList.remove('hidden');
+      
+      toggleBtn.onclick = () => {
+        isExpanded = !isExpanded;
+        pDesc.textContent = isExpanded ? fullDesc : fullDesc.substring(0, 60) + '...';
+        toggleBtn.textContent = isExpanded ? 'عرض أقل' : 'عرض المزيد';
+      };
+    } else {
+      pDesc.textContent = fullDesc;
+    }
+    
     pStock.textContent = data.stock > 0 ? `المتوفر: ${data.stock}` : 'غير متوفر';
     pCategory.textContent = data.category || 'غير مصنف';
     pDate.textContent = formatDate(data.created_at);
