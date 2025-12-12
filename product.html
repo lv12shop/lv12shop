@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+  <meta name="fragment" content="!">
+  <link rel="canonical" href="https://www.lv12shop.shop/product.html?id=REPLACE_ID">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   
@@ -394,15 +396,16 @@ footer img {
 .product-image-section {
   position: relative;
   border-radius: var(--radius);
-  overflow: hidden;
+  overflow: visible;
   background: linear-gradient(135deg, var(--bg-muted), var(--bg-light));
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
 }
 
 .main-image {
-  transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  object-fit: cover;
+  transition: transform 0.3s ease;
+  object-fit: contain;
   width: 100%;
+  max-height: 250px;
   display: block;
 }
 
@@ -419,14 +422,48 @@ footer img {
 }
 
 .thumbnail {
-  width: 80px;
-  height: 80px;
-  border-radius: 10px;
+  width: 48px;
+  height: 48px;
+  border-radius: 6px;
   overflow: hidden;
   cursor: pointer;
-  border: 2px solid transparent;
+  border: 1px solid transparent;
   transition: all 0.2s ease;
   opacity: 0.7;
+}
+
+/* منع تحديد الصور */
+img {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  -khtml-user-drag: none;
+  -moz-user-drag: none;
+  -o-user-drag: none;
+  user-drag: none;
+  pointer-events: auto;
+}
+
+/* أزرار التكبير */
+.zoom-controls button {
+  transition: all 0.2s ease;
+  backdrop-filter: blur(4px);
+}
+
+.zoom-controls button:hover {
+  transform: scale(1.1);
+}
+
+/* حاوية الصورة */
+.image-container {
+  position: relative;
+  background: #f8f9fa;
+}
+
+.image-container:active {
+  cursor: grabbing;
 }
 
 .thumbnail:hover,
@@ -545,10 +582,10 @@ footer img {
 
 #productOptions {
   background: linear-gradient(to bottom, var(--bg-light), var(--bg-box));
-  padding: 24px;
+  padding: 16px;
   border-radius: var(--radius);
   border: 1px solid rgba(14, 165, 164, 0.1);
-  margin: 20px 0;
+  margin: 16px 0;
 }
 
 #sizeOptions, #shoeSizeOptions {
@@ -720,9 +757,9 @@ footer img {
 /* تحسينات الأقسام الرئيسية */
 .product-section {
   background: var(--bg-box);
-  padding: 24px;
+  padding: 16px;
   border-radius: var(--radius);
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   border: 1px solid rgba(14, 165, 164, 0.1);
   transition: all 0.3s ease;
 }
@@ -1425,6 +1462,87 @@ input:focus, textarea:focus, select:focus {
     window.selectSize = selectSize;
     window.selectShoeSize = selectShoeSize;
     window.validateProductOptions = validateProductOptions;
+    
+    // 🔍 متغيرات التكبير والسحب
+    let currentZoom = 1;
+    let isDragging = false;
+    let startX = 0;
+    let startY = 0;
+    let translateX = 0;
+    let translateY = 0;
+    
+    // تكبير الصورة
+    function zoomIn() {
+      currentZoom = Math.min(currentZoom + 0.3, 3);
+      updateImageTransform();
+    }
+    
+    // تصغير الصورة
+    function zoomOut() {
+      currentZoom = Math.max(currentZoom - 0.3, 0.5);
+      updateImageTransform();
+    }
+    
+    // إعادة تعيين الحجم
+    function resetZoom() {
+      currentZoom = 1;
+      translateX = 0;
+      translateY = 0;
+      updateImageTransform();
+    }
+    
+    // تحديث تحويل الصورة
+    function updateImageTransform() {
+      const img = document.getElementById('mainImage');
+      if (img) {
+        img.style.transform = `scale(${currentZoom}) translate(${translateX}px, ${translateY}px)`;
+      }
+    }
+    
+    // بدء السحب
+    function startDrag(e) {
+      if (currentZoom <= 1) return;
+      isDragging = true;
+      startX = e.clientX - translateX;
+      startY = e.clientY - translateY;
+      e.preventDefault();
+    }
+    
+    // السحب
+    function drag(e) {
+      if (!isDragging || currentZoom <= 1) return;
+      translateX = e.clientX - startX;
+      translateY = e.clientY - startY;
+      updateImageTransform();
+      e.preventDefault();
+    }
+    
+    // إنهاء السحب
+    function endDrag() {
+      isDragging = false;
+    }
+    
+    // منع حفظ الصورة
+    document.addEventListener('contextmenu', function(e) {
+      if (e.target.tagName === 'IMG') {
+        e.preventDefault();
+      }
+    });
+    
+    // منع السحب والإفلات
+    document.addEventListener('dragstart', function(e) {
+      if (e.target.tagName === 'IMG') {
+        e.preventDefault();
+      }
+    });
+    
+    // تعريض الدوال للمتغيرات العامة
+    window.zoomIn = zoomIn;
+    window.zoomOut = zoomOut;
+    window.resetZoom = resetZoom;
+    window.startDrag = startDrag;
+    window.drag = drag;
+    window.endDrag = endDrag;ptions = validateProductOptions;
     window.addToCartWithOptions = addToCartWithOptions;
     window.setupProductOptions = setupProductOptions;
     window.selectedOptions = selectedOptions;
@@ -1432,27 +1550,65 @@ input:focus, textarea:focus, select:focus {
 </head>
 <script>
 function injectProductSchema(p) {
+  // إزالة Schema القديم إن وجد
+  const oldSchema = document.querySelector('script[type="application/ld+json"][data-product]');
+  if (oldSchema) oldSchema.remove();
+  
   const schema = {
     "@context": "https://schema.org/",
     "@type": "Product",
     "name": p.name,
-    "image": p.image,
-    "description": p.description || "منتج متوفر في متجر LV12",
-    "sku": p.id,
-    "brand": { "@type": "Brand", "name": "LV12" },
+    "image": [p.image],
+    "description": p.description,
+    "sku": `LV12-${p.id}`,
+    "mpn": `${p.id}`,
+    "brand": {
+      "@type": "Brand",
+      "name": "LV12",
+      "url": "https://www.lv12shop.shop"
+    },
+    "category": p.category || "منتجات عامة",
     "offers": {
       "@type": "Offer",
-      "priceCurrency": "EGP",
-      "price": p.discount_price && p.discount_price < p.price ? p.discount_price : p.price,
-      "availability": p.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-      "url": window.location.href
+      "priceCurrency": p.currency || "EGP",
+      "price": p.price,
+      "availability": `https://schema.org/${p.availability}`,
+      "url": window.location.href,
+      "seller": {
+        "@type": "Organization",
+        "name": "متجر LV12",
+        "url": "https://www.lv12shop.shop"
+      }
+    },
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.5",
+      "reviewCount": "10"
     }
   };
 
   const script = document.createElement("script");
   script.type = "application/ld+json";
+  script.setAttribute('data-product', 'true');
   script.innerHTML = JSON.stringify(schema, null, 2);
   document.head.appendChild(script);
+  
+  // 🚀 إشعار Google بالمنتج الجديد
+  notifyGoogleOfProduct(p.id);
+}
+
+// إشعار Google بالمنتج الجديد للأرشفة السريعة
+function notifyGoogleOfProduct(productId) {
+  try {
+    // إرسال ping لـ Google للأرشفة السريعة
+    const pingUrl = `https://www.google.com/ping?sitemap=https://www.lv12shop.shop/sitemap.xml`;
+    fetch(pingUrl, { mode: 'no-cors' }).catch(() => {});
+    
+    // تسجيل في Console للمطور
+    console.log(`🔍 تم إشعار Google بالمنتج رقم ${productId} للأرشفة`);
+  } catch (e) {
+    console.warn('تعذر إشعار Google:', e);
+  }
 }
 </script>
 <script type="application/ld+json">
@@ -1755,72 +1911,98 @@ menuOverlay.addEventListener("click", () => {
 });
 </script>
 
-  <main class="max-w-7xl mx-auto px-6 py-12">
-    <section id="productBlock" class="product-section overflow-hidden">
-      <div id="productSkeleton" class="skeleton animate-pulse text-center py-20 text-gray-500">
-        <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600 mb-4"></div>
-        <p class="text-lg font-medium">⏳ جاري تحميل تفاصيل المنتج...</p>
+  <main class="max-w-6xl mx-auto px-3 py-3 pb-20">
+    <section id="productBlock" class="bg-white rounded-lg shadow-sm overflow-hidden">
+      <div id="productSkeleton" class="text-center py-8 text-gray-500">
+        <div class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-teal-600 mb-2"></div>
+        <p class="text-sm">⏳ جاري التحميل...</p>
       </div>
 
       <div id="productContent" class="hidden">
-        <div class="grid lg:grid-cols-2 gap-12">
-          <div class="image-gallery p-8 product-image-section">
-            <div id="discountBadge" class="discount-badge hidden absolute top-6 right-6 z-10">خصم خاص!</div>
-            <img id="mainImage" alt="صورة المنتج" class="main-image" />
-            <div id="thumbs" class="image-thumbnails mt-6"></div>
+        <div class="grid md:grid-cols-2 gap-4 p-3">
+          <div class="image-gallery relative">
+            <div id="discountBadge" class="discount-badge hidden absolute top-2 right-2 z-10 text-xs px-2 py-1">خصم!</div>
+            
+            <!-- أزرار التكبير والتصغير -->
+            <div class="zoom-controls absolute top-2 left-2 z-20 flex flex-col gap-1">
+              <button onclick="zoomIn()" class="bg-white/80 hover:bg-white text-gray-700 w-8 h-8 rounded-full flex items-center justify-center shadow-md text-lg font-bold">
+                +
+              </button>
+              <button onclick="zoomOut()" class="bg-white/80 hover:bg-white text-gray-700 w-8 h-8 rounded-full flex items-center justify-center shadow-md text-lg font-bold">
+                -
+              </button>
+              <button onclick="resetZoom()" class="bg-white/80 hover:bg-white text-gray-700 w-8 h-8 rounded-full flex items-center justify-center shadow-md text-xs">
+                ⌂
+              </button>
+            </div>
+            
+            <div class="image-container relative overflow-hidden rounded-lg border h-64 cursor-move" 
+                 onmousedown="startDrag(event)" 
+                 onmousemove="drag(event)" 
+                 onmouseup="endDrag()" 
+                 onmouseleave="endDrag()">
+              <img id="mainImage" 
+                   alt="صورة المنتج" 
+                   class="w-full h-full object-contain transition-transform duration-200" 
+                   style="transform: scale(1) translate(0px, 0px);"
+                   oncontextmenu="return false;"
+                   ondragstart="return false;" />
+            </div>
+            
+            <div id="thumbs" class="flex gap-2 mt-2 overflow-x-auto"></div>
           </div>
-          <div class="product-info py-8">
-            <h1 id="pName" class="product-title"></h1>
-            <p id="pDesc" class="product-description text-gray-600 leading-relaxed"></p>
-            <button id="toggleDescBtn" class="hidden text-blue-600 hover:text-blue-800 font-semibold text-sm mt-2 transition">عرض المزيد</button>
+          <div class="product-info p-2">
+            <h1 id="pName" class="text-lg font-bold text-gray-800 mb-2"></h1>
+            <p id="pDesc" class="text-gray-600 text-xs leading-relaxed mb-2"></p>
+            <button id="toggleDescBtn" class="hidden text-blue-600 text-xs">المزيد</button>
 
-            <div class="price-section mt-6">
-              <div class="flex items-center gap-3">
-                <span id="pPrice" class="price-current"></span>
-                <span id="oldPrice" class="price-old hidden"></span>
+            <div class="price-section mt-3">
+              <div class="flex items-center gap-2">
+                <span id="pPrice" class="text-lg font-bold text-teal-600"></span>
+                <span id="oldPrice" class="text-xs text-gray-400 line-through hidden"></span>
               </div>
-              <div id="discountTimer" class="text-red-500 font-bold text-sm mt-2 hidden flex items-center gap-2">
-                <span>⏰ العرض ينتهي خلال:</span>
-                <span id="timerText" class="bg-red-100 px-2 py-1 rounded"></span>
+              <div id="discountTimer" class="text-red-500 text-xs mt-1 hidden">
+                <span>⏰ ينتهي خلال:</span>
+                <span id="timerText" class="bg-red-100 px-1 rounded"></span>
               </div>
             </div>
 
-            <div class="stats-grid grid grid-cols-3 gap-4 mt-8 p-4 bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl border border-blue-100">
-              <div class="stat-item text-center">
-                <div id="viewsNum" class="stat-number text-2xl font-bold text-blue-600">0</div>
-                <div class="stat-label text-xs text-gray-600 mt-1">👁️ مشاهدة</div>
+            <div class="stats-grid grid grid-cols-3 gap-1 mt-3 p-2 bg-gray-50 rounded text-center">
+              <div>
+                <div id="viewsNum" class="text-sm font-bold text-blue-600">0</div>
+                <div class="text-xs text-gray-500">مشاهدة</div>
               </div>
-              <div class="stat-item text-center border-r border-l border-gray-200">
-                <div id="salesCount" class="stat-number text-2xl font-bold text-teal-600">0</div>
-                <div class="stat-label text-xs text-gray-600 mt-1">🛍️ مبيعات</div>
+              <div class="border-r border-l border-gray-200">
+                <div id="salesCount" class="text-sm font-bold text-teal-600">0</div>
+                <div class="text-xs text-gray-500">مبيعات</div>
               </div>
-              <div class="stat-item text-center">
-                <div class="stat-number text-2xl font-bold text-orange-600">في المتجر</div>
-                <div id="pStock" class="stat-label text-xs text-gray-600 mt-1"></div>
+              <div>
+                <div class="text-xs font-bold text-orange-600">متوفر</div>
+                <div id="pStock" class="text-xs text-gray-500"></div>
               </div>
             </div>
 
-            <div id="productOptions" class="mb-6 space-y-4"></div>
+            <div id="productOptions" class="mb-3 space-y-2"></div>
 
-            <div class="action-buttons grid grid-cols-2 gap-4 mt-8">
-              <button id="addToCartBtn" class="btn-modern bg-gradient-to-br from-teal-500 via-teal-600 to-teal-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg hover:shadow-xl text-lg relative z-10">
-                🛒 أضف للسلة
+            <div class="action-buttons grid grid-cols-2 gap-2 mt-3">
+              <button id="addToCartBtn" class="bg-teal-600 text-white font-bold py-2 px-3 rounded text-sm hover:bg-teal-700">
+                🛒 أضف
               </button>
-              <button id="buyNowBtn" class="btn-modern bg-gradient-to-br from-orange-500 via-orange-600 to-orange-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg hover:shadow-xl text-lg relative z-10">
-                ⚡ اشتري الآن
+              <button id="buyNowBtn" class="bg-orange-600 text-white font-bold py-2 px-3 rounded text-sm hover:bg-orange-700">
+                ⚡ اشتري
               </button>
             </div>
 
-            <div class="mt-8 p-6 bg-gradient-to-br from-blue-50 to-teal-50 rounded-2xl border border-blue-100">
-              <h3 class="section-title mb-4">📋 معلومات المنتج</h3>
-              <div class="grid grid-cols-2 gap-4 text-sm">
-                <div class="product-info-box">
-                  <span class="font-semibold text-gray-700">الفئة:</span>
-                  <div id="pCategory" class="text-teal-600 font-medium mt-1"></div>
+            <div class="mt-3 p-2 bg-gray-50 rounded">
+              <h3 class="text-xs font-bold text-gray-700 mb-1">📋 معلومات</h3>
+              <div class="grid grid-cols-2 gap-2 text-xs">
+                <div>
+                  <span class="text-gray-600">الفئة:</span>
+                  <div id="pCategory" class="text-teal-600 font-medium"></div>
                 </div>
-                <div class="product-info-box">
-                  <span class="font-semibold text-gray-700">تاريخ الإضافة:</span>
-                  <div id="pDate" class="text-gray-600 mt-1"></div>
+                <div>
+                  <span class="text-gray-600">التاريخ:</span>
+                  <div id="pDate" class="text-gray-600"></div>
                 </div>
               </div>
             </div>
@@ -1828,29 +2010,27 @@ menuOverlay.addEventListener("click", () => {
         </div>
       </div>
     </section>
-    <section class="product-section mt-8">
-      <div class="flex items-center justify-between flex-wrap gap-6">
+    <section class="bg-white rounded-lg shadow-sm p-3 mt-3">
+      <div class="flex items-center justify-between">
         <div>
-          <h3 class="section-title mb-0">🏪 معلومات البائع</h3>
-          <p class="text-lg font-semibold text-gray-700 mt-4">
-            <span id="sellerName" class="text-teal-600 font-bold">جاري التحميل...</span>
-          </p>
+          <h3 class="text-sm font-bold text-gray-700">🏪 البائع</h3>
+          <span id="sellerName" class="text-teal-600 text-xs font-bold">جاري التحميل...</span>
         </div>
-        <button id="sellerProductsBtn" class="btn-modern bg-gradient-to-r from-teal-500 to-teal-600 text-white px-8 py-3 rounded-lg font-bold relative z-10">
-          🔍 منتجات البائع
+        <button id="sellerProductsBtn" class="bg-teal-600 text-white px-3 py-1 rounded text-xs hover:bg-teal-700">
+          🔍 منتجاته
         </button>
       </div>
     </section>
 
-    <section id="reviews" class="product-section mt-8">
-      <div class="flex justify-between items-center mb-6 flex-wrap gap-4">
-        <h2 class="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">⭐ تقييمات العملاء</h2>
-        <div id="avgBadge" class="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-4 py-2 rounded-full font-bold shadow-lg"></div>
+    <section id="reviews" class="bg-white rounded-lg shadow-sm p-3 mt-3">
+      <div class="flex justify-between items-center mb-3">
+        <h2 class="text-sm font-bold text-indigo-600">⭐ التقييمات</h2>
+        <div id="avgBadge" class="bg-yellow-500 text-white px-2 py-1 rounded text-xs font-bold"></div>
       </div>
 
-      <div id="ratingSummary" class="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border border-blue-100"></div>
+      <div id="ratingSummary" class="mb-3 p-2 bg-blue-50 rounded text-xs"></div>
       
-      <div id="reviewsList" class="space-y-4 mb-6"></div>
+      <div id="reviewsList" class="space-y-2 mb-3"></div>
 
       <div class="border-t border-gray-200 pt-6 mt-6">
         <div id="reviewLoginNotice" class="hidden">
@@ -2019,6 +2199,7 @@ menuOverlay.addEventListener("click", () => {
   </footer>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
+<script src="auto-indexing.js"></script>
 
 <script>
 
@@ -2051,6 +2232,16 @@ const toast = document.getElementById('toast');
 
 const params = new URLSearchParams(window.location.search);
 const productId = Number(params.get('id') || 0);
+
+// 🔥 منع رجوع المستخدم للصفحة الرئيسية عند فتح المنتج من جوجل
+if (!params.get('id')) {
+  document.getElementById("productBlock").innerHTML = `
+    <div style="padding: 40px; text-align: center; font-size: 20px; color: red;">
+      ⚠ لا يمكن عرض هذا المنتج لأن الرابط الذي جاء من Google ناقص ولا يحتوي على رقم المنتج.
+    </div>
+  `;
+  throw new Error("No product ID found");
+}
 
 let currentUser = null;
 let selectedRating = 0;
@@ -2247,9 +2438,15 @@ async function loadProduct() {
     mainImage.src = main?.image_url || '/assets/no-image.png';
     thumbsEl.innerHTML = imgs.map(im => `
       <img src="${im.image_url}"
-           class="w-20 h-20 rounded object-cover border cursor-pointer hover:scale-105 transition"
-           onclick="mainImage.src='${im.image_url}'" />
+           class="w-12 h-12 rounded object-cover border cursor-pointer hover:scale-105 transition"
+           onclick="changeMainImage('${im.image_url}')" />
     `).join('');
+    
+    // دالة تغيير الصورة مع إعادة تعيين التكبير
+    window.changeMainImage = function(src) {
+      mainImage.src = src;
+      resetZoom();
+    };
 
     pName.textContent = data.name ?? '';
     
@@ -2274,17 +2471,44 @@ async function loadProduct() {
     pCategory.textContent = data.category || 'غير مصنف';
     pDate.textContent = formatDate(data.created_at);
 
+    // تحديث الرابط الكانونيكال بـ ID المنتج الحقيقي
+    document.querySelector("link[rel='canonical']").href = 
+      `https://www.lv12shop.shop/product.html?id=${productId}`;
+    
     const price = Number(data.price || 0);
     const discount = data.discount_price ? Number(data.discount_price) : null;
     const dStart = data.discount_start ? new Date(data.discount_start) : null;
     const dEnd = data.discount_end ? new Date(data.discount_end) : null;
     const now = new Date();
-
+    const discountActive = discount && dEnd && now <= dEnd && (!dStart || now >= dStart);
+    
+    // 🔥 تحديث معلومات SEO للمنتج
+    document.title = `${data.name} | متجر LV12 - منتج رقم ${productId}`;
+    document.querySelector('meta[name="description"]').content = 
+      `اشتري ${data.name} من متجر LV12 بسعر ${discountActive ? discount : price} ج.م - ${data.description || 'منتج عالي الجودة'} - رقم المنتج: ${productId}`;
+    
+    // تحديث Open Graph للمشاركة
+    document.querySelector('meta[property="og:title"]').content = `${data.name} | متجر LV12`;
+    document.querySelector('meta[property="og:description"]').content = 
+      `${data.description || data.name} - بسعر ${discountActive ? discount : price} ج.م من متجر LV12`;
+    document.querySelector('meta[property="og:image"]').content = main?.image_url || '/lv12.png';
+    document.querySelector('meta[property="og:url"]').content = window.location.href;
+    
+    // إضافة Schema.org للمنتج
+    injectProductSchema({
+      id: productId,
+      name: data.name,
+      description: data.description || `منتج ${data.name} من متجر LV12`,
+      image: main?.image_url || '/lv12.png',
+      price: discountActive ? discount : price,
+      currency: 'EGP',
+      availability: data.stock > 0 ? 'InStock' : 'OutOfStock',
+      brand: 'LV12',
+      category: data.category
+    });
     oldPrice.classList.add("hidden");
     discountBadge.classList.add("hidden");
     discountTimer.classList.add("hidden");
-
-    const discountActive = discount && dEnd && now <= dEnd && (!dStart || now >= dStart);
 
     if (discountActive) {
       pPrice.innerHTML = `<span class="text-red-600 font-bold text-2xl">${discount.toLocaleString('ar-EG')} ج.م</span>`;

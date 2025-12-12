@@ -1,4 +1,19 @@
 User-agent: *
 Allow: /
 
+# خريطة الموقع
 Sitemap: https://www.lv12shop.shop/sitemap.xml
+
+# السماح بأرشفة المنتجات
+Allow: /product.html*
+Allow: /shop.html
+Allow: /index.html
+
+# منع أرشفة الملفات الحساسة
+Disallow: /admin/
+Disallow: /api/
+Disallow: /*.js$
+Disallow: /*.css$
+
+# معلومات إضافية
+Crawl-delay: 1
